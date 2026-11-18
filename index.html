@@ -211,6 +211,7 @@ main{padding:12px}.panel{padding:14px}.top{padding:10px 14px}.fecha{display:none
     <div class="campo"><label for="lEmail">Correo</label><input type="email" id="lEmail" required autocomplete="username"></div>
     <div class="campo"><label for="lPass">Contraseña</label><input type="password" id="lPass" required autocomplete="current-password"></div>
     <button class="btn" style="width:100%;padding:12px">Entrar</button>
+    <p style="margin:14px 0 0;font-size:13.5px;text-align:center"><a href="#" id="olvide" style="color:var(--tinta2)">Olvidé mi contraseña</a></p>
   </form>
 </div>
 
@@ -1277,6 +1278,26 @@ $('#fIngreso').onsubmit = async e => {
   entrar(data.session);
 };
 $('#btnSalir').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+$('#olvide').onclick = async e => {
+  e.preventDefault();
+  const email = $('#lEmail').value.trim();
+  if (!email) return aviso('Escribe tu correo arriba y vuelve a tocar el enlace', true);
+  if (!location.protocol.startsWith('http')) return aviso('Para recuperar tu contraseña abre la app desde https://sleepdong.github.io/caja/', true);
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  aviso(error ? error.message : 'Te enviamos un correo. Abre el enlace desde este mismo dispositivo para crear tu nueva contraseña.', !!error);
+};
+// Al volver desde el enlace del correo: pedir la nueva contraseña
+let recuperando = false;
+sb.auth.onAuthStateChange(async ev => {
+  if (ev !== 'PASSWORD_RECOVERY' || recuperando) return;
+  recuperando = true;
+  const v = await dialogo('Crea tu nueva contraseña', [{ label: 'Nueva contraseña (mínimo 6 caracteres)', type: 'password', required: true }, { label: 'Repítela', type: 'password', required: true }], 'Guardar contraseña');
+  recuperando = false;
+  if (!v) return;
+  if (v[0] !== v[1]) return aviso('Las contraseñas no coinciden. Vuelve a pedir el enlace.', true);
+  const { error } = await sb.auth.updateUser({ password: v[0] });
+  aviso(error ? error.message : 'Contraseña guardada');
+});
 sb.auth.getSession().then(({ data }) => { if (data.session) entrar(data.session); });
 </script>
 </body>

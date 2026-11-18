@@ -1112,7 +1112,8 @@ async function vCatalogo(el) {
 // ============ REPORTES ============
 async function vReportes(el) {
   el.innerHTML = `<div class="panel"><div class="fila"><div><label>Desde</label><input type="date" id="rD" value="${iniMes()}"></div><div><label>Hasta</label><input type="date" id="rH" value="${hoy()}"></div>
-    <div class="auto"><button class="btn" id="rVer">Actualizar</button></div><div class="auto"><button class="btn rotulo" id="rExcel">Descargar Excel</button></div></div></div><div id="rOut"></div><div id="rCierre"></div>`;
+    <div class="auto"><button class="btn" id="rVer">Actualizar</button></div><div class="auto"><button class="btn rotulo" id="rExcel">Descargar Excel</button></div></div>
+    <div class="rapidos" id="rRapidos" style="margin:12px 0 0"><button data-p="hoy">Hoy</button><button data-p="ayer">Ayer</button><button data-p="semana">Últimos 7 días</button><button data-p="mes">Este mes</button><button data-p="mesPasado">Mes pasado</button><button data-p="anio">Este año</button></div></div><div id="rOut"></div><div id="rCierre"></div>`;
   const correr = async () => {
     const d = $('#rD').value, h = $('#rH').value;
     const [dias, rent, saldos, flujo] = await Promise.all([
@@ -1154,6 +1155,15 @@ async function vReportes(el) {
     </table></div></div>`;
   };
   $('#rVer').onclick = () => correr().catch(e => aviso(textoError(e), true));
+  const fechaMenos = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
+  $('#rRapidos').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const h = hoy(), [y, m] = h.split('-').map(Number);
+    const fin = (yy, mm) => new Date(Date.UTC(yy, mm, 0)).toISOString().slice(0, 10);
+    const r = { hoy: [h, h], ayer: [fechaMenos(1), fechaMenos(1)], semana: [fechaMenos(6), h], mes: [iniMes(), h],
+      mesPasado: m === 1 ? [`${y - 1}-12-01`, `${y - 1}-12-31`] : [`${y}-${String(m - 1).padStart(2, '0')}-01`, fin(y, m - 1)], anio: [`${y}-01-01`, h] }[b.dataset.p];
+    $('#rD').value = r[0]; $('#rH').value = r[1];
+    correr().catch(e => aviso(textoError(e), true));
+  });
   $('#rExcel').onclick = async () => {
     const b = $('#rExcel'); b.disabled = true; b.textContent = 'Preparando…';
     try { await exportarExcel($('#rD').value, $('#rH').value); } catch (e) { aviso('No se pudo exportar: ' + textoError(e), true); }
@@ -1216,10 +1226,37 @@ async function exportarExcel(d, h) {
   const nombreTipo = t => String(t || '').replaceAll('_', ' ').toLowerCase().replace(/^./, c => c.toUpperCase());
 
   const libro = XLSX.utils.book_new();
-  const hoja = (nombre, filas, anchos) => {
-    const ws = Array.isArray(filas[0]) ? XLSX.utils.aoa_to_sheet(filas) : XLSX.utils.json_to_sheet(filas.length ? filas : [{ 'Sin datos en estas fechas': '' }]);
-    const cols = Array.isArray(filas[0]) ? filas[0].length : Object.keys(filas[0] || { a: 1 }).length;
+  const SOLES = '"S/" #,##0.00;[Red]-"S/" #,##0.00', PCT = '0.0"%"', CU = '0.0000', ENT = '#,##0';
+  const formatoDe = h => /%/.test(h) ? PCT : /^Costo (unitario|promedio)$/.test(h) ? CU
+    : /^(Cantidad|Stock|Saldo cantidad)/.test(h) ? ENT
+    : /(Venta|Costo|Ganancia|Gastos|Precio|Importe|Monto|Total|Devuelto|Por pagar|Valor)/i.test(h) ? SOLES : null;
+  const SUMABLES = /^(Ventas netas|Costo de lo vendido|Ganancia bruta|Gastos|Ganancia neta|Cantidad|Importe|Costo|Ganancia|Monto|Total|Devuelto|Por pagar|Costo total|Valor del stock)$/;
+  // filas: arreglo de objetos (tabla) o de arreglos (Resumen). totales: agrega fila TOTAL con fórmulas SUMA.
+  const hoja = (nombre, filas, anchos, totales) => {
+    const tabla = !Array.isArray(filas[0]);
+    const ws = tabla ? XLSX.utils.json_to_sheet(filas.length ? filas : [{ 'Sin datos en estas fechas': '' }]) : XLSX.utils.aoa_to_sheet(filas);
+    const enc = tabla ? Object.keys(filas[0] || { 'Sin datos en estas fechas': '' }) : [];
+    const cols = tabla ? enc.length : Math.max(...filas.map(f => f.length));
     ws['!cols'] = Array.from({ length: cols }, (_, i) => ({ wch: anchos?.[i] ?? 14 }));
+    if (tabla && filas.length) {
+      const n = filas.length; // datos en filas 2..n+1
+      enc.forEach((h, c) => {
+        const z = formatoDe(h); if (!z) return;
+        for (let r = 1; r <= n; r++) { const cel = ws[XLSX.utils.encode_cell({ r, c })]; if (cel && cel.t === 'n') cel.z = z; }
+      });
+      ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: n, c: cols - 1 } }) };
+      if (totales) {
+        const r = n + 1;
+        ws[XLSX.utils.encode_cell({ r, c: 0 })] = { t: 's', v: 'TOTAL' };
+        enc.forEach((h, c) => {
+          if (c === 0 || !SUMABLES.test(h)) return;
+          const col = XLSX.utils.encode_col(c);
+          ws[XLSX.utils.encode_cell({ r, c })] = { t: 'n', f: `SUBTOTAL(9,${col}2:${col}${n + 1})`, z: formatoDe(h) || undefined };
+        });
+        ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r, c: cols - 1 } });
+      }
+    }
+    if (!tabla) filas.forEach((f, r) => { const cel = ws[XLSX.utils.encode_cell({ r, c: 1 })]; if (cel && cel.t === 'n') cel.z = /%/.test(f[0]) ? PCT : /realizadas/.test(f[0]) ? ENT : SOLES; });
     XLSX.utils.book_append_sheet(libro, ws, nombre);
   };
   const vn = s('ventas_netas');
@@ -1238,16 +1275,16 @@ async function exportarExcel(d, h) {
   ], [38, 18]);
   hoja('Por día', dias.map(x => ({ Fecha: fd(x.fecha), 'Ventas netas': num(x.ventas_netas), 'Costo de lo vendido': num(x.costo_mercaderia_vendida), 'Ganancia bruta': num(x.utilidad_bruta),
     'Margen %': num(x.ventas_netas) ? r2(num(x.utilidad_bruta) / num(x.ventas_netas) * 100) : 0,
-    Gastos: r2(num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos)), 'Ganancia neta': num(x.utilidad_neta_estimada) })), [12, 14, 18, 15, 10, 12, 14]);
-  hoja('Ventas', lineas.map(l => { const v = venta[l.venta_id] || {}, p = pres[l.presentacion_id], sub = num(l.subtotal), costo = num(l.costo_total);
+    Gastos: r2(num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos)), 'Ganancia neta': num(x.utilidad_neta_estimada) })), [12, 14, 18, 15, 10, 12, 14], true);
+  hoja('Ventas', lineas.filter(l => venta[l.venta_id]?.estado !== 'ANULADA').map(l => { const v = venta[l.venta_id] || {}, p = pres[l.presentacion_id], sub = num(l.subtotal), costo = num(l.costo_total);
     return { Fecha: fechaHora(v.fecha), Venta: v.documento, Cliente: v.cliente, Condición: v.condicion, Producto: p?.productos.nombre || '', Presentación: p?.nombre || '',
       Cantidad: num(l.cantidad), 'Precio unitario': num(l.cantidad) ? r2(sub / num(l.cantidad)) : 0, Importe: sub, Costo: costo, Ganancia: r2(sub - costo),
-      'Margen %': sub ? r2((sub - costo) / sub * 100) : 0, Estado: v.estado }; }), [17, 14, 16, 10, 24, 15, 9, 13, 10, 10, 10, 9, 10]);
+      'Margen %': sub ? r2((sub - costo) / sub * 100) : 0, Estado: v.estado }; }), [17, 14, 16, 10, 24, 15, 9, 13, 10, 10, 10, 9, 10], true);
   hoja('Cobros y pagos', movs.map(m => ({ Fecha: fechaHora(m.fecha), Movimiento: nombreTipo(m.tipo), Medio: nombreMedio(m.metodo_pago_id), Cuenta: cuenta[m.cuenta_financiera_id] || '',
-    Monto: num(m.monto), Detalle: m.descripcion || m.referencia || '' })), [17, 24, 26, 20, 11, 34]);
+    Monto: num(m.monto), Detalle: m.descripcion || m.referencia || '' })), [17, 24, 26, 20, 11, 34], true);
   hoja('Compras', compras.map(c => ({ Fecha: fechaHora(c.fecha_ingreso), Proveedor: c.proveedor, Comprobante: [c.serie, c.numero].filter(Boolean).join('-'), Total: num(c.total),
-    Devuelto: num(c.importe_devuelto), 'Por pagar': num(c.saldo), Estado: c.estado })), [17, 26, 14, 11, 11, 11, 12]);
-  hoja('Gastos', gastos.map(g => ({ Fecha: fd(g.fecha), Categoría: g.categorias_gasto?.nombre || '', Detalle: g.descripcion, Monto: num(g.monto), Estado: g.estado })), [12, 22, 34, 11, 12]);
+    Devuelto: num(c.importe_devuelto), 'Por pagar': num(c.saldo), Estado: c.estado })), [17, 26, 14, 11, 11, 11, 12], true);
+  hoja('Gastos', gastos.map(g => ({ Fecha: fd(g.fecha), Categoría: g.categorias_gasto?.nombre || '', Detalle: g.descripcion, Monto: num(g.monto), Estado: g.estado })), [12, 22, 34, 11, 12], true);
   hoja('Kardex', kardex.map(k => ({ Fecha: fechaHora(k.fecha), Producto: k.producto, Movimiento: nombreTipo(k.tipo), Motivo: k.motivo || '', Cantidad: num(k.cantidad_base),
     'Costo unitario': num(k.costo_unitario), 'Costo total': num(k.costo_total), 'Saldo cantidad': num(k.saldo_cantidad), 'Saldo valor': num(k.saldo_valor), 'Costo promedio': num(k.costo_promedio) })), [17, 24, 22, 18, 10, 13, 12, 13, 12, 13]);
   hoja('Stock y márgenes', precios.filter(p => p.precio != null).sort((a, b) => a.producto.localeCompare(b.producto) || a.factor - b.factor).map(p => {

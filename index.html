@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-CRNhvITnIUguE5G2libDuZn7hO5qnmsWWtcbvlpSSjo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-0aShvTNSa9ugZdyfidIOm9PE5B8A3hemGMknOk1XVD0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1325,12 +1325,17 @@ async function vVender(el) {
       ticket.forEach(x => { const s0 = stk[x.producto_id]; if (s0) s0.cantidad = num(s0.cantidad) - x.cantidad * x.factor; });
     }
     const vuelto = medioVenta === 'EFECTIVO' && cond === 'CONTADO' && num(recibido) > t ? r2(num(recibido) - t) : 0;
+    // Datos para el ticket (solo se envía si el cliente lo pide)
+    const datosTicket = { fecha: p.fecha, lineas: ticket.map(x => ({ nombre: x.nombre, pres: x.pres, cantidad: x.cantidad, precio: x.precio })), total: t, medio: m.nombre, cond, pagado: monto,
+      recibido: vuelto ? num(recibido) : 0, vuelto, vence: p.fecha_vencimiento || null, cliente: cond === 'CREDITO' ? C.clientes.find(c => c.id === p.cliente_id) : null };
     $('#ticket').innerHTML = `<div class="hecho"><div class="ic">✓</div><p class="sub" style="margin:0">${cond === 'CREDITO' ? 'Fiado registrado' : 'Cobrado con ' + esc(m.nombre)}</p>
       ${guardadaLocal ? '<p class="chip aviso" style="margin:6px 0 0">Guardada sin internet: se sube sola</p>' : ''}
       <b>${S(t)}</b>${vuelto ? `<div class="vuelto" style="margin-top:14px"><span>Vuelto</span><b>${S(vuelto)}</b></div>` : ''}
-      <button class="btn rotulo cobrar" id="nueva" style="margin-top:16px">Nueva venta</button></div>`;
+      <button class="btn rotulo cobrar" id="nueva" style="margin-top:16px">Nueva venta</button>
+      <button class="btn claro mini" id="enviarTicket" style="margin-top:10px">¿El cliente pide ticket? Enviar por WhatsApp</button></div>`;
     ticket = []; recibido = ''; cond = 'CONTADO'; $('#barraMovil').classList.remove('ver');
     $('#nueva').onclick = () => ir('vender'); $('#nueva').focus();
+    $('#enviarTicket').onclick = () => enviarTicket(datosTicket).catch(e => aviso(textoError(e), true));
   }
   $('#buscar').oninput = pintarEstante;
   // Enter, flechas y F2: ver los atajos de teclado de Vender (más arriba)
@@ -1398,12 +1403,31 @@ function mensajeFiado(c) {
   const nombre = c.nombre.trim().split(/\s+/)[0];
   const yape = local.leer('miYape');
   const ventas = c.ventas.length === 1 ? `tu compra del ${fd(String(c.ventas[0].fecha).slice(0, 10))}` : `tus ${c.ventas.length} compras desde el ${fd(String(c.desde).slice(0, 10))}`;
-  return `Hola ${nombre}, ¿cómo estás? Te escribe ${primerNombre()}. Te recuerdo que tienes pendiente *${S(c.saldo)}* por ${ventas}.`
+  return `Hola ${nombre}, ¿cómo estás? Te escribe ${primerNombre()} de ${EMPRESA}. Te recuerdo que tienes pendiente *${S(c.saldo)}* por ${ventas}.`
     + (c.tarde > 0 ? ` La fecha de pago fue el ${fd(c.vence)}.` : c.vence ? ` La fecha de pago es el ${fd(c.vence)}.` : '')
     + (yape ? `\n\nPuedes pagarme por Yape o Plin al *${yape}* o en efectivo.` : '\n\nPuedes pagarme por Yape, Plin o en efectivo.')
     + '\n\n¡Gracias!';
 }
 function abrirEnlace(url) { const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; document.body.appendChild(a); a.click(); a.remove(); }
+// Ticket de venta por WhatsApp: solo cuando el cliente lo pide. Es una constancia, no un comprobante de SUNAT.
+function textoTicket(d) {
+  const lin = d.lineas.map(l => `${N(l.cantidad)} × ${l.nombre} (${l.pres.toLowerCase()})  ${S(r2(l.cantidad * l.precio))}`).join('\n');
+  const pago = d.cond === 'CREDITO'
+    ? `Pagaste ahora: ${S(d.pagado)}${d.pagado ? ` (${d.medio})` : ''}\nQueda pendiente: *${S(r2(d.total - d.pagado))}*${d.vence ? `, a pagar hasta el ${fd(d.vence)}` : ''}`
+    : `Pagado con ${d.medio}${d.vuelto ? `\nRecibido ${S(d.recibido)} · Vuelto ${S(d.vuelto)}` : ''}`;
+  return `*${EMPRESA}*\nTicket de venta · ${fechaHora(d.fecha)}\n\n${lin}\n\n*Total: ${S(d.total)}*\n${pago}\n\n¡Gracias por tu compra!\n_Constancia de compra; no es comprobante de pago._`;
+}
+async function enviarTicket(d) {
+  const v = await dialogo('Ticket para el cliente', [
+    { type: 'info', html: '<p class="sub" style="margin:0">Se abrirá WhatsApp con el ticket listo. Si no pones el número, eliges el chat en WhatsApp. El número no se guarda.</p>' },
+    { label: 'WhatsApp del cliente (opcional)', type: 'tel', value: d.cliente?.telefono || '', ph: '987654321' },
+    { label: 'Ticket (puedes cambiarlo)', type: 'textarea', rows: 11, value: textoTicket(d), required: true },
+  ], 'Abrir WhatsApp');
+  if (!v) return;
+  const tel = v[1] ? telWhatsApp(v[1]) : '';
+  if (v[1] && !tel) return aviso('Escribe un celular válido de 9 dígitos que empiece con 9', true);
+  abrirEnlace(`https://wa.me/${tel}?text=${encodeURIComponent(v[2])}`);
+}
 async function recordarFiado(c) {
   let tel = telWhatsApp(c.telefono);
   if (!tel) {
@@ -1926,7 +1950,7 @@ async function pedirPorWhatsApp(items) {
   const saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
   const codigo = (r, prov) => alias.find(a => a.proveedor_id === prov && C.presentaciones.find(p => p.id === a.presentacion_id)?.producto_id === r.e.producto_id)?.texto.slice(1)
     || C.presentaciones.find(p => p.producto_id === r.e.producto_id)?.productos?.codigo_factura || '';
-  const texto = prov => `${saludo}. Le escribe ${primerNombre()}, quisiera hacer este pedido:\n\n` + items.map(r => `• ${r.paquetes} × ${r.e.producto}, ${r.compra.nombre.toLowerCase()}${codigo(r, prov) ? ` (cód. ${codigo(r, prov)})` : ''}`).join('\n') + '\n\n¿Me confirma el total y cuándo lo pueden entregar? Gracias.';
+  const texto = prov => `${saludo}. Le escribe ${primerNombre()} de ${EMPRESA}. Quisiera hacer este pedido:\n\n` + items.map(r => `• ${r.paquetes} × ${r.e.producto}, ${r.compra.nombre.toLowerCase()}${codigo(r, prov) ? ` (cód. ${codigo(r, prov)})` : ''}`).join('\n') + '\n\n¿Me confirma el total y cuándo lo pueden entregar? Gracias.';
   const v = await dialogo('Pedir por WhatsApp', [
     { label: '¿A qué proveedor?', type: 'select', value: sugerido, options: C.proveedores.length ? C.proveedores.map(p => ({ value: p.id, label: p.razon_social + (p.telefono ? ` · ${p.telefono}` : ' · sin número') })) : [{ value: '', label: 'Aún no tienes proveedores' }] },
     { label: 'Su WhatsApp (si no lo tiene guardado)', type: 'tel', value: C.proveedores.find(p => p.id === sugerido)?.telefono || '', ph: '992374871' },
@@ -3194,11 +3218,11 @@ async function hacerRespaldo(progreso) {
     resumen.push({ tabla: t, filas: filas.length }); total += filas.length;
   }
   const ahora = new Date();
-  const info = XLSX.utils.aoa_to_sheet([['Copia de seguridad de Caja'], ['Fecha', fechaHora(ahora.toISOString())], ['Proyecto', SB_URL], ['Registros', total], [], ['Tabla', 'Filas'], ...resumen.map(r => [r.tabla, r.filas])]);
+  const info = XLSX.utils.aoa_to_sheet([['Copia de seguridad de Caja'], ['Empresa', EMPRESA], ['Fecha', fechaHora(ahora.toISOString())], ['Proyecto', SB_URL], ['Registros', total], [], ['Tabla', 'Filas'], ...resumen.map(r => [r.tabla, r.filas])]);
   info['!cols'] = [{ wch: 30 }, { wch: 40 }];
   XLSX.utils.book_append_sheet(wb, info, 'LEEME');
   wb.SheetNames.unshift(wb.SheetNames.pop()); // LEEME primero
-  const nombre = `caja-respaldo-${hoy()}-${String(ahora.getHours()).padStart(2, '0')}${String(ahora.getMinutes()).padStart(2, '0')}.xlsx`;
+  const nombre = `oni-cobin-respaldo-${hoy()}-${String(ahora.getHours()).padStart(2, '0')}${String(ahora.getMinutes()).padStart(2, '0')}.xlsx`;
   const bytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array', compression: true });
   return { nombre, bytes, total, tablas: resumen.length - fallas.length, fallas };
 }
@@ -3296,6 +3320,7 @@ async function exportarExcel(d, h) {
   };
   const vn = s('ventas_netas');
   hoja('Resumen', [
+    [EMPRESA],
     ['Estado de resultados', `Del ${fd(d)} al ${fd(h)}`],
     [],
     ['Ventas', s('ventas_brutas')], ['(−) Devoluciones', -s('devoluciones')], ['Ventas netas', vn],
@@ -3327,7 +3352,7 @@ async function exportarExcel(d, h) {
     return { Producto: p.producto, Presentación: p.presentacion, 'Stock (unidades)': num(e?.cantidad), Costo: costo, Precio: num(p.precio), 'Margen %': m ? r2(m.m) : '',
       'Precio mínimo': costo > 0 ? precioSugerido(costo) : '', 'Valor del stock': num(e?.valor_total) };
   }), [24, 15, 15, 10, 10, 10, 13, 14]);
-  XLSX.writeFile(libro, `Caja_${d}_a_${h}.xlsx`);
+  XLSX.writeFile(libro, `Oni_Cobin_${d}_a_${h}.xlsx`);
   aviso('Excel descargado');
 }
 

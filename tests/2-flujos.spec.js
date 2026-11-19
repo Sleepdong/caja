@@ -83,3 +83,19 @@ test('en celular ninguna pantalla se sale de lado', async ({ page, errores }) =>
     expect(ancho, `La pantalla ${p} mide ${ancho}px en un celular de 360px`).toBeLessThanOrEqual(360);
   }
 });
+
+test('el ticket para el cliente es opcional y lleva el nombre de la empresa', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'vender');
+  await page.locator('#estante .prod').filter({ hasText: 'Marlboro Rojo' }).locator('.opc').first().click();
+  await page.locator('#btnCobrar').click();
+  await expect(page.locator('#ticket')).toContainText('Cobrado con');
+  // No se abre nada solo: el botón espera a que el cliente lo pida
+  await expect(page.locator('form.dialogo')).toHaveCount(0);
+  await page.locator('#enviarTicket').click();
+  const texto = await page.locator('form.dialogo textarea').inputValue();
+  expect(texto).toContain('*Oni Cobin S.A.C.*');
+  expect(texto).toContain('Marlboro Rojo');
+  expect(texto).toContain('no es comprobante de pago');
+  await page.locator('form.dialogo [data-x]').click();
+});

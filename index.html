@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'sha256-nhrSBNCXYWIP68trvMCXgEPHduSOMLwzjZBxloa5A/U='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-KEejA6vqqx3o/MHYl5bkP5Ffbuzs0wIgjB0TlXRJawA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; worker-src blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <title>Caja · Gestión Comercial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -182,6 +182,18 @@ tr:last-child td{border-bottom:0}
 .ganancia-est{display:flex;justify-content:space-between;font-size:13.5px;color:var(--gris);margin:-8px 0 12px}
 .ganancia-est b{color:var(--tinta);font-variant-numeric:tabular-nums}
 .panel.alerta{border-color:#f3d27a;background:#fffbef}
+/* ---------- Escáner de facturas ---------- */
+.escaner{border:2px dashed #c9c4dc;border-radius:var(--r-m);padding:14px;margin-bottom:14px;background:#faf9fd}
+.escaner .cab-esc{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.escaner img.prev{width:150px;max-height:210px;object-fit:cover;object-position:top;border-radius:10px;border:1px solid var(--linea);cursor:zoom-in}
+.escaner img.prev.grande{width:100%;max-height:none;cursor:zoom-out}
+.progreso{height:8px;background:#e9e7f2;border-radius:6px;overflow:hidden;margin:8px 0}
+.progreso div{height:100%;background:var(--tinta2);width:0;transition:width .2s}
+.lin-esc td{vertical-align:top}
+.lin-esc .txt{font-size:12.5px;color:var(--gris);max-width:260px}
+.lin-esc tr.off td{opacity:.45}
+.cuadre{border-radius:10px;padding:9px 12px;margin:10px 0;font-size:14px}
+.cuadre.ok{background:#dff3e7;color:#1f6b40}.cuadre.mal{background:#fdf0d3;color:#7a520f}
 /* ---------- Cuenta / 2FA ---------- */
 .qr{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin:12px 0}
 .qr img{width:190px;height:190px;background:#fff;border:1px solid var(--linea);border-radius:12px;padding:8px}
@@ -841,6 +853,10 @@ async function vCompras(el) {
   const tarjeta = medios(MEDIOS_COMPRA)[0];
   el.innerHTML = `
   <div class="panel"><h2>Nueva compra</h2><p class="sub">Se paga con ${esc(tarjeta?.nombre || 'la tarjeta de débito')}. El stock sube en cuanto la registras.</p>
+    <div class="fila" style="margin-bottom:14px"><div class="auto"><button class="btn rotulo" id="btnEscanear">Escanear factura</button></div>
+      <div><p class="sub" style="margin:0">Toma una foto de la factura o boleta electrónica (con su código QR) y la app llena la compra por ti.</p></div></div>
+    <input type="file" id="fotoFactura" accept="image/*" capture="environment" class="oculto">
+    <div id="escaneo"></div>
     <div class="fila">
       <div style="flex:2 1 220px"><label>Proveedor</label><select id="prov"><option value="">Elige un proveedor</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div>
       <div class="auto"><button class="btn claro" id="nuevoProv">Nuevo proveedor</button></div>
@@ -940,6 +956,20 @@ async function vCompras(el) {
     if (v && (await rpc('anular_compra', { p_compra_id: b.dataset.anular, p_motivo: v[1] }, 'Compra anulada')).ok) ir('compras');
   });
   el.querySelectorAll('[data-devc]').forEach(b => b.onclick = () => devolverCompra(b.dataset.devc, tarjeta).catch(e => aviso(textoError(e), true)));
+  // Escáner de facturas
+  $('#btnEscanear').onclick = () => $('#fotoFactura').click();
+  $('#fotoFactura').onchange = () => { const f = $('#fotoFactura').files[0]; $('#fotoFactura').value = ''; if (f) escanearFactura(f).catch(e => { aviso('No se pudo leer la factura: ' + textoError(e), true); $('#escaneo').innerHTML = ''; }); };
+  // Si venimos del escáner, llenar la cabecera
+  if (cabeceraEscaneada) {
+    const c = cabeceraEscaneada; cabeceraEscaneada = null;
+    if (c.proveedor_id) $('#prov').value = c.proveedor_id;
+    if (c.fecha) $('#fComp').value = c.fecha;
+    if (c.tipo_comprobante_id) $('#tc').value = c.tipo_comprobante_id;
+    $('#serie').value = c.serie || ''; $('#numero').value = c.numero || '';
+    $('#igv').value = c.igv;
+    el.querySelector('details.extra').open = true;
+    setTimeout(() => $('#btnComprar').scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
   pintarLineas();
 }
 async function devolverCompra(compraId, tarjeta) {
@@ -965,6 +995,229 @@ async function devolverCompra(compraId, tarjeta) {
   const reint = r2(Math.max(0, total - num(tot.saldo)));
   const p = { compra_id: compraId, motivo, lineas: sel.map(({ l, c }) => ({ compra_detalle_id: l.id, cantidad: c })), reintegros: reint > 0 ? [{ metodo_pago_id: tarjeta.id, monto: reint }] : [] };
   if ((await rpc('registrar_devolucion_compra', { p }, reint > 0 ? `Devolución registrada. El proveedor te devuelve ${S(reint)} a la tarjeta` : `Devolución registrada. Tu deuda bajó ${S(total)}`)).ok) ir('compras');
+}
+
+
+// ============ ESCÁNER DE FACTURAS (gratis, todo en el celular) ============
+// 1) Código QR SUNAT: RUC|tipo|serie|número|IGV|total|fecha|...  2) Texto de la foto (Tesseract) para las líneas.
+let cabeceraEscaneada = null;
+const LIB = {
+  jsqr: ['https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js', 'sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx'],
+  tesseract: ['https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js', 'sha384-2BQ3U3OdKOb0Uczxqr41I9UvZkzr4V9Hv8uSzMMZAlmhsFClvdZX5wi5fDCzG+tM'],
+  worker: 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/worker.min.js',
+  core: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@7.0.0',
+  lang: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/spa@1.0.0/4.0.0_best_int',
+};
+const cargadas = {};
+function cargarLibreria([src, integridad]) {
+  return cargadas[src] ??= new Promise((ok, mal) => {
+    const s = document.createElement('script');
+    s.src = src; s.integrity = integridad; s.crossOrigin = 'anonymous';
+    s.onload = ok; s.onerror = () => { delete cargadas[src]; mal(new Error('no se pudo descargar el lector; revisa tu conexión')); };
+    document.head.appendChild(s);
+  });
+}
+const normTexto = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+function aNumero(t) {
+  let x = String(t).trim();
+  if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(x)) x = x.replace(/,/g, '');
+  else if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(x)) x = x.replace(/\./g, '').replace(',', '.');
+  else x = x.replace(',', '.');
+  return Number(x);
+}
+function imagenACanvas(img, anchoMax) {
+  const k = Math.min(1, anchoMax / img.naturalWidth);
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+  c.getContext('2d', { willReadFrequently: true }).drawImage(img, 0, 0, c.width, c.height);
+  return c;
+}
+function leerQR(img) {
+  for (const ancho of [1400, 900, 2000, 600]) {
+    const c = imagenACanvas(img, ancho), ctx = c.getContext('2d');
+    // Prueba la imagen completa y la mitad inferior (donde suele estar el QR)
+    for (const [y0, alto] of [[0, c.height], [Math.floor(c.height / 2), Math.ceil(c.height / 2)]]) {
+      const d = ctx.getImageData(0, y0, c.width, alto);
+      const r = jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+      if (r?.data) return r.data;
+    }
+  }
+  return null;
+}
+function interpretarQR(t) {
+  if (!t) return null;
+  const p = t.split('|').map(x => x.trim());
+  if (p.length < 7 || !/^\d{11}$/.test(p[0])) return null;
+  let f = p[6], fecha = null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(f)) fecha = f.slice(0, 10);
+  else if (/^\d{2}[\/-]\d{2}[\/-]\d{4}/.test(f)) fecha = `${f.slice(6, 10)}-${f.slice(3, 5)}-${f.slice(0, 2)}`;
+  return { ruc: p[0], tipo: p[1].padStart(2, '0'), serie: p[2].toUpperCase(), numero: String(Number(p[3]) || p[3]), igv: aNumero(p[4]) || 0, total: aNumero(p[5]) || 0, fecha };
+}
+async function leerTexto(img, avance) {
+  await cargarLibreria(LIB.tesseract);
+  const c = imagenACanvas(img, 2000), ctx = c.getContext('2d');
+  // Escala de grises con más contraste: mejora la lectura de tickets y facturas
+  const d = ctx.getImageData(0, 0, c.width, c.height), px = d.data;
+  for (let i = 0; i < px.length; i += 4) { const g = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]; const v = Math.max(0, Math.min(255, (g - 128) * 1.35 + 128)); px[i] = px[i + 1] = px[i + 2] = v; }
+  ctx.putImageData(d, 0, 0);
+  const w = await Tesseract.createWorker('spa', 1, { workerPath: LIB.worker, corePath: LIB.core, langPath: LIB.lang, workerBlobURL: true,
+    logger: m => { if (m.status === 'recognizing text') avance(0.35 + m.progress * 0.65, 'Leyendo el texto…'); else if (/load|initializ/.test(m.status)) avance(0.1 + (m.progress || 0) * 0.25, 'Preparando el lector (solo la primera vez tarda)…'); } });
+  try { const { data } = await w.recognize(c); return data.text || ''; } finally { w.terminate(); }
+}
+// Busca líneas con: [cantidad] descripción ... precio_unitario importe
+function extraerLineas(texto) {
+  const out = [], NUM = /\d{1,3}(?:[.,]\d{3})*[.,]\d{2,4}|\d+(?:[.,]\d+)?/g;
+  const NO = /(sub ?total|gravad|exonerad|inafect|i\.?g\.?v|total|son:|vuelto|efectivo|tarjeta|r\.?u\.?c|fecha|hora|telef|direcc|serie|boleta|factura|cliente|se[nñ]or|cajero|redondeo|descuento|anticipo|pagina|www|representaci)/i;
+  for (const bruto of texto.split('\n')) {
+    const l = bruto.replace(/[|_—–]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (l.length < 6 || NO.test(l)) continue;
+    const decimales = [...l.matchAll(/\d{1,3}(?:[.,]\d{3})*[.,]\d{2,4}(?!\d)/g)];
+    if (decimales.length < 1) continue;
+    const importe = aNumero(decimales.at(-1)[0]);
+    let pu = decimales.length >= 2 ? aNumero(decimales.at(-2)[0]) : null;
+    const ini = l.match(/^(\d+(?:[.,]\d+)?)\s+/);
+    let cant = ini ? aNumero(ini[1]) : null;
+    if (!cant && pu) cant = Math.round(importe / pu * 100) / 100;
+    if (cant && !pu) pu = r2(importe / cant);
+    if (!cant || !pu || !(importe > 0)) continue;
+    const cuadra = Math.abs(cant * pu - importe) <= Math.max(0.06, importe * 0.02);
+    if (!cuadra && decimales.length >= 3) { // a veces: cant | pu | dscto | importe
+      const pu2 = aNumero(decimales.at(-3)[0]);
+      if (Math.abs(cant * pu2 - importe) <= Math.max(0.06, importe * 0.02)) pu = pu2;
+    }
+    let desc = l.slice(ini ? ini[0].length : 0, decimales.at(decimales.length >= 2 ? -2 : -1).index).replace(/\b(NIU|UND|UNID|UNIDAD(ES)?|CJ|CJA|CIA|C\/A|CAJ|PQT|PAQ|BOL|ZZ|KGM|BX|DOC|DZ)\b\.?/gi, ' ').replace(/\s+/g, ' ').trim();
+    if (normTexto(desc).length < 3) continue;
+    out.push({ texto: desc, cantidad: cant, costo: r2(pu), importe: r2(importe), cuadra: Math.abs(cant * pu - importe) <= Math.max(0.06, importe * 0.02) });
+  }
+  return out;
+}
+function adivinarProveedor(texto) {
+  const lineas = texto.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 8);
+  return lineas.find(x => /\b(S\.?A\.?C\.?|E\.?I\.?R\.?L\.?|S\.?R\.?L\.?|S\.?A\.?)\b/i.test(x)) || lineas.find(x => x.length > 5 && x === x.toUpperCase() && !/\d{5}/.test(x)) || '';
+}
+// Empareja el texto de la factura con tus presentaciones (alias aprendidos primero)
+function emparejar(desc, alias, comprables) {
+  const n = normTexto(desc);
+  if (alias[n]) return { id: alias[n], por: 'aprendido' };
+  const tok = new Set(n.split(' ').filter(t => t.length > 1));
+  let mejor = null, puntaje = 0;
+  for (const p of comprables) {
+    const nombre = normTexto(p.productos.nombre).split(' ').filter(t => t.length > 1 && !['de', 'la', 'el', 'x'].includes(t));
+    if (!nombre.length) continue;
+    let s = nombre.filter(t => tok.has(t) || [...tok].some(k => k.length > 3 && (k.startsWith(t) || t.startsWith(k)))).length / nombre.length;
+    if (num(p.factor) > 1 && (tok.has(String(num(p.factor))) || tok.has('x' + num(p.factor)))) s += 0.15;
+    if (s > puntaje) { puntaje = s; mejor = p; }
+  }
+  return puntaje >= 0.6 ? { id: mejor.id, por: 'parecido' } : { id: '', por: '' };
+}
+async function escanearFactura(archivo) {
+  const caja = $('#escaneo');
+  const url = URL.createObjectURL(archivo);
+  caja.innerHTML = `<div class="escaner"><div class="cab-esc"><img class="prev" src="${url}" alt="Foto de la factura">
+    <div style="flex:1 1 220px"><b id="escEstado">Buscando el código QR…</b><div class="progreso"><div id="escBarra"></div></div><p class="sub" style="margin:0">Todo se procesa en tu celular; la foto no se sube a ningún lado.</p></div></div></div>`;
+  const avance = (f, t) => { $('#escBarra').style.width = Math.round(f * 100) + '%'; if (t) $('#escEstado').textContent = t; };
+  const img = new Image(); img.src = url; await img.decode();
+  avance(0.05);
+  await cargarLibreria(LIB.jsqr);
+  const qr = interpretarQR(leerQR(img));
+  avance(0.1, qr ? 'QR leído. Ahora leo los productos…' : 'No encontré el QR; leo el texto de la factura…');
+  const texto = await leerTexto(img, avance);
+  avance(1, 'Listo');
+  const lineas = extraerLineas(texto);
+  // Proveedor por RUC; alias aprendidos de ese proveedor
+  const ruc = qr?.ruc || (texto.match(/\b(10|15|17|20)\d{9}\b/) || [])[0] || '';
+  let prov = C.proveedores.find(p => p.numero_documento === ruc) || null;
+  const comprables = C.presentaciones.filter(p => p.se_compra);
+  const cargarAlias = async pid => pid ? Object.fromEntries((await q(sb.from('alias_compra').select('texto, presentacion_id').eq('proveedor_id', pid))).map(a => [a.texto, a.presentacion_id])) : {};
+  let alias = await cargarAlias(prov?.id);
+  lineas.forEach(l => Object.assign(l, emparejar(l.texto, alias, comprables), { incluir: true }));
+  // ¿Ya registrada?
+  let duplicada = null;
+  if (prov && qr) duplicada = await q(sb.from('compras').select('id, estado, fecha_ingreso').eq('proveedor_id', prov.id).eq('serie', qr.serie).eq('numero', qr.numero).neq('estado', 'ANULADA').maybeSingle()).catch(() => null);
+  const tc = qr ? C.tiposComp.find(t => t.codigo_sunat === qr.tipo) : null;
+
+  const pintar = () => {
+    // Para comprobar contra el total cuentan todas las líneas marcadas (también las que no son mercadería)
+    const suma = r2(lineas.filter(l => l.incluir).reduce((a, l) => a + r2(l.cantidad * l.costo), 0));
+    const noMerc = r2(lineas.filter(l => l.incluir && !l.id).reduce((a, l) => a + r2(l.cantidad * l.costo), 0));
+    let modoIgv = '0', cuadre = '';
+    if (qr?.total) {
+      const conIgv = r2(suma * 1.18), dSin = Math.abs(suma - qr.total), dCon = Math.abs(conIgv - qr.total);
+      modoIgv = qr.igv > 0 && dCon < dSin ? '0.18' : '0';
+      const calc = modoIgv === '0.18' ? conIgv : suma, dif = r2(qr.total - calc);
+      cuadre = Math.abs(dif) <= 0.1 ? `<div class="cuadre ok">Cuadra con el total de la factura: ${S(qr.total)}${modoIgv === '0.18' ? ' (precios sin IGV + 18%)' : ''}.${noMerc ? ` Hay ${S(noMerc)} que no es mercadería: no entra a la compra; regístralo en Gastos si corresponde.` : ''}</div>`
+        : `<div class="cuadre mal">Tus líneas suman ${S(calc)}${modoIgv === '0.18' ? ' con IGV' : ''} y la factura dice ${S(qr.total)} (diferencia ${S(dif)}). Revisa cantidades y precios, o agrega la línea que falte.</div>`;
+    }
+    $('#escaneo').innerHTML = `<div class="escaner">
+      <div class="cab-esc"><img class="prev" id="escImg" src="${url}" alt="Foto de la factura">
+        <div style="flex:1 1 260px">
+          <h3 style="margin-top:0">Lo que leí de la factura</h3>
+          ${qr ? `<table>
+            <tr><td>Proveedor (RUC)</td><td>${esc(qr.ruc)} ${prov ? `<span class="chip ok">${esc(prov.razon_social)}</span>` : '<span class="chip aviso">nuevo</span>'}</td></tr>
+            <tr><td>Comprobante</td><td>${esc(tc?.nombre || qr.tipo)} ${esc(qr.serie)}-${esc(qr.numero)} ${duplicada ? '<span class="chip mal">ya registrada</span>' : ''}</td></tr>
+            <tr><td>Fecha</td><td>${fd(qr.fecha) || '—'}</td></tr><tr><td>IGV · Total</td><td>${S(qr.igv)} · <b>${S(qr.total)}</b></td></tr></table>`
+          : '<p class="sub">No pude leer el código QR. Elige el proveedor y escribe la serie y el número en la compra.</p>'}
+          ${!prov ? `<div class="fila" style="margin-top:10px"><div><label>Nombre del proveedor</label><input id="escProvNom" value="${esc(adivinarProveedor(texto))}"></div>
+            <div><label>RUC</label><input id="escProvRuc" value="${esc(ruc)}" inputmode="numeric"></div>
+            <div class="auto"><button class="btn claro" id="escCrearProv">Crear proveedor</button></div></div>
+            ${C.proveedores.length ? `<div class="fila" style="margin-top:6px"><div><label>…o es uno que ya tienes</label><select id="escProvSel"><option value="">Elegir</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div></div>` : ''}` : ''}
+        </div></div>
+      ${duplicada ? `<div class="cuadre mal">Esta factura ya está registrada (${fh(duplicada.fecha_ingreso)}). Si la registras de nuevo, el stock se sumará dos veces.</div>` : ''}
+      <h3>Productos (${lineas.length})</h3>
+      ${lineas.length ? `<div class="scroll"><table class="lin-esc"><tr><th></th><th>En la factura</th><th>Es tu producto</th><th class="n">Cantidad</th><th class="n">Costo c/u</th><th class="n">Importe</th></tr>
+        ${lineas.map((l, i) => `<tr class="${l.incluir ? '' : 'off'}"><td><input type="checkbox" data-inc="${i}" ${l.incluir ? 'checked' : ''} style="width:auto" aria-label="Incluir línea"></td>
+          <td class="txt">${esc(l.texto)}${l.cuadra ? '' : ' <span class="chip aviso">revisar</span>'}</td>
+          <td><select data-pres="${i}" style="min-width:190px"><option value="">— No es mercadería —</option>${comprables.map(p => `<option value="${p.id}" ${p.id === l.id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select>
+            ${l.por === 'aprendido' ? '<span class="chip ok">recordado</span>' : l.por === 'parecido' ? '<span class="chip">sugerido</span>' : ''}</td>
+          <td class="n"><input style="width:72px" type="number" min="0" step="1" inputmode="decimal" value="${l.cantidad}" data-cant="${i}"></td>
+          <td class="n"><input style="width:92px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" data-cu="${i}"></td>
+          <td class="n">${S(l.cantidad * l.costo)}</td></tr>`).join('')}</table></div>`
+        : '<p class="sub">No reconocí líneas de productos en la foto. Prueba con una foto más cercana y con buena luz, o agrégalos a mano en la compra.</p>'}
+      <button class="btn claro mini" id="escMas" style="margin-top:8px">Agregar línea</button>
+      ${cuadre}
+      <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn rotulo" id="escUsar">Pasar a la compra</button></div><div class="auto"><button class="btn claro" id="escCancelar">Descartar</button></div>
+        <div><p class="sub" style="margin:0">Los productos que elijas se recordarán para las próximas facturas de este proveedor.</p></div></div>
+    </div>`;
+    const e = $('#escaneo');
+    $('#escImg').onclick = () => $('#escImg').classList.toggle('grande');
+    e.querySelectorAll('[data-inc]').forEach(x => x.onchange = () => { lineas[x.dataset.inc].incluir = x.checked; pintar(); });
+    e.querySelectorAll('[data-pres]').forEach(x => x.onchange = () => { const l = lineas[x.dataset.pres]; l.id = x.value; l.por = ''; if (!x.value) l.incluir = true; pintar(); });
+    e.querySelectorAll('[data-cant]').forEach(x => x.onchange = () => { lineas[x.dataset.cant].cantidad = num(x.value); setTimeout(pintar); });
+    e.querySelectorAll('[data-cu]').forEach(x => x.onchange = () => { lineas[x.dataset.cu].costo = num(x.value); setTimeout(pintar); });
+    $('#escMas').onclick = () => { lineas.push({ texto: '(agregada a mano)', cantidad: 1, costo: 0, importe: 0, cuadra: true, id: comprables[0]?.id || '', por: '', incluir: true }); pintar(); };
+    $('#escCancelar').onclick = () => { URL.revokeObjectURL(url); $('#escaneo').innerHTML = ''; };
+    if ($('#escProvSel')) $('#escProvSel').onchange = async () => { prov = C.proveedores.find(p => p.id === $('#escProvSel').value) || null; if (prov) { alias = await cargarAlias(prov.id); lineas.forEach(l => { if (!l.id) Object.assign(l, emparejar(l.texto, alias, comprables)); }); } pintar(); };
+    if ($('#escCrearProv')) $('#escCrearProv').onclick = async () => {
+      const nom = $('#escProvNom').value.trim(), r = $('#escProvRuc').value.trim();
+      if (!nom) return aviso('Escribe el nombre del proveedor', true);
+      if (r && !/^\d{11}$/.test(r)) return aviso('El RUC debe tener 11 dígitos', true);
+      try {
+        prov = await q(sb.from('proveedores').insert({ razon_social: nom, tipo_documento: r ? 'RUC' : null, numero_documento: r || null }).select().single());
+        C.proveedores.push(prov); C.proveedores.sort((a, b) => a.razon_social.localeCompare(b.razon_social));
+        aviso('Proveedor creado'); pintar();
+      } catch (er) { aviso(textoError(er), true); }
+    };
+    $('#escUsar').onclick = async () => {
+      if (!prov) return aviso('Primero crea o elige el proveedor', true);
+      const usar = lineas.filter(l => l.incluir && l.id && l.cantidad > 0);
+      if (!usar.length) return aviso('Elige al menos un producto', true);
+      if (usar.some(l => !(l.costo > 0))) return aviso('Hay productos sin costo', true);
+      if (duplicada && !(await dialogo('Esta factura ya está registrada', [{ type: 'info', html: '<p class="sub" style="margin:0">Si sigues, la compra y el stock se sumarán dos veces.</p>' }], 'Seguir igual'))) return;
+      // Aprender: texto de la factura -> producto elegido
+      const aprender = usar.filter(l => l.texto !== '(agregada a mano)').map(l => ({ proveedor_id: prov.id, texto: normTexto(l.texto).slice(0, 200), presentacion_id: l.id, actualizado_en: new Date().toISOString() })).filter(a => a.texto.length >= 2);
+      const unicos = Object.values(Object.fromEntries(aprender.map(a => [a.texto, a])));
+      if (unicos.length) await q(sb.from('alias_compra').upsert(unicos, { onConflict: 'proveedor_id,texto' })).catch(er => aviso('No pude guardar lo aprendido: ' + textoError(er), true));
+      lineasCompra = usar.map(l => ({ presentacion_id: l.id, cantidad: l.cantidad, costo: String(l.costo) }));
+      const suma = usar.reduce((a, l) => a + r2(l.cantidad * l.costo), 0);
+      const igv = qr?.total && qr.igv > 0 && Math.abs(r2(suma * 1.18) - qr.total) < Math.abs(suma - qr.total) ? '0.18' : '0';
+      cabeceraEscaneada = { proveedor_id: prov.id, fecha: qr?.fecha || null, tipo_comprobante_id: tc?.id, serie: qr?.serie, numero: qr?.numero, igv };
+      URL.revokeObjectURL(url);
+      await ir('compras');
+      aviso('Compra lista. Revísala y toca Registrar compra.');
+    };
+  };
+  pintar();
+  caja.scrollIntoView({ behavior: 'smooth' });
 }
 
 // ============ STOCK ============

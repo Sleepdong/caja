@@ -7,6 +7,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Si publicas dos cambios seguidos, se cancela la corrida anterior y queda solo la más nueva
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pruebas:
     runs-on: ubuntu-latest
@@ -16,16 +21,33 @@ jobs:
         working-directory: tests
     steps:
       - uses: actions/checkout@v5
+      # Si se vuelve a correr (Re-run) una versión que ya no es la actual de main,
+      # no se repiten pruebas de código viejo: se avisa y se termina sin alerta de error.
+      - name: ¿Es la versión actual?
+        id: version
+        working-directory: .
+        run: |
+          actual=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$GITHUB_REF" = "refs/heads/main" ] && [ -n "$actual" ] && [ "$actual" != "$GITHUB_SHA" ]; then
+            echo "::notice title=Versión antigua::Esta corrida es de ${GITHUB_SHA::7}, pero main ya está en ${actual::7}. No se prueba código viejo; mira la corrida más reciente."
+            echo "probar=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "probar=si" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v5
+        if: steps.version.outputs.probar == 'si'
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: tests/package-lock.json
       - run: npm ci
+        if: steps.version.outputs.probar == 'si'
       - run: npx playwright install --with-deps chromium
+        if: steps.version.outputs.probar == 'si'
       - run: npm test
+        if: steps.version.outputs.probar == 'si'
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: failure() && steps.version.outputs.probar == 'si'
         with:
           name: reporte-de-pruebas
           path: tests/playwright-report

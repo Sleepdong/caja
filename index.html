@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vOUVsLFBVDua99vdVtDx2CitBkVCO935gksrxr4sJDM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vS1CG/X0odGAkIIpBltMci59YOQKmuCtH7thz4JnYrk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#231942">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1879,7 +1879,9 @@ async function vCuenta(el) {
       <button class="btn claro" id="cerrarTodas">Cerrar sesión en todos los dispositivos</button>
       <p class="sub" style="margin:16px 0 0">Cuenta: ${esc(u?.user?.email)}</p>
     </div>
-  </div>`;
+  </div>
+  <div class="panel" id="tgPanel"><h2>Resumen diario por Telegram</h2><p class="sub">Cargando…</p></div>`;
+  pintarTelegram();
   const enrolar = async () => {
     try {
       // Limpia intentos anteriores que no se terminaron
@@ -1933,6 +1935,99 @@ async function vCuenta(el) {
     const v = await dialogo('Cerrar todas las sesiones', [{ type: 'info', html: '<p class="sub" style="margin:0">Se cerrará la app en todos tus dispositivos, incluido este. Tendrás que volver a entrar.</p>' }], 'Cerrar todas');
     if (!v) return;
     await sb.auth.signOut({ scope: 'global' }); location.reload();
+  };
+}
+
+
+// ============ RESUMEN DIARIO POR TELEGRAM ============
+const VAULT_URL = 'https://supabase.com/dashboard/project/keygysddihxgukmdggyy/integrations/vault/secrets';
+const esperar = ms => new Promise(r => setTimeout(r, ms));
+const horaTexto = h => `${((h + 11) % 12) + 1}:00 ${h < 12 ? 'a. m.' : 'p. m.'}`;
+async function esperarRespuesta(fn, args, listo, intentos = 8) {
+  for (let i = 0; i < intentos; i++) { await esperar(1500); const r = await q(sb.rpc(fn, args)); if (listo(r)) return r; }
+  return null;
+}
+async function pintarTelegram() {
+  const caja = $('#tgPanel'); if (!caja) return;
+  let est;
+  try { est = await q(sb.rpc('telegram_estado')); }
+  catch (e) { caja.innerHTML = `<h2>Resumen diario por Telegram</h2><p class="sub">${esc(textoError(e))}</p>`; return; }
+  const titulo = '<h2>Resumen diario por Telegram</h2><p class="sub">Cada noche te llega a Telegram: cuánto vendiste y ganaste, cómo te pagaron, qué se está acabando, quién te debe y si dejaste la caja abierta.</p>';
+  if (!est.token) {
+    caja.innerHTML = `${titulo}
+      <h3>Paso 1 · Crea tu bot (2 minutos)</h3>
+      <ol class="pasos">
+        <li>En Telegram busca <b>@BotFather</b> (tiene la marca azul de verificado) y ábrelo.</li>
+        <li>Envíale <b>/newbot</b>. Te pedirá un nombre (por ejemplo <i>Caja Luis</i>) y un usuario que termine en <b>bot</b> (por ejemplo <i>caja_luis_bot</i>).</li>
+        <li>Te responderá con un <b>token</b>, un texto largo como <code>123456789:AAH…</code>. Cópialo. No lo compartas con nadie.</li>
+      </ol>
+      <h3>Paso 2 · Guarda el token en la caja fuerte de Supabase</h3>
+      <ol class="pasos">
+        <li>Abre <a href="${VAULT_URL}" target="_blank" rel="noopener">Supabase → Vault</a> y toca <b>Add new secret</b>.</li>
+        <li>En <b>Name</b> escribe exactamente: <b>telegram_bot_token</b></li>
+        <li>En <b>Secret</b> pega el token y guarda.</li>
+      </ol>
+      <p class="sub">El token queda cifrado en tu base. La app nunca lo ve; solo la base lo usa para enviarte el mensaje.</p>
+      <button class="btn rotulo" id="tgYa">Ya lo guardé</button>`;
+    $('#tgYa').onclick = () => pintarTelegram();
+    return;
+  }
+  if (!est.vinculado) {
+    caja.innerHTML = `${titulo}
+      <p><span class="chip ok">Bot listo</span></p>
+      <h3>Paso 3 · Conecta tu chat</h3>
+      <p class="sub">Genera un código, envíaselo a tu bot por Telegram y toca "Ya lo envié". Así el resumen solo te llega a ti.</p>
+      <div id="tgCodigo"><button class="btn rotulo" id="tgGenerar">Generar código</button></div>`;
+    $('#tgGenerar').onclick = async () => {
+      try {
+        const cod = await q(sb.rpc('telegram_iniciar_vinculo'));
+        $('#tgCodigo').innerHTML = `<div class="clave" style="font-size:24px;text-align:center;letter-spacing:.12em;user-select:all">${esc(cod)}</div>
+          <p class="sub">Abre tu bot en Telegram, toca <b>Iniciar</b> si es la primera vez y envíale este código tal cual. Vence en 15 minutos.</p>
+          <div class="fila"><div class="auto"><button class="btn claro mini" id="tgCopiar">Copiar código</button></div><div class="auto"><button class="btn rotulo" id="tgEnviado">Ya lo envié</button></div></div>`;
+        $('#tgCopiar').onclick = async () => { try { await navigator.clipboard.writeText(cod); aviso('Código copiado'); } catch { aviso('Cópialo a mano', true); } };
+        $('#tgEnviado').onclick = async () => {
+          $('#tgEnviado').disabled = true; $('#tgEnviado').textContent = 'Buscando tu mensaje…';
+          try {
+            const req = await q(sb.rpc('telegram_buscar'));
+            const r = await esperarRespuesta('telegram_vincular', { p_request_id: req }, x => !x.pendiente);
+            if (!r) aviso('Telegram tardó en responder. Toca de nuevo en unos segundos.', true);
+            else if (r.error) aviso(r.error, true);
+            else if (!r.vinculado) aviso('No encontré el código en tu bot. Revisa que lo enviaste al bot correcto y tal cual.', true);
+            else { aviso(`Conectado con ${r.nombre}. Revisa tu Telegram.`); return pintarTelegram(); }
+          } catch (e) { aviso(textoError(e), true); }
+          $('#tgEnviado').disabled = false; $('#tgEnviado').textContent = 'Ya lo envié';
+        };
+      } catch (e) { aviso(textoError(e), true); }
+    };
+    return;
+  }
+  caja.innerHTML = `${titulo}
+    <p><span class="chip ok">Conectado</span> con <b>${esc(est.nombre || 'tu chat')}</b>${est.ultimo_envio ? ` · último envío ${fh(est.ultimo_envio)}` : ''}</p>
+    <div class="fila" style="max-width:560px">
+      <div><label for="tgHora">Enviar cada día a las</label><select id="tgHora">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${h === est.hora ? 'selected' : ''}>${horaTexto(h)}</option>`).join('')}</select></div>
+      <div><label for="tgActivo">Estado</label><select id="tgActivo"><option value="1" ${est.activo ? 'selected' : ''}>Activado</option><option value="0" ${est.activo ? '' : 'selected'}>Pausado</option></select></div>
+      <div class="auto"><button class="btn" id="tgGuardar">Guardar</button></div></div>
+    ${est.activo && !est.programado ? '<div class="cuadre mal">El envío no está programado. Toca Guardar para reprogramarlo.</div>' : ''}
+    <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn rotulo" id="tgProbar">Enviarme el resumen ahora</button></div>
+      <div class="auto"><button class="btn claro" id="tgQuitar">Desconectar</button></div></div>`;
+  $('#tgGuardar').onclick = async () => {
+    const h = Number($('#tgHora').value), act = $('#tgActivo').value === '1';
+    if ((await rpc('telegram_configurar', { p_hora: h, p_activo: act }, act ? `Listo: te llegará cada día a las ${horaTexto(h)}` : 'Resumen pausado')).ok) pintarTelegram();
+  };
+  $('#tgProbar').onclick = async () => {
+    const b = $('#tgProbar'); b.disabled = true; b.textContent = 'Enviando…';
+    try {
+      const req = await q(sb.rpc('telegram_probar'));
+      const r = await esperarRespuesta('telegram_resultado', { p_request_id: req }, x => !x.pendiente);
+      if (!r) aviso('Enviado. Si no te llega en un minuto, vuelve a intentarlo.');
+      else if (r.ok) aviso('Revisa tu Telegram: el resumen ya llegó');
+      else aviso('Telegram no lo aceptó: ' + (r.detalle || 'error desconocido') + '. Si bloqueaste el bot, desbloquéalo.', true);
+    } catch (e) { aviso(textoError(e), true); }
+    b.disabled = false; b.textContent = 'Enviarme el resumen ahora';
+  };
+  $('#tgQuitar').onclick = async () => {
+    const v = await dialogo('Desconectar Telegram', [{ type: 'info', html: '<p class="sub" style="margin:0">Dejarás de recibir el resumen. Puedes volver a conectarlo cuando quieras.</p>' }], 'Desconectar');
+    if (v && (await rpc('telegram_desvincular', {}, 'Telegram desconectado')).ok) pintarTelegram();
   };
 }
 

@@ -14,17 +14,17 @@ test('todas las pantallas abren sin errores', async ({ page, errores }) => {
 test('vender en efectivo descuenta el stock y suma a la caja del día', async ({ page, errores }) => {
   await abrirDemo(page);
   await irA(page, 'vender');
-  const prod = page.locator('#estante .prod').filter({ hasText: 'Marlboro Rojo' });
+  const prod = page.locator('#estante .prod').filter({ hasText: 'Pall Mall BOOST' });
   const stockAntes = await prod.locator('.stock').innerText();
   const totalAntes = await page.locator('.resumen-dia div').last().locator('b').innerText();
 
   await prod.locator('.opc').first().click();
-  await expect(page.locator('#ticket')).toContainText('Marlboro Rojo');
+  await expect(page.locator('#ticket')).toContainText('Pall Mall BOOST');
   await page.locator('#btnCobrar').click();
   await expect(page.locator('#ticket')).toContainText('Cobrado con Efectivo');
 
   await irA(page, 'vender');
-  const prod2 = page.locator('#estante .prod').filter({ hasText: 'Marlboro Rojo' });
+  const prod2 = page.locator('#estante .prod').filter({ hasText: 'Pall Mall BOOST' });
   await expect(prod2.locator('.stock')).not.toHaveText(stockAntes);
   await expect(page.locator('.resumen-dia div').last().locator('b')).not.toHaveText(totalAntes);
 });
@@ -87,7 +87,7 @@ test('en celular ninguna pantalla se sale de lado', async ({ page, errores }) =>
 test('el ticket para el cliente es opcional y lleva el nombre de la empresa', async ({ page, errores }) => {
   await abrirDemo(page);
   await irA(page, 'vender');
-  await page.locator('#estante .prod').filter({ hasText: 'Marlboro Rojo' }).locator('.opc').first().click();
+  await page.locator('#estante .prod').filter({ hasText: 'Pall Mall BOOST' }).locator('.opc').first().click();
   await page.locator('#btnCobrar').click();
   await expect(page.locator('#ticket')).toContainText('Cobrado con');
   // No se abre nada solo: el botón espera a que el cliente lo pida
@@ -95,7 +95,7 @@ test('el ticket para el cliente es opcional y lleva el nombre de la empresa', as
   await page.locator('#enviarTicket').click();
   const texto = await page.locator('form.dialogo textarea').inputValue();
   expect(texto).toContain('*Oni Cobin S.A.C.*');
-  expect(texto).toContain('Marlboro Rojo');
+  expect(texto).toContain('Pall Mall BOOST');
   expect(texto).toContain('no es comprobante de pago');
   await page.locator('form.dialogo [data-x]').click();
 });

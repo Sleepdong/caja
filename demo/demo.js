@@ -41,11 +41,10 @@
   // ---------- 3. Catálogo ----------
   const MARCAS = [
     // id, nombre, costo por unidad, precio unidad, precio paquete (null = no se vende entero), stock mínimo, peso en ventas, marca, variante, categoría, unidades por paquete, código en factura, nombre en factura
-    ['p1', 'Pall Mall SUNS', 0.66, 1.00, 18.00, 60, 30, 'Pall Mall', 'SUNS', 'k1', 20, '460069', 'CIG PALL MALL SUNS XL UND CAJT 20 P'],
-    ['p2', 'Lucky Strike TWIST', 0.95, 1.50, 25.00, 40, 22, 'Lucky Strike', 'TWIST', 'k1', 20, '460018', 'CIG LUCK STRK TWIST UND CAJT 20 PZA'],
-    ['p3', 'Hamilton Rojo', 0.52, 0.80, 14.00, 60, 18, 'Hamilton', 'Rojo', 'k1', 20, '460031', 'CIG HAMILTON ROJO UND CAJT 20'],
-    ['p4', 'Marlboro Rojo', 1.10, 1.20, 26.00, 40, 15, 'Marlboro', 'Rojo', 'k1', 20, '460044', 'CIG MARLBORO ROJO BOX CAJT 20'],
-    ['p5', 'Golden Beach Menta', 0.48, 0.80, 13.00, 40, 15, 'Golden Beach', 'Menta', 'k1', 20, '460052', 'CIG GOLDEN BEACH MENTA CAJT 20'],
+    ['p1', 'Pall Mall SUNS', 0.65, 1.00, 18.00, 20, 30, 'Pall Mall', 'SUNS', 'k1', 20, '460069', 'CIG PALL MALL SUNS XL UND CAJT 20 P'],
+    ['p2', 'Pall Mall BOOST', 0.65, 1.00, 18.00, 20, 28, 'Pall Mall', 'BOOST', 'k1', 20, '460066', 'CIG PALL MALL BOOST UND CAJT 20 PZA'],
+    ['p3', 'Pall Mall BLUE', 0.64, 1.00, 18.00, 20, 20, 'Pall Mall', 'BLUE', 'k1', 20, '460022', 'CIG PALL MALL BLUE UND CAJT 20 PZA'],
+    ['p4', 'Lucky Strike TWIST', 0.95, 1.50, 25.00, 20, 14, 'Lucky Strike', 'TWIST', 'k1', 20, '460018', 'CIG LUCK STRK TWIST UND CAJT 20 PZA'],
     ['p6', 'Fini Ositos', 1.84, 2.50, null, 12, 9, 'Fini', 'Ositos', 'k2', 12, '001292', 'GOMAS FINI OSITOS (CJX12UN) UNX80G'],
     ['p7', 'Fini Gusanos ácidos', 1.84, 2.50, null, 12, 7, 'Fini', 'Gusanos ácidos', 'k2', 12, '001289', 'GOMAS FINI GUSANOS ACIDOS(CJX12UN) UNX90G'],
   ];
@@ -126,7 +125,7 @@
   // y termine con algunas marcas por reponer.
   const vendido = {}; MARCAS.forEach(([id]) => vendido[id] = 0);
   ventasRaw.forEach(v => v.lineas.forEach(l => { const pr = presentaciones.find(p => p.id === l.presentacion_id); vendido[pr.producto_id] += l.cantidad * pr.factor; }));
-  const FINAL = { p1: 130, p2: 95, p3: 150, p4: 28, p5: 70, p6: 30, p7: 20 }; // stock con el que termina la demo
+  const FINAL = { p1: 57, p2: 59, p3: 48, p4: 28, p6: 30, p7: 20 }; // stock con el que termina la demo (como el negocio real)
   const TANDAS = [[20, 'pv1', 0.46, 'k1'], [14, 'pv2', 0.2, 'k1'], [9, 'pv2', 0.14, 'k1'], [6, 'pv1', 0.1, 'k1'], [2, 'pv1', 0.1, 'k1'], [19, 'pv3', 0.45, 'k2'], [9, 'pv3', 0.3, 'k2'], [3, 'pv3', 0.25, 'k2']];
   const VENCE = { 'pv3-19': 2, 'pv3-9': 25, 'pv3-3': 6 }; // días hasta el vencimiento desde hoy (negativo = vence lejos)
   TANDAS.forEach(([n, prov, parte, cat], k) => {

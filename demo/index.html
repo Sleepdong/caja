@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-dl+dwLbCio+Ox3MbS5LeSrvQRhXVVXuZLDlEDiLrN0Q='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vLLOCxClvCEJH5HOSqZgPoRMG6JXyNVjEyP8qvo2hDE='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -1013,6 +1013,7 @@ async function vPanel(el) {
     q(sb.from('v_existencias').select('producto_id, producto, cantidad, stock_minimo, requiere_reposicion, costo_promedio').eq('activo', true)),
     q(sb.from('ventas').select('id', { count: 'exact', head: false }).eq('estado', 'EMITIDA').gte('fecha', ayer + 'T00:00:00-05:00').lt('fecha', inicioHoy())),
   ]);
+  const con2fa = sb.auth.mfa.listFactors().then(r => (r.data?.totp || []).some(f => f.status === 'verified')).catch(() => true);
   const [fiados, sesAbierta, preciosV, lotes] = await Promise.all([
     q(sb.from('v_cuentas_por_cobrar').select('saldo, dias_vencido')).catch(() => []),
     sesionCaja().catch(() => null),
@@ -1079,6 +1080,7 @@ async function vPanel(el) {
   <nav class="atajos" aria-label="Accesos rápidos"><button data-ir="vender">${ico('vender', 24)}<span>Vender</span></button><button data-ir="compras">${ico('compras', 24)}<span>Comprar</span></button><button data-ir="stock">${ico('stock', 24)}<span>Contar</span></button><button data-ir="gastos">${ico('gastos', 24)}<span>Gasto</span></button></nav>
   ${sesAbierta && Number(new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false })) >= 17 ? `<div class="aviso-barra"><p><b>¿Terminaste por hoy?</b> Cuenta el efectivo, cierra la caja y envíate el resumen en un solo paso.</p><button class="btn rotulo" id="btnCerrarDia">Cerrar el día</button></div>` : ''}
   ${urgentes.length ? `<div class="aviso-barra"><p><b>${urgentes.some(l => l.dias < 0) ? 'Tienes mercadería vencida.' : 'Mercadería por vencer esta semana.'}</b> ${urgentes.slice(0, 3).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : `en ${l.dias} ${l.dias === 1 ? 'día' : 'días'}`})`).join(', ')}${urgentes.length > 3 ? ` y ${urgentes.length - 3} más` : ''}. Véndelo primero o dalo de baja.</p><button class="btn claro" data-ir="stock">Ver vencimientos</button></div>` : ''}
+  ${(await con2fa) ? '' : `<div class="aviso-barra"><p><b>Tu cuenta solo tiene contraseña.</b> Activa la verificación en dos pasos: así nadie entra a tu negocio sin el código de tu celular.</p><button class="btn claro" data-ir="cuenta">Activar</button></div>`}
   ${(d => d === null || d >= 7 ? `<div class="aviso-barra"><p><b>${d === null ? 'Aún no tienes copia de seguridad.' : `Tu última copia fue hace ${d} días.`}</b> Descárgala en un minuto para no perder tus datos si algo falla.</p><button class="btn claro" data-ir="cuenta">Hacer copia</button></div>` : '')(diasDesdeRespaldo())}
   ${sin2fa ? `<div class="aviso-barra"><p><b>Protege tu caja:</b> activa la verificación en dos pasos. Sin el código de tu celular, nadie podrá entrar aunque sepa tu contraseña.</p><button class="btn rotulo" data-ir="cuenta">Activar ahora</button></div>` : ''}
   ${alertas.length ? `<div class="panel alerta"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
@@ -3444,9 +3446,23 @@ function pedirCodigo() {
 }
 const contraseñaValida = c => c.length >= 10 && /[a-z]/.test(c) && /[A-Z]/.test(c) && /\d/.test(c);
 const REGLAS_CLAVE = 'Mínimo 10 caracteres, con al menos una mayúscula, una minúscula y un número.';
+// ¿La contraseña apareció en filtraciones? Se consulta Have I Been Pwned con k-anonimato:
+// solo se envían los 5 primeros caracteres de su huella SHA-1, nunca la contraseña.
+// Si no hay internet o el servicio falla, no bloquea (devuelve 0).
+async function vecesFiltrada(clave) {
+  try {
+    const h = [...new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(clave)))].map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    const r = await fetch('https://api.pwnedpasswords.com/range/' + h.slice(0, 5), { headers: { 'Add-Padding': 'true' }, cache: 'no-store', referrerPolicy: 'no-referrer', credentials: 'omit' });
+    if (!r.ok) return 0;
+    const fila = (await r.text()).split(/\r?\n/).find(l => l.startsWith(h.slice(5) + ':'));
+    return fila ? Number(fila.split(':')[1]) || 0 : 0;
+  } catch { return 0; }
+}
 async function guardarContraseña(c1, c2) {
   if (c1 !== c2) { aviso('Las contraseñas no coinciden', true); return false; }
   if (!contraseñaValida(c1)) { aviso(REGLAS_CLAVE, true); return false; }
+  const filtrada = await vecesFiltrada(c1);
+  if (filtrada > 0) { aviso(`Esa contraseña apareció ${filtrada.toLocaleString('es-PE')} ${filtrada === 1 ? 'vez' : 'veces'} en filtraciones de internet. Elige otra que no uses en ningún otro sitio.`, true); return false; }
   const { error } = await sb.auth.updateUser({ password: c1 });
   if (error) {
     aviso(/reauthenticat|recent/i.test(error.message) ? 'Por seguridad, sal y vuelve a entrar antes de cambiar la contraseña.'

@@ -7,11 +7,11 @@ test('buscar, Enter agrega, Retroceso quita 1, Supr quita la línea', async ({ p
   await abrirDemo(page);
   await irA(page, 'vender');
   await page.locator('body').click({ position: { x: 5, y: 5 } });
-  await page.keyboard.type('marlboro');
-  await expect(page.locator('#buscar')).toHaveValue('marlboro');
+  await page.keyboard.type('boost');
+  await expect(page.locator('#buscar')).toHaveValue('boost');
   await page.keyboard.press('Enter');
   await expect(page.locator('#buscar'), 'Después de agregar, la búsqueda se limpia').toHaveValue('');
-  await page.keyboard.type('marlboro');
+  await page.keyboard.type('boost');
   await page.keyboard.press('Enter');
   const linea = page.locator('#ticket .linea[data-linea]');
   await expect(linea).toHaveCount(1);

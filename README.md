@@ -27,7 +27,7 @@ Una app instalable en el celular (PWA), pensada para usarse con una mano detrás
 
 | Área | Qué resuelve |
 |---|---|
-| **Vender** | Ticket rápido por presentación (unidad o paquete), filtros por categoría y lo más vendido primero. Cobro con efectivo, Yape o Plin, vuelto y fiados. Funciona **sin internet** y sincroniza sin duplicar ventas |
+| **Vender** | Ticket rápido por presentación (unidad o paquete), filtros por categoría y lo más vendido primero. Cobro con efectivo, Yape o Plin, vuelto y fiados. Funciona **sin internet** y sincroniza sin duplicar ventas. Si el cliente lo pide, le envía un **ticket por WhatsApp** a nombre de la empresa |
 | **Panel** | Ganancia del día, anillo de avance de la meta, margen explicado en soles ("de cada S/ 10 te quedan S/ 2.69") y avisos de lo urgente |
 | **Escáner de facturas** | Foto o **PDF**: lee el QR de SUNAT y el texto con OCR en el propio dispositivo. Reconoce productos **por código del proveedor**, tolera errores de lectura, registra **bonificaciones** a costo cero y crea productos nuevos con **precio sugerido**, avisando si ya existe uno igual |
 | **Catálogo** | Categorías con su "receta" (cómo se compra y se vende), productos con **marca + variante** y nombre y código de factura. Asistente de 3 pasos para crear productos |
@@ -48,6 +48,11 @@ Una app instalable en el celular (PWA), pensada para usarse con una mano detrás
   <img src="docs/movil-proveedores.webp" width="230" alt="Precios por proveedor con alerta de subida">
 </p>
 
+<p>
+  <img src="docs/movil-ticket.webp" width="230" alt="Ticket opcional para el cliente por WhatsApp">
+  <img src="docs/movil-seguridad.webp" width="230" alt="Tu seguridad: puntaje y dispositivos con la sesión abierta">
+</p>
+
 ## Decisiones contables
 
 Lo más interesante del proyecto fue traducir criterios contables en reglas que el sistema aplica solo:
@@ -62,8 +67,10 @@ Lo más interesante del proyecto fue traducir criterios contables en reglas que 
 
 ## Seguridad
 
-- Base de datos **PostgreSQL** con *Row Level Security* en las 36 tablas. Las operaciones contables pasan por funciones que validan el rol.
+- Base de datos **PostgreSQL** con *Row Level Security* en todas las tablas: leer exige un usuario activo y escribir, el rol de administrador. Las 35 operaciones contables pasan por funciones que validan el rol; ninguna está abierta al público.
+- **Registro de usuarios cerrado** y sin accesos anónimos: una cuenta nueva no tendría ningún permiso.
 - **Verificación en dos pasos (TOTP)** exigida a nivel de base de datos, no solo en la pantalla.
+- **Contraseñas filtradas bloqueadas:** al cambiar la contraseña se consulta *Have I Been Pwned* con k-anonimato (solo viajan 5 caracteres de la huella SHA-1, nunca la contraseña).
 - *Content Security Policy* estricta, librerías con *Subresource Integrity*, cierre de sesión por inactividad y registro de auditoría.
 - Panel **"Tu seguridad"**: puntaje, dispositivos con la sesión abierta (con cierre remoto) y tiempo de cierre automático a elección. Al salir se borran del equipo las copias de datos del negocio.
 - La demostración usa una base de ejemplo en memoria y un almacenamiento propio: no puede leer ni escribir datos reales.
@@ -72,14 +79,14 @@ Lo más interesante del proyecto fue traducir criterios contables en reglas que 
 
 ![Pruebas](https://github.com/Sleepdong/caja/actions/workflows/pruebas.yml/badge.svg)
 
-Cada cambio publicado pasa por **38 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
+Cada cambio publicado pasa por **46 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
 
 | Grupo | Qué comprueba |
 |---|---|
 | Archivos | La CSP autoriza exactamente el código de la app, cada librería externa trae su huella (SRI), no hay `eval` ni claves secretas, la demo está al día |
 | Flujos del negocio | Todas las pantallas abren sin errores y ninguna se sale de lado en un celular de 360 px; vender descuenta el stock y suma a la caja; conteo de inventario con "Lo vendí"; asistente de cierre del día |
 | Teclado | Buscar, Enter agrega, Retroceso y Supr corrigen, F2 cobra |
-| Seguridad | Cierre por inactividad, limpieza de datos al salir, aviso de ventas sin subir y un nombre de producto con código malicioso que se muestra como texto sin ejecutarse |
+| Seguridad | Contraseñas filtradas, aviso de verificación en dos pasos, cierre por inactividad, limpieza de datos al salir, aviso de ventas sin subir y un nombre de producto con código malicioso que se muestra como texto sin ejecutarse |
 
 ```
 cd tests && npm install && npx playwright install chromium && npm test

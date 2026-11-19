@@ -77,3 +77,32 @@ test('un nombre de producto con código malicioso se muestra como texto, sin eje
   expect(await page.evaluate(() => window.__hackeado)).toBeUndefined();
   await expect(page.locator('#estante'), 'El nombre aparece tal cual, como texto').toContainText('<img src=x onerror=');
 });
+
+test('rechaza una contraseña que apareció en filtraciones, sin enviarla completa', async ({ page, errores }) => {
+  const crypto = require('crypto');
+  const clave = 'Password1234';
+  const h = crypto.createHash('sha1').update(clave).digest('hex').toUpperCase();
+  const pedidas = [];
+  await page.route('https://api.pwnedpasswords.com/range/*', r => { pedidas.push(r.request().url()); r.fulfill({ status: 200, body: `0018A45C4D1DEF81644B54AB7F969B88D65:0\r\n${h.slice(5)}:52310\r\n` }); });
+  await abrirDemo(page);
+  const ok = await page.evaluate(c => guardarContraseña(c, c), clave);
+  expect(ok).toBe(false);
+  await expect(page.locator('#aviso')).toContainText('apareció');
+  expect(pedidas).toEqual([`https://api.pwnedpasswords.com/range/${h.slice(0, 5)}`]);
+  expect(pedidas[0]).not.toContain(clave);
+});
+
+test('si el servicio de filtraciones no responde, igual deja cambiar la contraseña', async ({ page, errores }) => {
+  await page.route('https://api.pwnedpasswords.com/range/*', r => r.abort());
+  await abrirDemo(page);
+  expect(await page.evaluate(() => vecesFiltrada('OtraClaveSegura987'))).toBe(0);
+});
+
+test('el Panel avisa si la cuenta no tiene verificación en dos pasos', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'panel');
+  await expect(page.locator('.aviso-barra', { hasText: 'solo tiene contraseña' })).toHaveCount(0);
+  await page.evaluate(() => { sb.auth.mfa.listFactors = () => Promise.resolve({ data: { all: [], totp: [] }, error: null }); });
+  await irA(page, 'panel');
+  await expect(page.locator('.aviso-barra', { hasText: 'solo tiene contraseña' })).toBeVisible();
+});

@@ -17,7 +17,7 @@ def cambiar(viejo, nuevo, regex=False):
 cambiar(r'<script src="https://cdn\.jsdelivr\.net/npm/@supabase/supabase-js@[^>]*></script>', '<script src="demo.js"></script>', regex=True)
 # 2. CSP: permitir el script propio; sin conexión a la base real
 cambiar("script-src https://cdn.jsdelivr.net", "script-src 'self' https://cdn.jsdelivr.net")
-cambiar(r"connect-src [^;]*;", "connect-src https://cdn.jsdelivr.net;", regex=True)
+cambiar(r"connect-src [^;]*;", "connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com;", regex=True)
 # 3. No es instalable ni registra el service worker de la app real
 cambiar('<link rel="manifest" href="manifest.webmanifest">\n', '')
 cambiar('href="favicon.png"', 'href="../favicon.png"')

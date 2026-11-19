@@ -1,0 +1,12 @@
+{
+  "name": "caja-pruebas",
+  "private": true,
+  "description": "Pruebas automáticas de la app Caja (corren contra la demo, nunca contra la base real)",
+  "scripts": {
+    "test": "playwright test",
+    "reporte": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

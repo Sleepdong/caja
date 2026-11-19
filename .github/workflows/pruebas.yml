@@ -1,0 +1,32 @@
+name: Pruebas
+
+# Corre las pruebas automáticas cada vez que se publica un cambio.
+# Si algo se rompe, GitHub marca el cambio con una ✗ roja y deja el reporte para descargar.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: reporte-de-pruebas
+          path: tests/playwright-report
+          retention-days: 14

@@ -298,7 +298,14 @@
           let filas = (D[tabla] || []).filter(f => filtros.every(t => t(f)));
           if (cambio) {
             const [tipo, r] = cambio;
-            if (tipo === 'update') filas.forEach(f => Object.assign(f, r));
+            if (tipo === 'update') {
+              filas.forEach(f => Object.assign(f, r));
+              // Otras tablas y vistas guardan una copia del nombre del producto: se mantiene al día
+              if (tabla === 'productos' && 'nombre' in r) filas.forEach(f => {
+                presentaciones.forEach(pr => { if (pr.producto_id === f.id && pr.productos) pr.productos.nombre = r.nombre; });
+                ['v_precios_vigentes', 'v_existencias'].forEach(v => (D[v] || []).forEach(x => { if (x.producto_id === f.id) x.producto = r.nombre; }));
+              });
+            }
             if (tipo === 'insert' || tipo === 'upsert') { const nuevas = (Array.isArray(r) ? r : [r]).map(x => ({ id: uid(tabla.slice(0, 3)), activo: true, ...x })); (D[tabla] ??= []).push(...nuevas); filas = nuevas; }
             if (tipo === 'delete') { D[tabla] = (D[tabla] || []).filter(f => !filas.includes(f)); }
           }

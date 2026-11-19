@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-qMSzRAj3Z7JYH5Y5xbqtMkjQLrbSm9ZdgLyH4YpJGhw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; worker-src blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-hqT+oNcIQkz+3HTOn8fhQbJBnXk5J7SDsiKmrlPKRp8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; worker-src blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <title>Caja · Gestión Comercial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -998,6 +998,101 @@ async function devolverCompra(compraId, tarjeta) {
 }
 
 
+
+// ============ PEDIDO SUGERIDO: qué comprar y cuánto ============
+const ajustePedido = () => { try { return Object.assign({ historia: 14, cubrir: 7, seguridad: 2 }, JSON.parse(localStorage.getItem('ajustePedido') || '{}')); } catch { return { historia: 14, cubrir: 7, seguridad: 2 }; } };
+const guardarAjustePedido = a => { try { localStorage.setItem('ajustePedido', JSON.stringify(a)); } catch {} };
+const fechaHace = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
+const diasEntre = (a, b) => Math.round((new Date(b + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 86400000);
+async function pintarPedido(ex) {
+  const aj = ajustePedido();
+  const desde = fechaHace(aj.historia - 1);
+  const lineas = await todo(() => sb.from('v_lineas_rentabilidad').select('fecha, producto_id, cantidad_base').gte('fecha', desde).lte('fecha', hoy()));
+  const vendido = {}; let primera = null;
+  lineas.forEach(l => { vendido[l.producto_id] = (vendido[l.producto_id] || 0) + num(l.cantidad_base); if (num(l.cantidad_base) > 0 && (!primera || l.fecha < primera)) primera = l.fecha; });
+  // Si empezaste a vender hace poco, el promedio usa solo los días con historial
+  const dias = primera ? Math.max(1, diasEntre(primera, hoy()) + 1) : aj.historia;
+  const conHistoria = !!primera;
+  const filas = ex.map(e => {
+    const pres = C.presentaciones.filter(p => p.producto_id === e.producto_id);
+    const compra = pres.filter(p => p.se_compra).sort((a, b) => num(b.factor) - num(a.factor))[0] || pres.sort((a, b) => num(b.factor) - num(a.factor))[0];
+    if (!compra) return null;
+    const f = num(compra.factor) || 1, stock = num(e.cantidad), v = Math.max(0, vendido[e.producto_id] || 0), diario = v / dias;
+    const objetivo = Math.max(diario * (aj.cubrir + aj.seguridad), num(e.stock_minimo));
+    const paquetes = Math.max(0, Math.ceil((objetivo - stock) / f - 1e-9));
+    const cobertura = diario > 0 ? stock / diario : null;
+    return { e, compra, f, stock, v, diario, cobertura, paquetes, costoPaq: r2(num(e.costo_promedio) * f), sinRotacion: conHistoria && v === 0 && stock > 0 };
+  }).filter(Boolean).sort((a, b) => (a.cobertura ?? 1e9) - (b.cobertura ?? 1e9) || b.paquetes - a.paquetes);
+  const estado = r => r.stock <= 0 ? '<span class="chip mal">Agotado</span>'
+    : r.cobertura === null ? (r.sinRotacion ? `<span class="chip aviso">Sin ventas en ${dias} días</span>` : '<span class="chip">Sin historial</span>')
+    : r.cobertura < aj.cubrir ? `<span class="chip mal">Se acaba en ${N(Math.max(0, Math.floor(r.cobertura)))} días</span>`
+    : `<span class="chip ok">Alcanza ${N(Math.floor(r.cobertura))} días</span>`;
+  const quietos = filas.filter(r => r.sinRotacion), plataQuieta = quietos.reduce((a, r) => a + num(r.e.valor_total), 0);
+  const pintar = () => {
+    const total = filas.reduce((a, r) => a + r.paquetes * r.costoPaq, 0), nPaq = filas.reduce((a, r) => a + r.paquetes, 0);
+    $('#pedido').innerHTML = `<div class="panel"><h2>Qué comprar</h2>
+      <p class="sub">${conHistoria ? `Según lo que vendiste en los últimos ${dias} ${dias === 1 ? 'día' : 'días'}. Te alcanza para ${aj.cubrir} días más ${aj.seguridad} de reserva.` : 'Aún no hay ventas registradas: por ahora el pedido usa tu stock mínimo. Con unos días de ventas se calcula solo según lo que realmente vendes.'}</p>
+      <div class="fila" style="max-width:640px;margin-bottom:12px">
+        <div><label>Mirar ventas de</label><select id="pjHist">${[7, 14, 30].map(d => `<option value="${d}" ${d === aj.historia ? 'selected' : ''}>últimos ${d} días</option>`).join('')}</select></div>
+        <div><label>Comprar para</label><select id="pjCubrir">${[3, 5, 7, 10, 15, 30].map(d => `<option value="${d}" ${d === aj.cubrir ? 'selected' : ''}>${d} días</option>`).join('')}</select></div>
+        <div><label>Reserva</label><select id="pjSeg">${[0, 1, 2, 3, 5].map(d => `<option value="${d}" ${d === aj.seguridad ? 'selected' : ''}>${d === 0 ? 'Sin reserva' : d === 1 ? '1 día' : d + ' días'}</option>`).join('')}</select></div></div>
+      <div class="scroll"><table><tr><th>Producto</th><th class="n">Stock</th><th class="n">Vende por día</th><th>Estado</th><th class="n">Pedir</th><th class="n">Costo aprox.</th></tr>
+        ${filas.map((r, i) => `<tr><td>${esc(r.e.producto)}<div class="sub" style="margin:0">${esc(r.compra.nombre)}</div></td>
+          <td class="n">${N(r.stock)}</td><td class="n">${r.diario ? N(r.diario, 1) : '—'}</td><td>${estado(r)}</td>
+          <td class="n"><input type="number" min="0" step="1" inputmode="numeric" value="${r.paquetes}" data-pq="${i}" style="width:70px"> <span class="sub">${r.f > 1 ? 'paq.' : 'und.'}</span></td>
+          <td class="n">${r.costoPaq > 0 ? S(r.paquetes * r.costoPaq) : '<span class="sub">sin costo</span>'}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin productos.</td></tr>'}
+        ${nPaq ? `<tr><td colspan="4"><b>Total del pedido</b></td><td class="n"><b>${N(nPaq)}</b></td><td class="n"><b>${S(total)}</b></td></tr>` : ''}</table></div>
+      ${quietos.length ? `<div class="cuadre mal" style="margin-top:12px">Tienes ${S(plataQuieta)} en mercadería que no se vendió en ${dias} días (${quietos.map(r => esc(r.e.producto)).join(', ')}). No vuelvas a comprarla hasta que rote, o prueba bajarle el precio.</div>` : ''}
+      <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn rotulo" id="pjCrear" ${nPaq ? '' : 'disabled'}>Crear compra con este pedido</button></div>
+        <div><p class="sub" style="margin:0">${nPaq ? 'Puedes cambiar las cantidades antes. Luego revisas los costos en Compras.' : 'Por ahora no necesitas comprar nada.'}</p></div></div></div>`;
+    const re = () => { guardarAjustePedido({ historia: Number($('#pjHist').value), cubrir: Number($('#pjCubrir').value), seguridad: Number($('#pjSeg').value) }); pintarPedido(ex).catch(e => aviso(textoError(e), true)); };
+    ['#pjHist', '#pjCubrir', '#pjSeg'].forEach(sel => $(sel).onchange = re);
+    $('#pedido').querySelectorAll('[data-pq]').forEach(x => x.onchange = () => { filas[x.dataset.pq].paquetes = Math.max(0, Math.round(num(x.value))); setTimeout(pintar); });
+    $('#pjCrear').onclick = () => {
+      lineasCompra = filas.filter(r => r.paquetes > 0).map(r => ({ presentacion_id: r.compra.id, cantidad: r.paquetes, costo: r.costoPaq > 0 ? String(r.costoPaq) : '' }));
+      ir('compras').then(() => aviso('Pedido cargado. Revisa los costos con tu proveedor y registra la compra.'));
+    };
+  };
+  pintar();
+}
+
+// ============ ¿SUELTO O CAJETILLA? ============
+async function pintarSueltoCajetilla(d, h) {
+  const caja = $('#rSuelto'); if (!caja) return;
+  const [precios, ex, det] = await Promise.all([
+    q(sb.from('v_precios_vigentes').select('*')),
+    q(sb.from('v_existencias').select('producto_id, costo_promedio')),
+    todo(() => sb.from('venta_detalles').select('presentacion_id, cantidad, cantidad_base, subtotal, costo_total, ventas!inner(fecha, estado)')
+      .eq('ventas.estado', 'EMITIDA').gte('ventas.fecha', d + 'T00:00:00-05:00').lte('ventas.fecha', h + 'T23:59:59.999-05:00')),
+  ]);
+  const cp = Object.fromEntries(ex.map(e => [e.producto_id, num(e.costo_promedio)]));
+  const real = {}; det.forEach(l => { const o = real[l.presentacion_id] ??= { paq: 0, base: 0, venta: 0, gan: 0 }; o.paq += num(l.cantidad); o.base += num(l.cantidad_base); o.venta += num(l.subtotal); o.gan += num(l.subtotal) - num(l.costo_total); });
+  const prods = {}; precios.filter(p => p.precio != null).forEach(p => (prods[p.producto_id] ??= []).push(p));
+  const filas = Object.values(prods).map(ps => {
+    const u = ps.find(p => num(p.factor) === 1), k = ps.filter(p => num(p.factor) > 1).sort((a, b) => num(b.factor) - num(a.factor))[0];
+    if (!u || !k) return null;
+    const f = num(k.factor), costo = r2(cp[k.producto_id] * f);
+    const ganPaq = num(k.precio) - costo, ganSuelto = num(u.precio) * f - costo;
+    return { nombre: k.producto, f, pres: k.presentacion, precioPaq: num(k.precio), precioU: num(u.precio), costo, ganPaq, ganSuelto, extra: ganSuelto - ganPaq, ru: real[u.presentacion_id], rk: real[k.presentacion_id] };
+  }).filter(Boolean).sort((a, b) => b.extra - a.extra);
+  if (!filas.length) { caja.innerHTML = ''; return; }
+  const extraMes = filas.reduce((a, r) => a + (r.rk ? r.rk.paq * r.extra : 0), 0);
+  caja.innerHTML = `<div class="panel"><h2>¿Suelto o cajetilla?</h2>
+    <p class="sub">Cuánto ganas por cada ${filas[0].f > 1 ? 'paquete' : 'unidad'} según cómo lo vendas, con tus precios y tu costo de hoy.</p>
+    <div class="scroll"><table><tr><th>Producto</th><th class="n">Costo paq.</th><th class="n">Ganas entero</th><th class="n">Ganas suelto</th><th class="n">Suelto deja más</th><th class="n">Vendido entero</th><th class="n">Vendido suelto</th></tr>
+      ${filas.map(r => `<tr><td>${esc(r.nombre)}<div class="sub" style="margin:0">${esc(r.pres)} a ${S(r.precioPaq)} · suelto ${S(r.precioU)} c/u</div></td>
+        <td class="n">${r.costo > 0 ? S(r.costo) : '—'}</td>
+        <td class="n">${r.costo > 0 ? `${S(r.ganPaq)} <span class="sub">${P(r.ganPaq / r.precioPaq * 100)}</span>` : '—'}</td>
+        <td class="n">${r.costo > 0 ? `${S(r.ganSuelto)} <span class="sub">${P(r.ganSuelto / (r.precioU * r.f) * 100)}</span>` : '—'}</td>
+        <td class="n"><b>${S(r.extra)}</b></td>
+        <td class="n">${r.rk ? `${N(r.rk.paq)} paq. · ${S(r.rk.gan)}` : '—'}</td>
+        <td class="n">${r.ru ? `${N(r.ru.base)} und. · ${S(r.ru.gan)}` : '—'}</td></tr>`).join('')}
+    </table></div>
+    ${extraMes > 0 ? `<div class="cuadre ok" style="margin-top:12px">En estas fechas vendiste paquetes enteros que, vendidos sueltos, te habrían dejado <b>${S(extraMes)}</b> más. No siempre se puede (quien compra la cajetilla no siempre compra suelto), pero muestra cuánto pesa el precio de la cajetilla.</div>`
+      : `<p class="sub" style="margin-top:10px">Cuando registres ventas, aquí verás cuánto vendiste de cada forma y cuánto te dejó.</p>`}
+  </div>`;
+}
+
 // ============ ESCÁNER DE FACTURAS (gratis, todo en el celular) ============
 // 1) Código QR SUNAT: RUC|tipo|serie|número|IGV|total|fecha|...  2) Texto de la foto (Tesseract) para las líneas.
 let cabeceraEscaneada = null;
@@ -1229,6 +1324,7 @@ async function vStock(el) {
   el.innerHTML = `
   <div class="cifras"><div class="cifra"><small>Valor del inventario (a costo)</small><b>${S(valor)}</b></div>
     <div class="cifra"><small>Productos</small><b>${ex.length}</b></div><div class="cifra"><small>Por reponer</small><b>${reponer}</b></div></div>
+  <div id="pedido"></div>
   <div class="panel"><h2>Existencias</h2><div class="scroll"><table>
     <tr><th>Producto</th><th class="n">Unidades</th><th class="n">Paquetes + sueltos</th><th class="n">Costo promedio</th><th class="n">Valor</th><th></th></tr>
     ${ex.map(e => { const f = factorMax(e.producto_id), c = num(e.cantidad);
@@ -1246,6 +1342,7 @@ async function vStock(el) {
       <div class="oculto" id="aCuBox"><label>Costo c/u (si no había stock)</label><input type="number" id="aCu" min="0" step="0.01" inputmode="decimal"></div></div>
     <div class="fila" style="margin-top:8px"><div><label>Detalle</label><input id="aObs" placeholder="Ej.: cajetilla mojada"></div><div class="auto"><button class="btn" id="btnAjuste">Registrar ajuste</button></div></div>
   </div>`;
+  pintarPedido(ex).catch(e => { $('#pedido').innerHTML = `<div class="panel"><h2>Qué comprar</h2><p class="sub">No se pudo calcular: ${esc(textoError(e))}</p></div>`; });
   const pintarMot = () => { $('#aMot').innerHTML = C.motivos.filter(m => m.tipo_aplicable === $('#aTipo').value).map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join(''); $('#aCuBox').classList.toggle('oculto', $('#aTipo').value !== 'AJUSTE_POSITIVO'); };
   $('#aTipo').onchange = pintarMot; pintarMot();
   $('#btnAjuste').onclick = async () => {
@@ -1422,10 +1519,12 @@ async function vReportes(el) {
     <div class="panel"><h2>Qué producto deja más</h2><div class="scroll"><table><tr><th>Producto</th><th class="n">Unidades</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th></tr>
       ${Object.entries(porProd).sort((a, b) => (b[1].v - b[1].k) - (a[1].v - a[1].k)).map(([k, o]) => `<tr><td>${esc(nomProd[k] || '')}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td><td class="n">${S(o.k)}</td><td class="n"><b>${S(o.v - o.k)}</b></td><td class="n">${o.v > 0 ? P((o.v - o.k) / o.v * 100) : '—'}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin ventas en estas fechas.</td></tr>'}
     </table></div></div>
+    <div id="rSuelto"></div>
     <div class="panel"><h2>Día por día</h2><div class="scroll"><table><tr><th>Fecha</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia bruta</th><th class="n">Gastos</th><th class="n">Ganancia neta</th></tr>
       ${dias.map(x => `<tr><td>${fd(x.fecha)}</td><td class="n">${S(x.ventas_netas)}</td><td class="n">${S(x.costo_mercaderia_vendida)}</td><td class="n">${S(x.utilidad_bruta)}</td>
         <td class="n">${S(num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos))}</td><td class="n"><b>${S(x.utilidad_neta_estimada)}</b></td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin movimientos en estas fechas.</td></tr>'}
     </table></div></div>`;
+    await pintarSueltoCajetilla(d, h).catch(e => { $('#rSuelto').innerHTML = ''; console.warn(e); });
   };
   $('#rVer').onclick = () => correr().catch(e => aviso(textoError(e), true));
   const fechaMenos = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };

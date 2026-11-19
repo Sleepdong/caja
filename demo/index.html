@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-PkVvi3kA1xyVl1JZl/2Dc53XT7ncK13Cds1tZpk8fb0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-kktAkxEgRg5kARmTzrF+yPa1lHLRs3qu4jT5Ql2EvqI='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -827,7 +827,8 @@ function pintarTabs() {
   $('#pagina').classList.toggle('es-panel', vistaActual === 'panel');
 }
 // Atajos de teclado en Vender (laptop): escribir busca, flechas eligen, Enter agrega, F2 cobra
-let selVender = 0;
+let selVender = 0, ultimoAgregado = null;
+document.addEventListener('click', e => { const o = e.target.closest?.('#estante .opc'); if (o) ultimoAgregado = o.dataset.p; }, true);
 document.addEventListener('keydown', e => {
   if (vistaActual !== 'vender' || document.querySelector('.velo:not(.oculto)')) return;
   const buscar = $('#buscar'); if (!buscar) return;
@@ -842,6 +843,17 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); const card = cards[selVender] || cards[0]; if (!card) return;
     const ops = [...card.querySelectorAll('.opc:not(:disabled)')]; const o = e.shiftKey ? ops[ops.length - 1] : ops[0];
     if (o) { o.click(); buscar.value = ''; buscar.dispatchEvent(new Event('input')); selVender = 0; buscar.focus(); } return;
+  }
+  // Corregir: Retroceso (o Ctrl+Z) quita 1 unidad de lo último que agregaste; Supr quita toda esa línea
+  if (!buscar.value && (e.key === 'Backspace' || e.key === 'Delete' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z'))) {
+    const lineas = [...document.querySelectorAll('#ticket .linea[data-linea]')]; if (!lineas.length) return;
+    e.preventDefault();
+    const l = lineas.find(x => x.dataset.linea === ultimoAgregado) || lineas[lineas.length - 1];
+    const nombre = l.querySelector('.nom')?.firstChild?.textContent?.trim() || 'producto', cant = Number(l.querySelector('.cant-in')?.value || 1);
+    const todo = e.key === 'Delete' || e.shiftKey;
+    (todo ? l.querySelector('[data-q]') : l.querySelector('[data-m]'))?.click();
+    aviso(todo || cant <= 1 ? `Quitaste ${nombre}` : `Quitaste 1 × ${nombre} (quedan ${cant - 1})`);
+    buscar.focus(); return;
   }
   if (e.key === 'Escape' && buscar.value) { buscar.value = ''; buscar.dispatchEvent(new Event('input')); selVender = 0; return; }
   // Cualquier letra o número empieza a buscar
@@ -1156,7 +1168,7 @@ async function vVender(el) {
         <input id="buscar" placeholder="Buscar producto o escanear código" autocomplete="off"></div>
       ${catsEnUso.length > 1 ? `<div class="chips-cat" id="chipsCat" role="tablist" aria-label="Filtrar por categoría"><button data-cat="" role="tab">Todo</button>${catsEnUso.map(c => `<button data-cat="${c.id}" role="tab">${esc(c.nombre)}</button>`).join('')}</div>` : ''}
       <div class="estante" id="estante"></div>
-      <div class="atajos-tec" aria-label="Atajos de teclado"><span><kbd>↑</kbd><kbd>↓</kbd>elegir</span><span><kbd>Enter</kbd>agregar suelto</span><span><kbd>Shift</kbd><kbd>Enter</kbd>agregar paquete</span><span><kbd>F2</kbd>cobrar</span><span><kbd>Alt</kbd><kbd>1·2·3</kbd>efectivo · Yape · Plin</span><span><kbd>Esc</kbd>borrar búsqueda</span></div>
+      <div class="atajos-tec" aria-label="Atajos de teclado"><span><kbd>↑</kbd><kbd>↓</kbd>elegir</span><span><kbd>Enter</kbd>agregar suelto</span><span><kbd>Shift</kbd><kbd>Enter</kbd>agregar paquete</span><span><kbd>F2</kbd>cobrar</span><span><kbd>Alt</kbd><kbd>1·2·3</kbd>efectivo · Yape · Plin</span><span><kbd>Retroceso</kbd>quitar 1 del último</span><span><kbd>Supr</kbd>quitar la línea</span><span><kbd>Esc</kbd>borrar búsqueda</span></div>
       <div class="resumen-dia">${medios(MEDIOS_VENTA).map(m => `<div><small><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)} hoy</small><b>${S(porMedio[m.id])}</b></div>`).join('')}
         <div><small>Total vendido hoy</small><b>${S(Object.values(porMedio).reduce((a, b) => a + b, 0))}</b></div></div>
     </section>
@@ -1197,7 +1209,7 @@ async function vVender(el) {
     const rec = num(recibido), vuelto = r2(rec - (cond === 'CREDITO' ? num($('#inicial')?.value) : t));
     $('#ticket').innerHTML = `
       <div class="cab"><h2>Venta</h2><small>${ticket.length ? (n => n + (n === 1 ? ' artículo' : ' artículos'))(ticket.reduce((a, x) => a + x.cantidad, 0)) : ''}</small></div>
-      <div class="lineas">${ticket.length ? ticket.map((x, i) => `<div class="linea">
+      <div class="lineas">${ticket.length ? ticket.map((x, i) => `<div class="linea" data-linea="${esc(x.presentacion_id)}">
           <div class="nom">${esc(x.nombre)}<div class="sub" style="margin:0;font-weight:400">${esc(x.pres)}</div></div><div class="imp">${S(x.cantidad * x.precio)}</div>
           <div class="ctrl"><button class="paso" data-m="${i}" aria-label="Quitar uno">−</button><input class="cant-in" type="number" min="1" step="1" inputmode="numeric" value="${x.cantidad}" data-c="${i}" aria-label="Cantidad"><button class="paso" data-s="${i}" aria-label="Agregar uno">+</button>
             × <input class="pu" type="number" step="0.10" min="0" inputmode="decimal" value="${x.precio.toFixed(2)}" data-pu="${i}" aria-label="Precio unitario"></div>

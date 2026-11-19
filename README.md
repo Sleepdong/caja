@@ -36,6 +36,7 @@ Una app instalable en el celular (PWA), pensada para usarse con una mano detrás
 | **Caja** | **Cerrar el día** en un recorrido: conteo por billetes y monedas, pendientes del día, cierre con arqueo y resumen por WhatsApp |
 | **Fiados** | Quién debe y desde cuándo, con recordatorio por WhatsApp en un toque |
 | **Reportes** | Estado de resultados por periodo, ganancia **por producto, marca y categoría**, análisis suelto vs. paquete, exportación a Excel y cierre de mes |
+| **Para declarar (SUNAT)** | Resumen mensual para el Declara Fácil 621 de una MYPE Tributaria con ventas exoneradas de IGV (Ley de la Amazonía): ventas no gravadas, Renta al 1 % redondeada, avance frente al tope de 300 UIT y compras del mes con su comprobante. Se copia o se descarga en Excel |
 | **Respaldo** | Copia de seguridad completa en Excel, una hoja por tabla |
 
 <p>
@@ -79,7 +80,7 @@ Lo más interesante del proyecto fue traducir criterios contables en reglas que 
 
 ![Pruebas](https://github.com/Sleepdong/caja/actions/workflows/pruebas.yml/badge.svg)
 
-Cada cambio publicado pasa por **46 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
+Cada cambio publicado pasa por **48 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
 
 | Grupo | Qué comprueba |
 |---|---|

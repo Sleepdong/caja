@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vLLOCxClvCEJH5HOSqZgPoRMG6JXyNVjEyP8qvo2hDE='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-t10gb230lSLbjeYPK7zp9qg4/l5xMnFcJ8HXxnIbZlo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -3091,10 +3091,83 @@ async function vCatalogo(el) {
 }
 
 // ============ REPORTES ============
+// ---------- Para declarar (SUNAT, Declara Fácil 621) ----------
+// Oni Cobin S.A.C.: Régimen MYPE Tributario y ventas exoneradas de IGV (Ley de la Amazonía, Ucayali).
+const TRIBUTARIO = { regimen: 'MYPE Tributario', tasaRenta: 0.01, topeUIT: 300, igvExonerado: true };
+const UIT = { 2026: 5500 }; // actualiza cada año (D.S. del MEF)
+const NOMBRE_MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const mesAnterior = () => { const [a, m] = hoy().split('-').map(Number); return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`; };
+const finDeMes = ym => { const [a, m] = ym.split('-').map(Number); return `${ym}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`; };
+async function pintarDeclarar(ym = mesAnterior()) {
+  const caja = $('#rDecl'); if (!caja) return;
+  const [anio, mes] = ym.split('-').map(Number), ini = `${ym}-01`, fin = finDeMes(ym);
+  const [dias, diasAnio, compras] = await Promise.all([
+    q(sb.from('v_resultados_diarios').select('fecha, ventas_brutas, devoluciones, ventas_netas').gte('fecha', ini).lte('fecha', fin)),
+    q(sb.from('v_resultados_diarios').select('ventas_netas').gte('fecha', `${anio}-01-01`).lte('fecha', fin)),
+    q(sb.from('v_compras_totales').select('*').gte('fecha_ingreso', ini + 'T00:00:00-05:00').lte('fecha_ingreso', fin + 'T23:59:59-05:00').order('fecha_ingreso')).catch(() => []),
+  ]);
+  const vigentes = compras.filter(c => c.estado !== 'ANULADA');
+  const det = vigentes.length ? await q(sb.from('compra_detalles').select('compra_id, importe_neto, igv_monto').in('compra_id', vigentes.map(c => c.compra_id))).catch(() => []) : [];
+  const porCompra = {}; det.forEach(d => { const o = porCompra[d.compra_id] ??= { b: 0, i: 0 }; o.b += num(d.importe_neto); o.i += num(d.igv_monto); });
+  const sum = (arr, k) => r2(arr.reduce((a, x) => a + num(x[k]), 0));
+  const ventas = sum(dias, 'ventas_netas'), brutas = sum(dias, 'ventas_brutas'), devol = sum(dias, 'devoluciones');
+  const acumulado = sum(diasAnio, 'ventas_netas'), uit = UIT[anio] || UIT[Math.max(...Object.keys(UIT).map(Number))];
+  const tope = TRIBUTARIO.topeUIT * uit, pasaTope = acumulado > tope;
+  const renta = r2(ventas * TRIBUTARIO.tasaRenta), rentaDeclarar = Math.round(renta);
+  const filasC = vigentes.map(c => { const o = porCompra[c.compra_id] || { b: num(c.total), i: 0 }; return { fecha: String(c.fecha_ingreso).slice(0, 10), prov: c.proveedor || '', doc: [c.serie, c.numero].filter(Boolean).join('-'), base: r2(o.b), igv: r2(o.i), total: num(c.total) }; });
+  const sinDoc = filasC.filter(f => !f.doc).length;
+  const totC = { base: sum(filasC, 'base'), igv: sum(filasC, 'igv'), total: sum(filasC, 'total') };
+  const nombreMes = `${NOMBRE_MES[mes - 1]} ${anio}`;
+  const texto = [`*${EMPRESA}* · Declara Fácil 621`, `Periodo: ${String(mes).padStart(2, '0')}/${anio} (${nombreMes})`, '',
+    `Ventas no gravadas (exoneradas, Ley de la Amazonía): ${S(ventas)}`, 'IGV de ventas: S/ 0.00 (exonerado)', '',
+    `Renta ${TRIBUTARIO.regimen} ${P(TRIBUTARIO.tasaRenta * 100)}: ${S(renta)} → declarar S/ ${rentaDeclarar}`, '',
+    `Compras del mes: ${filasC.length} comprobantes · ${S(totC.total)} (IGV pagado ${S(totC.igv)}, va al costo)`].join('\n');
+  caja.innerHTML = `<div class="panel declarar"><div class="envio-cab"><div><h2>Para declarar · SUNAT</h2>
+      <p class="sub" style="margin:0">Datos para el Declara Fácil 621 de ${EMPRESA}: ${TRIBUTARIO.regimen}, ventas exoneradas de IGV por la Ley de la Amazonía.</p></div>
+      <div><label for="dMes">Periodo</label><input type="month" id="dMes" value="${ym}" max="${hoy().slice(0, 7)}"></div></div>
+    <div class="cifras" style="margin-top:14px">
+      <div class="cifra"><small>Ventas del mes (exoneradas)</small><b>${S(ventas)}</b></div>
+      <div class="cifra"><small>IGV de ventas</small><b>S/ 0.00</b></div>
+      <div class="cifra"><small>Renta a pagar (${P(TRIBUTARIO.tasaRenta * 100)})</small><b>S/ ${rentaDeclarar}</b></div>
+      <div class="cifra"><small>Compras del mes</small><b>${S(totC.total)}</b></div>
+    </div>
+    <div class="cols dos"><div><h3>Lo que va en el formulario</h3><table>
+      <tr><td>Ventas no gravadas (exoneradas)</td><td class="n"><b>${S(ventas)}</b></td></tr>
+      <tr><td class="sub">Ventas ${S(brutas)} − devoluciones ${S(devol)}</td><td></td></tr>
+      <tr><td>Ingresos netos del mes (base de la Renta)</td><td class="n">${S(ventas)}</td></tr>
+      <tr><td>Pago a cuenta de Renta · ${P(TRIBUTARIO.tasaRenta * 100)}</td><td class="n">${S(renta)}</td></tr>
+      <tr><td><b>Renta a declarar (sin céntimos)</b></td><td class="n"><b>S/ ${rentaDeclarar}</b></td></tr>
+      <tr><td>IGV a pagar</td><td class="n">S/ 0.00</td></tr></table>
+      <div class="consejo-claro" style="margin-top:12px">${pasaTope ? `<b>Atención:</b> en ${anio} ya vendiste ${S(acumulado)}, más de ${TRIBUTARIO.topeUIT} UIT (${S(tope)}). Desde ahora el pago a cuenta es el coeficiente o 1.5 %, no 1 %. Consúltalo con tu contador.`
+        : `En ${anio} llevas ${S(acumulado)} vendidos: ${P(acumulado / tope * 100)} del tope de ${TRIBUTARIO.topeUIT} UIT (${S(tope)}) para pagar el 1 %.`}</div></div>
+      <div><h3>Compras del mes</h3>${filasC.length ? `<div class="scroll"><table><tr><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th class="n">Base</th><th class="n">IGV</th><th class="n">Total</th></tr>
+        ${filasC.map(f => `<tr><td>${fd(f.fecha)}</td><td>${esc(f.prov)}</td><td>${f.doc ? esc(f.doc) : '<span class="chip mal">sin número</span>'}</td><td class="n">${S(f.base)}</td><td class="n">${S(f.igv)}</td><td class="n">${S(f.total)}</td></tr>`).join('')}
+        <tr><td colspan="3"><b>Total</b></td><td class="n"><b>${S(totC.base)}</b></td><td class="n"><b>${S(totC.igv)}</b></td><td class="n"><b>${S(totC.total)}</b></td></tr></table></div>
+        <p class="sub" style="margin:8px 0 0">Como tus ventas son exoneradas, el IGV que te cobran no es crédito fiscal: se suma al costo. Compáralas con la propuesta de compras de SUNAT (SIRE).${sinDoc ? ` <b>${sinDoc} sin número de comprobante:</b> complétalas en Compras.` : ''}</p>`
+        : '<p class="sub">No registraste compras en este mes.</p>'}</div></div>
+    <div class="acciones" style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn rotulo" id="dCopiar">Copiar resumen</button><button class="btn claro" id="dExcel">Descargar Excel</button></div>
+    <p class="sub" style="margin:12px 0 0">Declara en SUNAT Operaciones en Línea → Declara Fácil 621, según el cronograma del último dígito de tu RUC. Recuerda que cada venta debe tener su boleta o estar en la boleta consolidada del día (ventas de hasta S/ 5). Esta es una ayuda de cálculo: revisa la declaración con tu contador.</p></div>`;
+  $('#dMes').onchange = () => { if ($('#dMes').value) pintarDeclarar($('#dMes').value).catch(e => aviso(textoError(e), true)); };
+  $('#dCopiar').onclick = async () => { try { await navigator.clipboard.writeText(texto); aviso('Resumen copiado'); } catch { await dialogo('Resumen para declarar', [{ label: 'Cópialo', type: 'textarea', rows: 10, value: texto }], 'Listo'); } };
+  $('#dExcel').onclick = async () => {
+    if (typeof XLSX === 'undefined') return aviso('No cargó la librería de Excel; revisa tu conexión', true);
+    const libro = XLSX.utils.book_new();
+    const res = XLSX.utils.aoa_to_sheet([[EMPRESA], ['Resumen para Declara Fácil 621', nombreMes], ['Régimen', TRIBUTARIO.regimen], [],
+      ['Ventas brutas', brutas], ['Devoluciones', -devol], ['Ventas no gravadas (exoneradas)', ventas], ['IGV de ventas', 0], [],
+      ['Ingresos netos del mes', ventas], [`Pago a cuenta de Renta (${TRIBUTARIO.tasaRenta * 100}%)`, renta], ['Renta a declarar (redondeada)', rentaDeclarar], [],
+      [`Ventas acumuladas ${anio}`, acumulado], [`Tope ${TRIBUTARIO.topeUIT} UIT`, tope], [], ['Compras del mes (total)', totC.total], ['IGV pagado en compras (al costo)', totC.igv]]);
+    res['!cols'] = [{ wch: 38 }, { wch: 16 }];
+    XLSX.utils.book_append_sheet(libro, res, 'Resumen');
+    const hc = XLSX.utils.json_to_sheet(filasC.length ? filasC.map(f => ({ Fecha: f.fecha, Proveedor: f.prov, Comprobante: f.doc || 'SIN NÚMERO', Base: f.base, IGV: f.igv, Total: f.total })) : [{ 'Sin compras en el mes': '' }]);
+    hc['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 16 }, { wch: 12 }, { wch: 10 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(libro, hc, 'Compras');
+    XLSX.writeFile(libro, `Oni_Cobin_declaracion_${ym}.xlsx`);
+  };
+}
 async function vReportes(el) {
   el.innerHTML = `<div class="panel"><div class="fila"><div><label>Desde</label><input type="date" id="rD" value="${iniMes()}"></div><div><label>Hasta</label><input type="date" id="rH" value="${hoy()}"></div>
     <div class="auto"><button class="btn" id="rVer">Actualizar</button></div><div class="auto"><button class="btn rotulo" id="rExcel">Descargar Excel</button></div></div>
-    <div class="rapidos" id="rRapidos" style="margin:12px 0 0"><button data-p="hoy">Hoy</button><button data-p="ayer">Ayer</button><button data-p="semana">Últimos 7 días</button><button data-p="mes">Este mes</button><button data-p="mesPasado">Mes pasado</button><button data-p="anio">Este año</button></div></div><div id="rOut"></div><div id="rCierre"></div>`;
+    <div class="rapidos" id="rRapidos" style="margin:12px 0 0"><button data-p="hoy">Hoy</button><button data-p="ayer">Ayer</button><button data-p="semana">Últimos 7 días</button><button data-p="mes">Este mes</button><button data-p="mesPasado">Mes pasado</button><button data-p="anio">Este año</button></div></div><div id="rOut"></div><div id="rDecl"></div><div id="rCierre"></div>`;
   const correr = async () => {
     const d = $('#rD').value, h = $('#rH').value;
     const [dias, rent, saldos, flujo] = await Promise.all([
@@ -3170,6 +3243,7 @@ async function vReportes(el) {
   const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   const periodos = await q(sb.from('periodos_contables').select('*').order('anio', { ascending: false }).order('mes', { ascending: false }).limit(12));
   const [ay, am] = hoy().split('-').map(Number), pm = am === 1 ? { a: ay - 1, m: 12 } : { a: ay, m: am - 1 };
+  pintarDeclarar().catch(e => { $('#rDecl').innerHTML = `<div class="panel"><p class="sub">No se pudo preparar el resumen para declarar: ${esc(textoError(e))}</p></div>`; });
   $('#rCierre').innerHTML = `<div class="panel"><h2>Cierre de mes</h2><p class="sub">Un mes cerrado ya no acepta registros ni anulaciones con fecha de ese mes.</p>
     <div class="fila"><div><label>Mes</label><select id="pM">${MESES.map((n, i) => `<option value="${i + 1}" ${i + 1 === pm.m ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
       <div><label>Año</label><input type="number" id="pA" value="${pm.a}"></div>

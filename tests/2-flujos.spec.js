@@ -99,3 +99,19 @@ test('el ticket para el cliente es opcional y lleva el nombre de la empresa', as
   expect(texto).toContain('no es comprobante de pago');
   await page.locator('form.dialogo [data-x]').click();
 });
+
+test('Para declarar: ventas exoneradas, IGV cero y Renta MYPE al 1 % redondeada', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'reportes');
+  const d = page.locator('.declarar');
+  await expect(d).toContainText('Para declarar');
+  await expect(d).toContainText('Oni Cobin S.A.C.');
+  const ventas = Number((await d.locator('.cifra').first().locator('b').innerText()).replace(/[^\d.]/g, ''));
+  const renta = Number((await d.locator('.cifra').nth(2).locator('b').innerText()).replace(/[^\d.]/g, ''));
+  expect(renta).toBe(Math.round(ventas * 0.01));
+  await expect(d.locator('.cifra').nth(1)).toContainText('S/ 0.00');
+  // Cambiar el periodo vuelve a calcular sin errores
+  await page.locator('#dMes').fill(await page.evaluate(() => hoy().slice(0, 7)));
+  await page.locator('#dMes').dispatchEvent('change');
+  await expect(page.locator('.declarar')).toContainText('Ventas del mes');
+});

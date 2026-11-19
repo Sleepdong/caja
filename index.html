@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'sha256-SG+K+MSboiarZwJ3oNiURUQRy1A9FQhhVb2bK8GebE0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'sha256-nhrSBNCXYWIP68trvMCXgEPHduSOMLwzjZBxloa5A/U='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <title>Caja · Gestión Comercial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -182,6 +182,11 @@ tr:last-child td{border-bottom:0}
 .ganancia-est{display:flex;justify-content:space-between;font-size:13.5px;color:var(--gris);margin:-8px 0 12px}
 .ganancia-est b{color:var(--tinta);font-variant-numeric:tabular-nums}
 .panel.alerta{border-color:#f3d27a;background:#fffbef}
+/* ---------- Cuenta / 2FA ---------- */
+.qr{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin:12px 0}
+.qr img{width:190px;height:190px;background:#fff;border:1px solid var(--linea);border-radius:12px;padding:8px}
+.clave{font-family:var(--display);font-size:15px;letter-spacing:.06em;word-break:break-all;background:#f3f1fa;border-radius:8px;padding:8px 10px;margin:6px 0}
+.pasos{margin:0;padding-left:20px}.pasos li{margin-bottom:6px}
 /* ---------- Diálogos y avisos ---------- */
 #aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;max-width:min(92vw,520px);font-size:14.5px;font-weight:500;z-index:60;transition:.2s;pointer-events:none}
 #aviso.ver{opacity:1;transform:translateX(-50%)}
@@ -214,6 +219,14 @@ main{padding:12px}.panel{padding:14px}.top{padding:10px 14px}.fecha{display:none
     <div class="campo"><label for="lPass">Contraseña</label><input type="password" id="lPass" required autocomplete="current-password"></div>
     <button class="btn" style="width:100%;padding:12px">Entrar</button>
     <p style="margin:14px 0 0;font-size:13.5px;text-align:center"><a href="#" id="olvide" style="color:var(--tinta2)">Olvidé mi contraseña</a></p>
+  </form>
+  <form id="fCodigo" class="oculto">
+    <div class="marca"><i>S/</i>Caja</div>
+    <h2 style="font-family:var(--display);font-size:21px;margin:0 0 6px">Código de verificación</h2>
+    <p class="sub">Abre tu app autenticadora y escribe el código de 6 dígitos de <b>Caja</b>.</p>
+    <div class="campo"><input id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="Código de 6 dígitos" style="font-size:28px;letter-spacing:.35em;text-align:center;font-family:var(--display)"></div>
+    <button type="submit" class="btn" style="width:100%;padding:12px">Verificar</button>
+    <p style="margin:14px 0 0;font-size:13.5px;text-align:center"><a href="#" id="cancelarCodigo" style="color:var(--tinta2)">Salir y usar otra cuenta</a></p>
   </form>
 </div>
 
@@ -382,7 +395,7 @@ async function abrirCajaRapido() {
 // ============ Navegación ============
 const VISTAS = {
   panel: ['Panel', vPanel], vender: ['Vender', vVender], ventas: ['Ventas', vVentas], caja: ['Caja', vCaja], compras: ['Compras', vCompras],
-  stock: ['Stock', vStock], gastos: ['Gastos', vGastos], catalogo: ['Productos', vCatalogo], reportes: ['Reportes', vReportes],
+  stock: ['Stock', vStock], gastos: ['Gastos', vGastos], catalogo: ['Productos', vCatalogo], reportes: ['Reportes', vReportes], cuenta: ['Cuenta', vCuenta],
 };
 let vistaActual = 'vender';
 function pintarTabs() {
@@ -494,10 +507,12 @@ async function vPanel(el) {
   const totMedios = Object.values(porMedio).reduce((a, b) => a + b, 0);
   const reponer = stock.filter(s => s.requiere_reposicion);
   const alertas = await alertasMargen().catch(() => []);
+  const sin2fa = !(await factorVerificado().catch(() => true));
   const ult7 = Array.from({ length: 7 }, (_, i) => d(6 - i));
   const nomDia = f => new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'short', day: 'numeric' });
 
   el.innerHTML = `
+  ${sin2fa ? `<div class="aviso-barra"><p><b>Protege tu caja:</b> activa la verificación en dos pasos. Sin el código de tu celular, nadie podrá entrar aunque sepa tu contraseña.</p><button class="btn rotulo" data-ir="cuenta">Activar ahora</button></div>` : ''}
   ${alertas.length ? `<div class="panel alerta"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
     <p class="sub">Con el costo promedio de tus compras actuales. El precio mínimo es el más bajo al que ganas tu margen mínimo.</p>${tablaAlertas(alertas)}
     <button class="btn" style="margin-top:12px" data-ir="catalogo">Ajustar precios</button></div>` : ''}
@@ -1317,22 +1332,183 @@ setInterval(async () => {
 }, 30000);
 try { if (sessionStorage.getItem('motivoSalida') === 'inactividad') { sessionStorage.removeItem('motivoSalida'); setTimeout(() => aviso('Cerramos tu sesión por 60 minutos sin uso. Vuelve a entrar.'), 300); } } catch {}
 
+// ============ Verificación en dos pasos (2FA) ============
+// Si la URL trae un enlace de recuperación, lo recordamos antes de que Supabase limpie la dirección
+let recuperacionPendiente = /type=recovery/.test(location.hash);
+async function factorVerificado() {
+  const { data, error } = await sb.auth.mfa.listFactors();
+  if (error) throw error;
+  return (data?.totp || []).find(f => f.status === 'verified') || null;
+}
+async function necesitaCodigo() {
+  const { data, error } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (error) throw error;
+  return data.nextLevel === 'aal2' && data.currentLevel !== 'aal2';
+}
+// Muestra la pantalla del código; resuelve true si se verificó, false si se canceló
+function pedirCodigo() {
+  return new Promise(res => {
+    $('#ingreso').classList.remove('oculto'); $('#app').classList.add('oculto');
+    $('#fIngreso').classList.add('oculto'); $('#fCodigo').classList.remove('oculto');
+    const inp = $('#codigo'); inp.value = ''; setTimeout(() => inp.focus(), 50);
+    inp.oninput = () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 6); if (inp.value.length === 6) $('#fCodigo').requestSubmit(); };
+    let ocupado = false;
+    $('#fCodigo').onsubmit = async e => {
+      e.preventDefault();
+      if (ocupado) return;
+      const code = inp.value.replace(/\D/g, '');
+      if (code.length !== 6) return aviso('El código tiene 6 dígitos', true);
+      ocupado = true; const btn = $('#fCodigo button[type=submit]'); btn.disabled = true;
+      try {
+        const f = await factorVerificado();
+        if (!f) throw new Error('No hay un autenticador activo en tu cuenta');
+        const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: f.id, code });
+        if (error) throw error;
+        $('#fCodigo').classList.add('oculto'); $('#fIngreso').classList.remove('oculto');
+        res(true);
+      } catch (err) {
+        aviso(/invalid|expired|incorrect/i.test(err.message || '') ? 'Código incorrecto o vencido. Escribe el código que muestra ahora tu app.' : textoError(err), true);
+        inp.value = ''; inp.focus();
+      }
+      ocupado = false; btn.disabled = false;
+    };
+    $('#cancelarCodigo').onclick = async e => {
+      e.preventDefault();
+      await sb.auth.signOut();
+      $('#fCodigo').classList.add('oculto'); $('#fIngreso').classList.remove('oculto');
+      res(false);
+    };
+  });
+}
+const contraseñaValida = c => c.length >= 10 && /[a-z]/.test(c) && /[A-Z]/.test(c) && /\d/.test(c);
+const REGLAS_CLAVE = 'Mínimo 10 caracteres, con al menos una mayúscula, una minúscula y un número.';
+async function guardarContraseña(c1, c2) {
+  if (c1 !== c2) { aviso('Las contraseñas no coinciden', true); return false; }
+  if (!contraseñaValida(c1)) { aviso(REGLAS_CLAVE, true); return false; }
+  const { error } = await sb.auth.updateUser({ password: c1 });
+  if (error) {
+    aviso(/reauthenticat|recent/i.test(error.message) ? 'Por seguridad, sal y vuelve a entrar antes de cambiar la contraseña.'
+      : /aal2|AAL2/.test(error.message) ? 'Primero verifica tu código de dos pasos.'
+      : /weak|characters|should contain/i.test(error.message) ? REGLAS_CLAVE : error.message, true);
+    return false;
+  }
+  aviso('Contraseña cambiada'); return true;
+}
+
+// ============ CUENTA ============
+async function vCuenta(el) {
+  const [{ data: u }, { data: fs }] = await Promise.all([sb.auth.getUser(), sb.auth.mfa.listFactors()]);
+  const verificados = (fs?.totp || []).filter(f => f.status === 'verified');
+  el.innerHTML = `
+  <div class="cols dos">
+    <div class="panel"><h2>Verificación en dos pasos</h2>
+      ${verificados.length ? `<p><span class="chip ok">Activada</span></p>
+        <p class="sub">Cada vez que entres, la app te pedirá el código de 6 dígitos de tu app autenticadora. Sin ese código nadie puede ver ni registrar nada, aunque sepa tu contraseña.</p>
+        <table>${verificados.map(f => `<tr><td>${esc(f.friendly_name || 'Autenticador')}</td><td class="sub">desde ${fd(String(f.created_at).slice(0, 10))}</td><td class="n"><button class="btn claro mini" data-quitar="${esc(f.id)}">Desactivar</button></td></tr>`).join('')}</table>
+        <button class="btn claro" id="otro2fa" style="margin-top:12px">Agregar otro celular</button>`
+      : `<p><span class="chip mal">Desactivada</span></p>
+        <p class="sub">Además de tu contraseña, necesitarás un código que cambia cada 30 segundos en tu celular. Si alguien roba tu contraseña, igual no podrá entrar.</p>
+        <button class="btn rotulo" id="activar2fa">Activar verificación en dos pasos</button>`}
+      <div id="enrolar"></div>
+    </div>
+    <div class="panel"><h2>Contraseña</h2><p class="sub">${REGLAS_CLAVE}</p>
+      <div class="fila"><div><label for="np1">Nueva contraseña</label><input type="password" id="np1" autocomplete="new-password"></div>
+        <div><label for="np2">Repítela</label><input type="password" id="np2" autocomplete="new-password"></div></div>
+      <button class="btn" id="cambiarPass" style="margin-top:12px">Cambiar contraseña</button>
+      <h3>Sesiones</h3><p class="sub">Tu sesión se cierra sola tras ${MIN_INACTIVIDAD} minutos sin uso. Si perdiste un celular o computadora donde tenías la app abierta, cierra todas las sesiones.</p>
+      <button class="btn claro" id="cerrarTodas">Cerrar sesión en todos los dispositivos</button>
+      <p class="sub" style="margin:16px 0 0">Cuenta: ${esc(u?.user?.email)}</p>
+    </div>
+  </div>`;
+  const enrolar = async () => {
+    try {
+      // Limpia intentos anteriores que no se terminaron
+      const { data: todos } = await sb.auth.mfa.listFactors();
+      for (const f of (todos?.all || []).filter(f => f.status !== 'verified')) await sb.auth.mfa.unenroll({ factorId: f.id });
+      const nombre = 'Celular ' + new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const { data: en, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: nombre, issuer: 'Caja' });
+      if (error) throw error;
+      const caja = $('#enrolar');
+      ['#activar2fa', '#otro2fa'].forEach(sel => $(sel)?.classList.add('oculto'));
+      caja.innerHTML = `<h3>Configura tu celular</h3>
+        <ol class="pasos">
+          <li>Instala <b>Google Authenticator</b> o <b>Microsoft Authenticator</b> en tu celular.</li>
+          <li>En esa app toca <b>+</b> y escanea este código QR. Si estás en el mismo celular, copia la clave y elige "Ingresar clave".</li>
+          <li>Escribe abajo el código de 6 dígitos que te muestra.</li>
+        </ol>
+        <div class="qr"><img id="qrImg" alt="Código QR para tu app autenticadora"><div style="flex:1 1 200px"><label>Clave (para ingresarla a mano)</label><div class="clave" id="clave"></div>
+          <button class="btn claro mini" id="copiarClave">Copiar clave</button>
+          <p class="sub" style="margin-top:10px"><b>Guarda esta clave en un lugar seguro</b> (por ejemplo, anotada en papel). Si pierdes el celular, con ella puedes volver a agregar la cuenta en otro.</p></div></div>
+        <div class="fila"><div><label for="cod2fa">Código de 6 dígitos</label><input id="cod2fa" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="font-size:22px;letter-spacing:.3em"></div>
+          <div class="auto"><button class="btn" id="verificar2fa">Verificar y activar</button></div><div class="auto"><button class="btn claro" id="cancelar2fa">Cancelar</button></div></div>`;
+      $('#qrImg').src = en.totp.qr_code;
+      $('#clave').textContent = en.totp.secret.replace(/(.{4})/g, '$1 ').trim();
+      $('#copiarClave').onclick = async () => { try { await navigator.clipboard.writeText(en.totp.secret); aviso('Clave copiada'); } catch { aviso('No se pudo copiar; escríbela a mano', true); } };
+      $('#cancelar2fa').onclick = async () => { await sb.auth.mfa.unenroll({ factorId: en.id }).catch(() => {}); ir('cuenta'); };
+      const inp = $('#cod2fa'); inp.focus();
+      inp.oninput = () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 6); };
+      $('#verificar2fa').onclick = async () => {
+        if (inp.value.length !== 6) return aviso('Escribe los 6 dígitos', true);
+        $('#verificar2fa').disabled = true;
+        const { error: e2 } = await sb.auth.mfa.challengeAndVerify({ factorId: en.id, code: inp.value });
+        $('#verificar2fa').disabled = false;
+        if (e2) return aviso(/invalid|expired/i.test(e2.message) ? 'Código incorrecto. Revisa que la hora de tu celular sea automática y escribe el código actual.' : e2.message, true);
+        aviso('Verificación en dos pasos activada'); ir('cuenta');
+      };
+      caja.scrollIntoView({ behavior: 'smooth' });
+    } catch (e) { aviso(textoError(e), true); }
+  };
+  if ($('#activar2fa')) $('#activar2fa').onclick = enrolar;
+  if ($('#otro2fa')) $('#otro2fa').onclick = enrolar;
+  el.querySelectorAll('[data-quitar]').forEach(b => b.onclick = async () => {
+    const ultimo = verificados.length === 1;
+    const v = await dialogo('Desactivar este autenticador', [{ type: 'info', html: `<p class="sub" style="margin:0">${ultimo ? 'Es tu único autenticador: <b>la verificación en dos pasos quedará desactivada</b> y bastará la contraseña para entrar.' : 'Ese celular ya no podrá generar códigos para esta cuenta.'}</p>` }], 'Desactivar');
+    if (!v) return;
+    const { error } = await sb.auth.mfa.unenroll({ factorId: b.dataset.quitar });
+    if (error) return aviso(/aal2/i.test(error.message) ? 'Sal y vuelve a entrar con tu código antes de desactivarlo.' : error.message, true);
+    aviso('Autenticador desactivado'); ir('cuenta');
+  });
+  $('#cambiarPass').onclick = async () => { if (await guardarContraseña($('#np1').value, $('#np2').value)) { $('#np1').value = ''; $('#np2').value = ''; } };
+  $('#cerrarTodas').onclick = async () => {
+    const v = await dialogo('Cerrar todas las sesiones', [{ type: 'info', html: '<p class="sub" style="margin:0">Se cerrará la app en todos tus dispositivos, incluido este. Tendrás que volver a entrar.</p>' }], 'Cerrar todas');
+    if (!v) return;
+    await sb.auth.signOut({ scope: 'global' }); location.reload();
+  };
+}
+
 // ============ Sesión ============
+let entrando = false;
 async function entrar(session) {
+  if (entrando || !session) return;
+  entrando = true;
   try {
+    if (await necesitaCodigo()) { if (!(await pedirCodigo())) return; }
     const perfil = await q(sb.from('perfiles').select('nombre, activo, roles(codigo)').eq('id', session.user.id).maybeSingle());
     if (!perfil?.activo) { aviso('Tu usuario no tiene un perfil activo en el sistema', true); await sb.auth.signOut(); return; }
+    if (recuperacionPendiente) {
+      recuperacionPendiente = false;
+      let listo = false;
+      while (!listo) {
+        const v = await dialogo('Crea tu nueva contraseña', [{ type: 'info', html: `<p class="sub" style="margin:0">${REGLAS_CLAVE}</p>` },
+          { label: 'Nueva contraseña', type: 'password', required: true }, { label: 'Repítela', type: 'password', required: true }], 'Guardar contraseña');
+        if (!v) break;
+        listo = await guardarContraseña(v[1], v[2]);
+      }
+    }
     $('#usuario').textContent = perfil.nombre;
     $('#fechaHoy').textContent = new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
     $('#ingreso').classList.add('oculto'); $('#app').classList.remove('oculto');
+    ultimaActividad = Date.now();
     await cargarCatalogos();
     ir(vistaActual);
   } catch (e) { aviso(textoError(e), true); }
+  finally { entrando = false; }
 }
 $('#fIngreso').onsubmit = async e => {
   e.preventDefault();
   const { data, error } = await sb.auth.signInWithPassword({ email: $('#lEmail').value.trim(), password: $('#lPass').value });
   if (error) return aviso(/Invalid login/i.test(error.message) ? 'Correo o contraseña incorrectos' : error.message, true);
+  $('#lPass').value = '';
   entrar(data.session);
 };
 $('#btnSalir').onclick = async () => { await sb.auth.signOut(); location.reload(); };
@@ -1342,20 +1518,9 @@ $('#olvide').onclick = async e => {
   if (!email) return aviso('Escribe tu correo arriba y vuelve a tocar el enlace', true);
   if (!location.protocol.startsWith('http')) return aviso('Para recuperar tu contraseña abre la app desde https://sleepdong.github.io/caja/', true);
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
-  aviso(error ? error.message : 'Te enviamos un correo. Abre el enlace desde este mismo dispositivo para crear tu nueva contraseña.', !!error);
+  aviso(error ? error.message : 'Te enviamos un correo. Abre el enlace desde este mismo dispositivo antes de 15 minutos.', !!error);
 };
-// Al volver desde el enlace del correo: pedir la nueva contraseña
-let recuperando = false;
-sb.auth.onAuthStateChange(async ev => {
-  if (ev !== 'PASSWORD_RECOVERY' || recuperando) return;
-  recuperando = true;
-  const v = await dialogo('Crea tu nueva contraseña', [{ label: 'Nueva contraseña (mínimo 6 caracteres)', type: 'password', required: true }, { label: 'Repítela', type: 'password', required: true }], 'Guardar contraseña');
-  recuperando = false;
-  if (!v) return;
-  if (v[0] !== v[1]) return aviso('Las contraseñas no coinciden. Vuelve a pedir el enlace.', true);
-  const { error } = await sb.auth.updateUser({ password: v[0] });
-  aviso(error ? error.message : 'Contraseña guardada');
-});
+sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') recuperacionPendiente = true; });
 sb.auth.getSession().then(({ data }) => { if (data.session) entrar(data.session); });
 </script>
 </body>

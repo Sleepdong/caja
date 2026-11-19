@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-sP8pqbRQ6BmptFVkZkFMvfn3kpWZXkbmxH+eSvfG/xc='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-Ms3vkl9a99lSvmxOi4xKGb3+KTrAB9Hee+AnUgnMjT8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -401,6 +401,20 @@ svg .eje,svg text{fill:var(--gris)}svg .rejilla{stroke:var(--linea)}
 .anillo button{background:none;border:0;color:#fff;font:inherit;font-size:10.5px;text-decoration:underline;cursor:pointer;padding:0;margin-top:2px}
 .consejo{display:flex;gap:9px;align-items:flex-start;background:#ffffff26;border-radius:16px;padding:11px 13px;font-size:13px;line-height:1.45;margin:2px 0 0;color:#fff;grid-column:1/-1}
 .consejo svg{flex:none;margin-top:1px}
+.billetes{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin:12px 0}
+.den{display:flex;flex-direction:column;gap:4px;background:var(--tono);border-radius:14px;padding:9px 10px;margin:0;color:var(--texto)}
+.den span{font-weight:700;font-size:14px}.den.moneda span{color:var(--ambar)}.den.billete span{color:var(--menta)}
+.den input{padding:8px 10px;background:var(--papel);font-size:16px}.den small{min-height:15px;font-size:12px;color:var(--gris)}
+.cuadre-caja{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--tono);border-radius:16px;padding:12px 14px}
+.cuadre-caja small{display:block;color:var(--gris);font-size:12px}.cuadre-caja b{font-size:17px;letter-spacing:-.03em}
+.cuadre-caja.ok{box-shadow:inset 0 0 0 1.5px #4FE3C166}.cuadre-caja.ok div:last-child b{color:var(--menta)}.cuadre-caja.mal div:last-child b{color:var(--coral)}
+.revisar{display:grid;gap:10px}.rv{background:var(--tono);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.rv b{font-size:14.5px}.rv span{color:var(--gris)}.rv .lnk{align-self:flex-start;color:var(--menta);font-size:13px;margin-top:2px}.rv.mal{box-shadow:inset 3px 0 0 var(--coral)}.rv.aviso{box-shadow:inset 3px 0 0 var(--ambar)}.rv.ok{box-shadow:inset 3px 0 0 var(--menta)}
+.hecho-dia{text-align:center;padding:10px 0}.hecho-dia .ic{width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-size:30px;background:#4FE3C11f;color:var(--menta)}
+.panel.resalta{box-shadow:0 0 0 2px var(--violeta);transition:box-shadow .3s}
+body.soltando #vista::after{content:"Suelta aquí la factura (foto o PDF)";position:fixed;inset:16px;border:2.5px dashed var(--violeta);border-radius:28px;background:#0E0F1Ad9;display:grid;place-items:center;font-size:22px;font-weight:600;color:#fff;z-index:70;pointer-events:none}
+@media(pointer:coarse){.solo-pc{display:none}}
+@media(max-width:600px){.billetes{grid-template-columns:repeat(3,1fr)}.cuadre-caja b{font-size:15px}}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -526,6 +540,8 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
   .opc{padding:9px 10px}.opc b{font-size:14.5px}
   .total b{font-size:32px}
 }
+.btn.rotulo:hover{background:var(--brillo);color:#fff;filter:brightness(1.1)}.btn.wsp:hover{background:#3BE07A;color:#06260F}.btn.peligro:hover{background:#FF7A8A3a}
+.btn:disabled,.btn:disabled:hover{opacity:.45;cursor:not-allowed;filter:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -991,6 +1007,7 @@ async function vPanel(el) {
     <div><small>Ganas sobre el costo</small><div class="med">${markup(H0) === null ? '—' : P(markup(H0))}</div><div class="explica">Por cada S/ 1 que invertiste, ganas ${S(markup(H0) === null ? 0 : markup(H0) / 100)}</div></div>
   </section>
   <nav class="atajos" aria-label="Accesos rápidos"><button data-ir="vender">${ico('vender', 24)}<span>Vender</span></button><button data-ir="compras">${ico('compras', 24)}<span>Comprar</span></button><button data-ir="stock">${ico('stock', 24)}<span>Contar</span></button><button data-ir="gastos">${ico('gastos', 24)}<span>Gasto</span></button></nav>
+  ${sesAbierta && Number(new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false })) >= 17 ? `<div class="aviso-barra"><p><b>¿Terminaste por hoy?</b> Cuenta el efectivo, cierra la caja y envíate el resumen en un solo paso.</p><button class="btn rotulo" id="btnCerrarDia">Cerrar el día</button></div>` : ''}
   ${urgentes.length ? `<div class="aviso-barra"><p><b>${urgentes.some(l => l.dias < 0) ? 'Tienes mercadería vencida.' : 'Mercadería por vencer esta semana.'}</b> ${urgentes.slice(0, 3).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : `en ${l.dias} ${l.dias === 1 ? 'día' : 'días'}`})`).join(', ')}${urgentes.length > 3 ? ` y ${urgentes.length - 3} más` : ''}. Véndelo primero o dalo de baja.</p><button class="btn claro" data-ir="stock">Ver vencimientos</button></div>` : ''}
   ${(d => d === null || d >= 7 ? `<div class="aviso-barra"><p><b>${d === null ? 'Aún no tienes copia de seguridad.' : `Tu última copia fue hace ${d} días.`}</b> Descárgala en un minuto para no perder tus datos si algo falla.</p><button class="btn claro" data-ir="cuenta">Hacer copia</button></div>` : '')(diasDesdeRespaldo())}
   ${sin2fa ? `<div class="aviso-barra"><p><b>Protege tu caja:</b> activa la verificación en dos pasos. Sin el código de tu celular, nadie podrá entrar aunque sepa tu contraseña.</p><button class="btn rotulo" data-ir="cuenta">Activar ahora</button></div>` : ''}
@@ -1048,6 +1065,7 @@ async function vPanel(el) {
   $('#resTxt').textContent = txtRes;
   $('#resWa').href = 'https://wa.me/?text=' + encodeURIComponent(txtRes);
   $('#recHora').onchange = () => { $('#recAgregar').href = `recordatorio/cierre-${$('#recHora').value}.ics`; };
+  $('#btnCerrarDia') && ($('#btnCerrarDia').onclick = () => cerrarElDia().catch(e => aviso(textoError(e), true)));
   $('#metaCambiar').onclick = async () => {
     const v = await dialogo('Meta de ganancia diaria', [{ type: 'info', html: '<p class="sub" style="margin:0">Cuánto quieres ganar cada día (ganancia bruta: venta menos lo que te costó la mercadería). Déjalo en 0 para quitar la meta.</p>' },
       { label: 'Meta diaria (S/)', type: 'number', value: meta || '' }], 'Guardar meta');
@@ -1456,7 +1474,7 @@ async function vCaja(el) {
       <div class="fila"><div><label>Efectivo que cuentas</label><input type="number" id="contado" inputmode="decimal" step="0.10" min="0"></div>
         <div><label>Observación (si no cuadra)</label><input id="obsCierre"></div></div>
       <p class="sub" id="dif" style="margin:8px 0 0"></p>
-      <button class="btn" id="btnCerrar" style="margin-top:12px">Cerrar caja</button>`
+      <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn rotulo" id="btnCerrarDiaCaja">Cerrar el día contando billetes</button></div><div class="auto"><button class="btn claro" id="btnCerrar">Cerrar con el total</button></div></div>`
     : `<h2>Caja cerrada</h2><p class="sub">Según el sistema debe haber ${S(enCaja)} en efectivo.</p>
       <button class="btn rotulo" id="btnAbrir">Abrir caja</button>`}
     </div>
@@ -1472,6 +1490,7 @@ async function vCaja(el) {
       <td class="n">${u.diferencia != null ? `<span class="chip ${num(u.diferencia) === 0 ? 'ok' : 'mal'}">${S(u.diferencia)}</span>` : ''}</td><td>${esc(u.observaciones)}</td></tr>`).join('') || '<tr><td colspan="7" class="vacio">Aún no hay cierres.</td></tr>'}
   </table></div></div>`;
   if ($('#btnAbrir')) $('#btnAbrir').onclick = async () => { if (await abrirCajaRapido()) ir('caja'); };
+  $('#btnCerrarDiaCaja') && ($('#btnCerrarDiaCaja').onclick = () => cerrarElDia().catch(e => aviso(textoError(e), true)));
   if ($('#contado')) $('#contado').oninput = () => {
     const d = r2(num($('#contado').value) - enCaja);
     $('#dif').innerHTML = $('#contado').value === '' ? '' : d === 0 ? '<span class="chip ok">Cuadra exacto</span>' : `<span class="chip mal">${d > 0 ? 'Sobran' : 'Faltan'} ${S(Math.abs(d))}</span> Escribe qué pasó.`;
@@ -1618,13 +1637,13 @@ async function vCompras(el) {
   el.innerHTML = `
   <div class="panel"><h2>Nueva compra</h2><p class="sub">Se paga con ${esc(tarjeta?.nombre || 'la tarjeta de débito')}. El stock sube en cuanto la registras.</p>
     <div class="fila" style="margin-bottom:14px"><div class="auto"><button class="btn rotulo" id="btnEscanear">Escanear factura</button></div>
-      <div><p class="sub" style="margin:0">Toma una foto de la factura o boleta electrónica (con su código QR) y la app llena la compra por ti.</p></div></div>
-    <input type="file" id="fotoFactura" accept="image/*" capture="environment" class="oculto">
+      <div><p class="sub" style="margin:0">Toma una foto de la factura o boleta (con su código QR), o elige su PDF, y la app llena la compra por ti.<span class="solo-pc"> En la laptop también puedes <b>arrastrar el archivo</b> sobre esta pantalla.</span></p></div></div>
+    <input type="file" id="fotoFactura" accept="image/*,application/pdf" class="oculto">
     <div id="escaneo"></div>
     <div class="fila">
       <div style="flex:2 1 220px"><label>Proveedor</label><select id="prov"><option value="">Elige un proveedor</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div>
       <div class="auto"><button class="btn claro" id="nuevoProv">Nuevo proveedor</button></div>
-      <div class="auto"><button class="btn claro" id="btnEscProv">Escanear proveedor</button><input type="file" id="fotoProv" accept="image/*" capture="environment" class="oculto"></div>
+      <div class="auto"><button class="btn claro" id="btnEscProv">Escanear proveedor</button><input type="file" id="fotoProv" accept="image/*,application/pdf" class="oculto"></div>
       <div><label>Fecha</label><input type="date" id="fComp" value="${hoy()}"></div>
     </div>
     <div class="scroll" style="margin-top:14px"><table id="tLineas"></table></div>
@@ -1728,8 +1747,8 @@ async function vCompras(el) {
   // Escáner de facturas
   $('#btnEscanear').onclick = () => $('#fotoFactura').click();
   $('#btnEscProv').onclick = () => $('#fotoProv').click();
-  $('#fotoProv').onchange = () => { const f = $('#fotoProv').files[0]; $('#fotoProv').value = ''; if (f) escanearProveedor(f).catch(e => { aviso('No se pudo leer la factura: ' + textoError(e), true); $('#escaneo').innerHTML = ''; }); };
-  $('#fotoFactura').onchange = () => { const f = $('#fotoFactura').files[0]; $('#fotoFactura').value = ''; if (f) escanearFactura(f).catch(e => { aviso('No se pudo leer la factura: ' + textoError(e), true); $('#escaneo').innerHTML = ''; }); };
+  $('#fotoProv').onchange = () => { const f = $('#fotoProv').files[0]; $('#fotoProv').value = ''; if (f) escanearArchivo(f, escanearProveedor); };
+  $('#fotoFactura').onchange = () => { const f = $('#fotoFactura').files[0]; $('#fotoFactura').value = ''; if (f) escanearArchivo(f, escanearFactura); };
   // Si venimos del escáner, llenar la cabecera
   if (cabeceraEscaneada) {
     const c = cabeceraEscaneada; cabeceraEscaneada = null;
@@ -1814,15 +1833,125 @@ async function pintarPedido(ex) {
           <td class="n">${r.costoPaq > 0 ? S(r.paquetes * r.costoPaq) : '<span class="sub">sin costo</span>'}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin productos.</td></tr>'}
         ${nPaq ? `<tr><td><b>Total del pedido</b></td><td class="n"><b>${N(nPaq)}</b></td><td colspan="3"></td><td class="n"><b>${S(total)}</b></td></tr>` : ''}</table></div>
       ${quietos.length ? `<div class="cuadre mal" style="margin-top:12px">Tienes ${S(plataQuieta)} en mercadería que no se vendió en ${dias} días (${quietos.map(r => esc(r.e.producto)).join(', ')}). No vuelvas a comprarla hasta que rote, o prueba bajarle el precio.</div>` : ''}
-      <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn rotulo" id="pjCrear" ${nPaq ? '' : 'disabled'}>Crear compra con este pedido</button></div>
+      <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn wsp" id="pjWsp" ${nPaq ? '' : 'disabled'}>${icoWsp}<span>Pedir por WhatsApp</span></button></div>
+        <div class="auto"><button class="btn claro" id="pjCrear" ${nPaq ? '' : 'disabled'}>Crear compra con este pedido</button></div>
         <div><p class="sub" style="margin:0">${nPaq ? 'Puedes cambiar las cantidades antes. Luego revisas los costos en Compras.' : 'Por ahora no necesitas comprar nada.'}</p></div></div></div>`;
     const re = () => { guardarAjustePedido({ historia: Number($('#pjHist').value), cubrir: Number($('#pjCubrir').value), seguridad: Number($('#pjSeg').value) }); pintarPedido(ex).catch(e => aviso(textoError(e), true)); };
     ['#pjHist', '#pjCubrir', '#pjSeg'].forEach(sel => $(sel).onchange = re);
     $('#pedido').querySelectorAll('[data-pq]').forEach(x => x.onchange = () => { filas[x.dataset.pq].paquetes = Math.max(0, Math.round(num(x.value))); setTimeout(pintar); });
+    $('#pjWsp').onclick = () => pedirPorWhatsApp(filas.filter(r => r.paquetes > 0)).catch(e => aviso(textoError(e), true));
     $('#pjCrear').onclick = () => {
       lineasCompra = filas.filter(r => r.paquetes > 0).map(r => ({ presentacion_id: r.compra.id, cantidad: r.paquetes, costo: r.costoPaq > 0 ? String(r.costoPaq) : '' }));
       ir('compras').then(() => aviso('Pedido cargado. Revisa los costos con tu proveedor y registra la compra.'));
     };
+  };
+  pintar();
+}
+
+// Arma el pedido y lo abre en WhatsApp con el número del proveedor
+async function pedirPorWhatsApp(items) {
+  if (!items.length) return;
+  const [hist, alias] = await Promise.all([historialCostos().catch(() => []), q(sb.from('alias_compra').select('proveedor_id, texto, presentacion_id').like('texto', '#%')).catch(() => [])]);
+  // Proveedor sugerido: a quien más le compraste estos productos últimamente
+  const votos = {}; items.forEach(r => { const u = hist.filter(h => h.producto_id === r.e.producto_id).pop(); if (u) votos[u.proveedor_id] = (votos[u.proveedor_id] || 0) + 1; });
+  const sugerido = Object.entries(votos).sort((a, b) => b[1] - a[1])[0]?.[0] || C.proveedores.find(p => p.telefono)?.id || C.proveedores[0]?.id || '';
+  const hora = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false }));
+  const saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
+  const codigo = (r, prov) => alias.find(a => a.proveedor_id === prov && C.presentaciones.find(p => p.id === a.presentacion_id)?.producto_id === r.e.producto_id)?.texto.slice(1)
+    || C.presentaciones.find(p => p.producto_id === r.e.producto_id)?.productos?.codigo_factura || '';
+  const texto = prov => `${saludo}. Le escribe ${primerNombre()}, quisiera hacer este pedido:\n\n` + items.map(r => `• ${r.paquetes} × ${r.e.producto}, ${r.compra.nombre.toLowerCase()}${codigo(r, prov) ? ` (cód. ${codigo(r, prov)})` : ''}`).join('\n') + '\n\n¿Me confirma el total y cuándo lo pueden entregar? Gracias.';
+  const v = await dialogo('Pedir por WhatsApp', [
+    { label: '¿A qué proveedor?', type: 'select', value: sugerido, options: C.proveedores.length ? C.proveedores.map(p => ({ value: p.id, label: p.razon_social + (p.telefono ? ` · ${p.telefono}` : ' · sin número') })) : [{ value: '', label: 'Aún no tienes proveedores' }] },
+    { label: 'Su WhatsApp (si no lo tiene guardado)', type: 'tel', value: C.proveedores.find(p => p.id === sugerido)?.telefono || '', ph: '992374871' },
+    { label: 'Mensaje (puedes cambiarlo)', type: 'textarea', rows: 9, value: texto(sugerido), required: true },
+  ], 'Abrir WhatsApp');
+  if (!v) return;
+  const prov = C.proveedores.find(p => p.id === v[0]);
+  const tel = telWhatsApp(v[1] || prov?.telefono);
+  if (!tel) return aviso('Escribe el WhatsApp del proveedor (9 dígitos)', true);
+  if (prov && v[1] && v[1].replace(/\D/g, '') !== (prov.telefono || '')) { await q(sb.from('proveedores').update({ telefono: v[1].replace(/\D/g, '') }).eq('id', prov.id)).catch(() => {}); prov.telefono = v[1].replace(/\D/g, ''); }
+  abrirEnlace(`https://wa.me/${tel}?text=${encodeURIComponent(v[2])}`);
+}
+
+// ============ CERRAR EL DÍA ============
+// Un recorrido: contar el efectivo → revisar pendientes → cerrar caja → resumen y copia de seguridad
+const DENOM = [[200, 'billete'], [100, 'billete'], [50, 'billete'], [20, 'billete'], [10, 'billete'], [5, 'moneda'], [2, 'moneda'], [1, 'moneda'], [0.5, 'moneda'], [0.2, 'moneda'], [0.1, 'moneda']];
+async function cerrarElDia() {
+  const [ses, saldos, ex, lotes, cxc] = await Promise.all([
+    sesionCaja(), q(sb.from('v_saldos_cuentas').select('*')), q(sb.from('v_existencias').select('producto, cantidad, stock_minimo, requiere_reposicion').eq('activo', true)).catch(() => []),
+    lotesPorVencer().catch(() => []), q(sb.from('v_cuentas_por_cobrar').select('cliente, saldo, dias_vencido')).catch(() => []),
+  ]);
+  const esperado = num(saldos.find(x => x.cuenta_id === C.caja?.id)?.saldo);
+  const st = { paso: ses ? 1 : 2, cuenta: local.leer('cuentaBilletes') || {}, obs: '', cerrada: !ses, dif: null };
+  const v = document.createElement('div'); v.className = 'velo hoja-velo asis-velo'; v.innerHTML = '<div class="asis" role="dialog" aria-modal="true" aria-labelledby="cdT"></div>';
+  document.body.appendChild(v);
+  const caja = v.firstChild, cerrar = () => v.remove();
+  v.addEventListener('click', e => { if (e.target === v) cerrar(); });
+  const contado = () => r2(DENOM.reduce((a, [d]) => a + d * num(st.cuenta[d]), 0));
+  const reponer = ex.filter(e => e.requiere_reposicion), vencen = lotes.filter(l => l.dias <= 7), atrasados = cxc.filter(c => num(c.dias_vencido) > 0);
+  const respaldo = diasDesdeRespaldo();
+  const pasos = ['Contar', 'Revisar', 'Listo'];
+  const pintar = () => {
+    const c = contado(), d = r2(c - esperado);
+    caja.innerHTML = `<header class="asis-cab"><div><small>Cerrar el día</small><h3 id="cdT">${st.paso === 1 ? 'Cuenta el efectivo de la caja' : st.paso === 2 ? 'Revisa antes de irte' : '¡Día cerrado!'}</h3></div><button class="asis-x" data-a="cerrar" aria-label="Cerrar">✕</button></header>
+      <ol class="asis-pasos">${pasos.map((t, i) => `<li class="${i + 1 < st.paso ? 'hecho' : i + 1 === st.paso ? 'on' : ''}"><span>${i + 1}</span>${t}</li>`).join('')}</ol>
+      <div class="asis-cuerpo">${st.paso === 1 ? `
+        <p class="sub">Escribe cuántos billetes y monedas de cada uno tienes. Solo el efectivo de la caja: Yape y Plin no van aquí.</p>
+        <div class="billetes">${DENOM.map(([den, t]) => `<label class="den ${t}"><span>${den >= 1 ? 'S/ ' + den : den * 100 + ' cént.'}</span><input type="number" min="0" step="1" inputmode="numeric" data-den="${den}" value="${st.cuenta[den] ?? ''}" placeholder="0"><small>${num(st.cuenta[den]) ? S(den * num(st.cuenta[den])) : ''}</small></label>`).join('')}</div>
+        <div class="cuadre-caja ${st.cuenta && Object.keys(st.cuenta).length ? (Math.abs(d) < 0.005 ? 'ok' : 'mal') : ''}">
+          <div><small>Contaste</small><b>${S(c)}</b></div><div><small>Debería haber</small><b>${S(esperado)}</b></div>
+          <div><small>Diferencia</small><b>${Math.abs(d) < 0.005 ? 'Cuadra ✓' : (d > 0 ? 'Sobran ' : 'Faltan ') + S(Math.abs(d))}</b></div></div>
+        ${Math.abs(d) >= 0.005 && Object.keys(st.cuenta).length ? `<label for="cdObs" style="margin-top:12px">¿Qué pasó? (queda anotado en el cierre)</label><input id="cdObs" value="${esc(st.obs)}" placeholder="Ej.: di vuelto de más, pagué un pasaje…">` : ''}`
+      : st.paso === 2 ? `
+        ${st.cerrada && !st.dif ? '<div class="cuadre ok" style="margin-bottom:12px">La caja ya está cerrada.</div>' : ''}
+        <div class="revisar">
+          ${[
+            vencen.length ? `<div class="rv mal"><b>⏳ Vence esta semana</b><span>${vencen.slice(0, 4).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : l.dias + ' d'})`).join(', ')}</span><button class="lnk" data-ir2="stock">Ver vencimientos</button></div>` : '',
+            reponer.length ? `<div class="rv aviso"><b>📦 Por reponer</b><span>${reponer.slice(0, 5).map(e => `${esc(e.producto)} (quedan ${N(e.cantidad)})`).join(', ')}</span><button class="lnk" data-ir2="stock">Armar el pedido</button></div>` : '',
+            atrasados.length ? `<div class="rv aviso"><b>🤝 Fiados atrasados</b><span>${atrasados.slice(0, 4).map(c => `${esc(c.cliente)} (${S(c.saldo)})`).join(', ')}</span><button class="lnk" data-ir2="ventas">Recordarles</button></div>` : '',
+            respaldo === null || respaldo >= 7 ? `<div class="rv aviso"><b>💾 Copia de seguridad</b><span>${respaldo === null ? 'Aún no tienes ninguna.' : `La última fue hace ${respaldo} días.`}</span><button class="lnk" data-a="respaldo">Descargarla ahora</button></div>` : '',
+          ].filter(Boolean).join('') || '<div class="rv ok"><b>✅ Todo en orden</b><span>Nada por vencer, nada urgente que reponer y ningún fiado atrasado.</span></div>'}
+        </div>`
+      : `
+        <div class="hecho-dia"><div class="ic">✓</div>
+          <p>${st.dif === null ? 'Tu caja ya estaba cerrada.' : Math.abs(st.dif) < 0.005 ? '<b>Caja cerrada. Cuadró exacto.</b>' : `<b>Caja cerrada</b> con ${st.dif > 0 ? 'sobrante' : 'faltante'} de ${S(Math.abs(st.dif))}.`}</p>
+          <p class="sub">Envíate el resumen del día para tenerlo a la mano.</p></div>`}
+      </div>
+      <footer class="asis-pie">${st.paso === 2 && !st.cerrada ? '<button class="btn claro" data-a="atras">Atrás</button>' : '<span></span>'}
+        ${st.paso === 1 ? `<button class="btn" data-a="sig" ${Object.keys(st.cuenta).length ? '' : 'disabled'}>Siguiente</button>`
+        : st.paso === 2 ? (st.cerrada ? '<button class="btn rotulo" data-a="fin">Terminar</button>' : `<button class="btn rotulo" data-a="cerrarcaja">Cerrar caja con ${S(contado())}</button>`)
+        : '<button class="btn wsp" data-a="resumen">' + icoWsp + '<span>Ver y enviar resumen</span></button>'}</footer>`;
+    caja.querySelectorAll('[data-den]').forEach(i => i.oninput = () => {
+      const val = i.value; if (val === '') delete st.cuenta[i.dataset.den]; else st.cuenta[i.dataset.den] = Math.max(0, Math.round(num(val)));
+      local.guardar('cuentaBilletes', st.cuenta); const pos = i.selectionStart, den = i.dataset.den; pintar();
+      const f = caja.querySelector(`[data-den="${den}"]`); f.focus(); try { f.setSelectionRange(pos, pos); } catch {}
+    });
+    caja.querySelector('#cdObs') && (caja.querySelector('#cdObs').oninput = e => { st.obs = e.target.value; });
+    caja.querySelectorAll('[data-ir2]').forEach(b => b.onclick = () => { cerrar(); ir(b.dataset.ir2); });
+    caja.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+      const a = b.dataset.a;
+      if (a === 'cerrar') return cerrar();
+      if (a === 'sig') { st.paso = 2; return pintar(); }
+      if (a === 'atras') { st.paso = 1; return pintar(); }
+      if (a === 'fin') { st.paso = 3; return pintar(); }
+      if (a === 'resumen') { cerrar(); await ir('panel'); const r = $('#resTxt'); r?.scrollIntoView({ behavior: 'smooth', block: 'center' }); r?.closest('.panel')?.classList.add('resalta'); return; }
+      if (a === 'respaldo') {
+        b.disabled = true; b.textContent = 'Preparando…';
+        try { const r = await hacerRespaldo(() => {}); const como = await entregarArchivo(r.nombre, r.bytes); if (como !== 'cancelado') { local.guardar('ultimoRespaldo', { fecha: new Date().toISOString(), total: r.total }); b.textContent = 'Copia lista ✓'; } else { b.disabled = false; b.textContent = 'Descargarla ahora'; } }
+        catch (e) { aviso('No se pudo hacer la copia: ' + textoError(e), true); b.disabled = false; b.textContent = 'Descargarla ahora'; }
+        return;
+      }
+      if (a === 'cerrarcaja') {
+        const c = contado(), d = r2(c - esperado);
+        if (Math.abs(d) >= 0.005 && !singular(st.obs)) { st.paso = 1; pintar(); return aviso('Hay diferencia: escribe qué pasó antes de cerrar', true); }
+        b.disabled = true;
+        const detalle = DENOM.filter(([den]) => num(st.cuenta[den])).map(([den]) => `${st.cuenta[den]}×${den >= 1 ? 'S/' + den : den * 100 + 'c'}`).join(' ');
+        const r = await rpc('cerrar_caja', { p_sesion_id: ses.id, p_monto_contado: c, p_observaciones: [singular(st.obs), detalle ? 'Conteo: ' + detalle : ''].filter(Boolean).join(' · ') || null });
+        if (!r.ok) { b.disabled = false; return; }
+        st.dif = num(r.data?.diferencia); st.cerrada = true; st.paso = 3; try { localStorage.removeItem('caja:cuentaBilletes'); } catch {}
+        pintarEstadoCaja(); pintar();
+      }
+    });
   };
   pintar();
 }
@@ -1873,7 +2002,36 @@ const LIB = {
   worker: 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/worker.min.js',
   core: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@7.0.0',
   lang: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/spa@1.0.0/4.0.0_best_int',
+  pdf: ['https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js', 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e'],
+  pdfWorker: ['https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js', 'sha384-SnzOobpRMLXZ52iJvZm/C0fYw0OQemTXzTjIsdsfMcrCtCEe9qgzxTd3RSklO5x2'],
 };
+// Una factura en PDF se convierte en imagen (primera página) para leerla igual que una foto
+async function aImagen(archivo) {
+  const esPdf = archivo.type === 'application/pdf' || /\.pdf$/i.test(archivo.name || '');
+  if (!esPdf) { if (!/^image\//.test(archivo.type)) throw new Error('elige una foto o un PDF de la factura'); return archivo; }
+  await cargarLibreria(LIB.pdf);
+  if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+    const r = await fetch(LIB.pdfWorker[0], { integrity: LIB.pdfWorker[1] });
+    pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([await r.text()], { type: 'text/javascript' }));
+  }
+  const doc = await pdfjsLib.getDocument({ data: await archivo.arrayBuffer(), isEvalSupported: false }).promise;
+  const pag = await doc.getPage(1), base = pag.getViewport({ scale: 1 });
+  const vp = pag.getViewport({ scale: Math.min(3, 2400 / Math.max(base.width, base.height)) });
+  const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+  const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  await pag.render({ canvasContext: ctx, viewport: vp }).promise;
+  const blob = await new Promise(ok => c.toBlob(ok, 'image/png'));
+  return new File([blob], (archivo.name || 'factura').replace(/\.pdf$/i, '') + '.png', { type: 'image/png' });
+}
+const escanearArchivo = (archivo, fn) => aImagen(archivo).then(fn).catch(e => { aviso('No se pudo leer la factura: ' + textoError(e), true); $('#escaneo') && ($('#escaneo').innerHTML = ''); });
+// Arrastrar y soltar una factura (foto o PDF) sobre Compras
+addEventListener('dragover', e => { if (vistaActual !== 'compras' || ![...(e.dataTransfer?.types || [])].includes('Files')) return; e.preventDefault(); document.body.classList.add('soltando'); });
+addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('soltando'); });
+addEventListener('drop', e => {
+  document.body.classList.remove('soltando');
+  if (vistaActual !== 'compras' || !e.dataTransfer?.files?.length) return;
+  e.preventDefault(); escanearArchivo(e.dataTransfer.files[0], escanearFactura);
+});
 const cargadas = {};
 function cargarLibreria([src, integridad]) {
   return cargadas[src] ??= new Promise((ok, mal) => {

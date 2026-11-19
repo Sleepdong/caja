@@ -47,7 +47,7 @@
     ['p4', 'Marlboro Rojo', 1.10, 1.20, 26.00, 40, 15],
     ['p5', 'Golden Beach Menta', 0.48, 0.80, 13.00, 40, 15],
   ];
-  const productos = MARCAS.map(([id, nombre, , , , stock_minimo]) => ({ id, nombre, sku: id.toUpperCase(), activo: true, stock_minimo }));
+  const productos = MARCAS.map(([id, nombre, , , , stock_minimo]) => ({ id, nombre, sku: id.toUpperCase(), activo: true, stock_minimo, categoria_id: 'k1', unidad_base_id: 1 }));
   const presentaciones = [];
   MARCAS.forEach(([id, nombre, costo, pu, pc]) => {
     const prod = productos.find(p => p.id === id);
@@ -232,8 +232,8 @@
     Object.assign(D, {
       perfiles: [{ id: 'demo', nombre: 'Luis Alvan', activo: true, roles: { codigo: 'ADMIN' } }],
       roles: [{ id: 1, codigo: 'ADMIN', nombre: 'Administrador' }],
-      metodos_pago: metodos, cuentas_financieras: cuentas, clientes, proveedores, categorias: [{ id: 'k1', nombre: 'Cigarros', activo: true }],
-      unidades_medida: [{ id: 1, codigo: 'UND', nombre: 'Cigarro' }], categorias_gasto: catGasto, presentaciones, productos, motivos_movimiento: motivos,
+      metodos_pago: metodos, cuentas_financieras: cuentas, clientes, proveedores, categorias: [{ id: 'k1', nombre: 'Cigarros', activo: true, unidad_medida_id: 1, paquete_nombre: 'Cajetilla', paquete_unidades: 20, vende_paquete: true }, { id: 'k2', nombre: 'Gomitas', activo: true, unidad_medida_id: 2, paquete_nombre: 'Caja', paquete_unidades: null, vende_paquete: false }],
+      unidades_medida: [{ id: 1, codigo: 'CIGARRO', nombre: 'Cigarro' }, { id: 2, codigo: 'GOMITA', nombre: 'Gomita' }, { id: 3, codigo: 'UNIDAD', nombre: 'Unidad' }], categorias_gasto: catGasto, presentaciones, productos, motivos_movimiento: motivos,
       tipos_comprobante: [{ id: 1, codigo_sunat: '00', nombre: 'Sin comprobante' }, { id: 2, codigo_sunat: '01', nombre: 'Factura' }, { id: 3, codigo_sunat: '03', nombre: 'Boleta de venta' }, { id: 4, codigo_sunat: '12', nombre: 'Ticket' }],
       v_precios_vigentes: presentaciones.map(p => ({ presentacion_id: p.id, producto_id: p.producto_id, producto: p.productos.nombre, presentacion: p.nombre, factor: p.factor, precio: precio[p.id], vigente_desde: diaMenos(30) })),
       precios_venta: presentaciones.map(p => ({ id: 'pv-' + p.id, presentacion_id: p.id, precio: precio[p.id], vigente_desde: diaMenos(30) })),

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-5hCOBJWOTJ2f4v3oKFkYHLPwQRSl1LRPNUp7oqYckUw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-e/Oa+ZnqZcs1lRAxBxqQzfKeZUX561j1Up0NMm+zR5M='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -401,6 +401,9 @@ svg .eje,svg text{fill:var(--gris)}svg .rejilla{stroke:var(--linea)}
 .anillo button{background:none;border:0;color:#fff;font:inherit;font-size:10.5px;text-decoration:underline;cursor:pointer;padding:0;margin-top:2px}
 .consejo{display:flex;gap:9px;align-items:flex-start;background:#ffffff26;border-radius:16px;padding:11px 13px;font-size:13px;line-height:1.45;margin:2px 0 0;color:#fff;grid-column:1/-1}
 .consejo svg{flex:none;margin-top:1px}
+.receta{margin-top:14px;background:var(--tono);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.5}.receta>span{color:var(--gris)}.receta .lnk{color:var(--menta);font-size:13px;margin-left:4px}
+.check{display:flex;gap:10px;align-items:center;margin-top:12px;font-size:14px;color:var(--texto);cursor:pointer}.check input{width:20px;height:20px;accent-color:var(--violeta);padding:0}
+.consejo-claro{background:#7B5CFF1f;color:var(--texto);border-radius:14px;padding:11px 13px;font-size:13.5px;line-height:1.5;margin:14px 0}
 .precios-prov{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:14px}
 .pp{background:var(--tono);border-radius:18px;padding:14px 16px}
 .pp-cab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}.pp-cab b{font-size:15.5px}.pp-cab small{color:var(--gris);font-size:12.5px}
@@ -685,7 +688,7 @@ async function cargarCatalogosRed() {
     q(sb.from('categorias').select('*').eq('activo', true).order('nombre')),
     q(sb.from('unidades_medida').select('*').order('nombre')),
     q(sb.from('categorias_gasto').select('*').eq('activo', true).order('nombre')),
-    q(sb.from('presentaciones').select('*, productos(id,nombre,sku,activo,stock_minimo)').eq('activo', true)),
+    q(sb.from('presentaciones').select('*, productos(id,nombre,sku,activo,stock_minimo,categoria_id,unidad_base_id)').eq('activo', true)),
     q(sb.from('motivos_movimiento').select('*').eq('activo', true).order('id')),
     q(sb.from('tipos_comprobante').select('*').order('codigo_sunat')),
   ]);
@@ -2172,6 +2175,129 @@ async function vGastos(el) {
 }
 
 // ============ PRODUCTOS ============
+// ============ PRODUCTO NUEVO GUIADO POR CATEGORÍA ============
+const singular = t => String(t || '').trim();
+const plural = t => { const x = singular(t).toLowerCase(); return !x ? 'unidades' : /[aeiouáéó]$/.test(x) ? x + 's' : x + 'es'; };
+const codigoUnidad = t => singular(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z]+/g, '_').replace(/^_|_$/g, '') || 'UNIDAD';
+const sugerirCodigo = n => singular(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, '').split(/\s+/).filter(Boolean)
+  .map((w, i) => (i === 0 ? w.slice(0, 4) : w.slice(0, 5))).slice(0, 3).join('-');
+async function asegurarUnidad(nombre) {
+  const n = singular(nombre); if (!n) return null;
+  const ya = C.unidades.find(u => u.nombre.toLowerCase() === n.toLowerCase() || u.codigo === codigoUnidad(n));
+  if (ya) return ya.id;
+  const u = await q(sb.from('unidades_medida').insert({ codigo: codigoUnidad(n), nombre: n.charAt(0).toUpperCase() + n.slice(1) }).select().single());
+  C.unidades.push(u); return u.id;
+}
+async function crearCategoria() {
+  const v = await dialogo('Nueva categoría', [
+    { type: 'info', html: '<p class="sub" style="margin:0">Cuéntale a la app cómo compras y vendes este tipo de producto. Así, cada producto nuevo de esta categoría se llenará solo.</p>' },
+    { label: 'Nombre de la categoría', required: true, ph: 'Ej.: Chocolates' },
+    { label: '¿Cómo lo vendes suelto?', type: 'select', options: [...C.unidades.map(u => ({ value: u.id, label: 'Por ' + u.nombre.toLowerCase() })), { value: '__otra', label: 'Otra forma (escríbela abajo)' }] },
+    { label: 'Otra forma de vender (solo si elegiste "Otra")', ph: 'Ej.: Chocolate, Sobre, Botella' },
+    { label: '¿En qué te llega cuando compras?', ph: 'Ej.: Caja, Bolsa, Display. Vacío si compras por unidad' },
+    { label: '¿Cuántas unidades trae normalmente? (opcional)', type: 'number', ph: 'Ej.: 12' },
+    { label: '¿También vendes el paquete completo?', type: 'select', options: [{ value: 'no', label: 'No, solo suelto' }, { value: 'si', label: 'Sí, también entero' }] },
+  ], 'Crear categoría');
+  if (!v) return null;
+  const nombre = singular(v[1]), uni = v[2], otra = singular(v[3]), paq = singular(v[4]), cant = num(v[5]);
+  if (C.categorias.some(c => c.nombre.toLowerCase() === nombre.toLowerCase())) { aviso('Ya tienes una categoría con ese nombre', true); return null; }
+  if (uni === '__otra' && !otra) { aviso('Escribe la otra forma de vender', true); return null; }
+  if (v[5] !== '' && cant < 2) { aviso('El paquete debe traer al menos 2 unidades', true); return null; }
+  try {
+    const unidadId = uni === '__otra' ? await asegurarUnidad(otra) : Number(uni);
+    const cat = await q(sb.from('categorias').insert({ nombre, unidad_medida_id: unidadId, paquete_nombre: paq || null, paquete_unidades: cant >= 2 ? Math.round(cant) : null, vende_paquete: !!paq && v[6] === 'si' }).select().single());
+    aviso('Categoría creada'); await cargarCatalogos(); return cat.id;
+  } catch (e) { aviso(textoError(e), true); return null; }
+}
+function pintarDetalleProducto() {
+  const caja = $('#pDetalle'), cat = C.categorias.find(c => c.id === $('#pCat').value);
+  if (!cat) { caja.innerHTML = ''; return; }
+  // Receta: la de la categoría; si falta algo, se deduce del último producto de esa categoría
+  const ejemplo = C.presentaciones.filter(p => p.productos?.categoria_id === cat.id);
+  const paqEj = ejemplo.filter(p => num(p.factor) > 1).pop();
+  const uniId = cat.unidad_medida_id || ejemplo[0]?.productos?.unidad_base_id || C.unidades[0]?.id;
+  const uni = C.unidades.find(u => u.id === uniId);
+  const paqNom = cat.paquete_nombre ?? (paqEj ? paqEj.nombre.replace(/\s*x\s*\d+\s*$/i, '') : '');
+  const paqCant = cat.paquete_unidades || (paqEj && !cat.paquete_nombre ? num(paqEj.factor) : '');
+  const vendePaq = cat.vende_paquete || (!!paqEj && !!paqEj.se_vende && !cat.paquete_nombre);
+  const nomEj = ejemplo.length ? ejemplo[ejemplo.length - 1].productos.nombre : '';
+  caja.innerHTML = `<div class="receta"><span>${esc(cat.nombre)}:</span> se ${paqNom ? `compran por <b>${esc(paqNom.toLowerCase())}</b>${paqCant ? ` de ${paqCant}` : ''}` : 'compran por unidad'} y se venden por <b>${esc((uni?.nombre || 'unidad').toLowerCase())}</b>${vendePaq ? ` o por ${esc(paqNom.toLowerCase())} completa` : ''}. <button class="lnk" id="editarReceta">Cambiar</button></div>
+    <div class="fila" style="margin-top:12px"><div style="flex:2 1 220px"><label for="pNom">Nombre</label><input id="pNom" placeholder="${esc(nomEj ? 'Ej.: ' + nomEj : 'Ej.: Gomitas Mogul ositos')}"></div>
+      <div><label for="pSku">Código</label><input id="pSku" placeholder="Se crea solo"></div></div>
+    <h3>Cómo lo compras</h3>
+    <div class="fila"><div><label for="pPkN">Viene en</label><input id="pPkN" value="${esc(paqNom)}" placeholder="Vacío si compras por unidad"></div>
+      <div><label for="pPkF">¿Cuántas ${esc(plural(uni?.nombre))} trae?</label><input type="number" id="pPkF" min="2" step="1" inputmode="numeric" value="${paqCant}" placeholder="Ej.: 12"></div></div>
+    <h3>Cómo lo vendes</h3>
+    <div class="fila"><div><label for="pPU">Precio por ${esc((uni?.nombre || 'unidad').toLowerCase())} (S/)</label><input type="number" id="pPU" min="0" step="0.10" inputmode="decimal" placeholder="Vacío si no lo vendes suelto"></div>
+      <div id="pPkPBox" class="${vendePaq ? '' : 'oculto'}"><label for="pPkP" id="pPkPLbl"></label><input type="number" id="pPkP" min="0" step="0.10" inputmode="decimal"></div></div>
+    <label class="check"><input type="checkbox" id="pVendePaq" ${vendePaq ? 'checked' : ''}> También lo vendo por paquete completo</label>
+    <div class="fila" style="margin-top:12px"><div><label for="pUni">Se cuenta por</label><select id="pUni">${C.unidades.map(u => `<option value="${u.id}" ${u.id === uniId ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select></div>
+      <div><label for="pMin" id="pMinLbl">Avisar si quedan menos de (${esc(plural(uni?.nombre))})</label><input type="number" id="pMin" min="0" value="0" inputmode="numeric"></div></div>
+    <p class="consejo-claro" id="pResumen"></p>
+    <button class="btn" id="btnProd">Crear producto</button>`;
+  const uniNom = () => (C.unidades.find(u => u.id == $('#pUni').value)?.nombre || 'unidad').toLowerCase();
+  const resumen = () => {
+    const pk = singular($('#pPkN').value), f = num($('#pPkF').value), pu = $('#pPU').value, pp = $('#pPkP').value, vp = $('#pVendePaq').checked && pk;
+    $('#pPkPBox').classList.toggle('oculto', !vp);
+    $('#pPkPLbl').textContent = `Precio por ${pk.toLowerCase() || 'paquete'}${f >= 2 ? ' x ' + f : ''} (S/)`;
+    $('#pMinLbl').textContent = `Avisar si quedan menos de (${plural(uniNom())})`;
+    const partes = [];
+    partes.push(pk ? `Compras por <b>${esc(pk.toLowerCase())}${f >= 2 ? ' x ' + f : ''}</b>` : `Compras por <b>${esc(uniNom())}</b>`);
+    const v = [];
+    if (pu !== '') v.push(`por <b>${esc(uniNom())}</b> a ${S(num(pu))}`);
+    if (vp && pp !== '') v.push(`por <b>${esc(pk.toLowerCase())}</b> a ${S(num(pp))}`);
+    partes.push(v.length ? 'vendes ' + v.join(' y ') : '<span class="txt-aviso">aún no pones precio de venta</span>');
+    if (pk && f >= 2 && pu !== '' && vp && pp !== '') { const suelto = num(pu) * f; if (suelto > num(pp)) partes.push(`vendiendo suelto ganas ${S(suelto - num(pp))} más por ${esc(pk.toLowerCase())}`); }
+    $('#pResumen').innerHTML = partes.join(', ') + '.';
+  };
+  ['pPkN', 'pPkF', 'pPU', 'pPkP'].forEach(id => $('#' + id).oninput = resumen);
+  $('#pVendePaq').onchange = resumen; $('#pUni').onchange = resumen;
+  let skuTocado = false;
+  $('#pSku').oninput = () => { skuTocado = !!$('#pSku').value; };
+  $('#pNom').oninput = () => { if (!skuTocado) $('#pSku').value = sugerirCodigo($('#pNom').value); };
+  $('#editarReceta').onclick = () => editarReceta(cat);
+  resumen();
+  $('#btnProd').onclick = async () => {
+    const nom = singular($('#pNom').value), sku = singular($('#pSku').value).toUpperCase() || sugerirCodigo(nom);
+    const pu = $('#pPU').value, pkBase = singular($('#pPkN').value), pkF = Math.round(num($('#pPkF').value)), vendePaq = $('#pVendePaq').checked && !!pkBase, pkP = vendePaq ? $('#pPkP').value : '';
+    if (!nom) return aviso('Escribe el nombre del producto', true);
+    if (pkBase && pkF < 2) return aviso(`Indica cuántas ${plural(uniNom())} trae la ${pkBase.toLowerCase()}`, true);
+    if (pu === '' && pkP === '') return aviso('Pon al menos un precio de venta', true);
+    const pkN = pkBase ? `${pkBase} x ${pkF}` : '';
+    $('#btnProd').disabled = true;
+    try {
+      const prod = await q(sb.from('productos').insert({ sku, nombre: nom, categoria_id: cat.id, unidad_base_id: Number($('#pUni').value), stock_minimo: num($('#pMin').value) }).select().single());
+      const filas = [{ producto_id: prod.id, nombre: 'Unidad', factor: 1, es_base: true, se_compra: !pkN, se_vende: pu !== '' }];
+      if (pkN) filas.push({ producto_id: prod.id, nombre: pkN, factor: pkF, es_base: false, se_compra: true, se_vende: pkP !== '' });
+      const pres = await q(sb.from('presentaciones').insert(filas).select());
+      for (const p of pres) { const pr = p.es_base ? pu : pkP; if (pr !== '') await q(sb.rpc('establecer_precio_venta', { p_presentacion_id: p.id, p_precio: r2(pr) })); }
+      // La categoría aprende: si no tenía receta completa, guarda la de este producto
+      const aprende = {};
+      if (!cat.unidad_medida_id) aprende.unidad_medida_id = Number($('#pUni').value);
+      if (!cat.paquete_nombre && pkBase) aprende.paquete_nombre = pkBase;
+      if (Object.keys(aprende).length) await q(sb.from('categorias').update(aprende).eq('id', cat.id)).catch(() => {});
+      aviso('Producto creado'); await cargarCatalogos(); ir('catalogo');
+    } catch (e) { aviso(textoError(e), true); $('#btnProd').disabled = false; }
+  };
+}
+async function editarReceta(cat) {
+  const v = await dialogo('Cómo se compra y vende: ' + cat.nombre, [
+    { label: '¿Cómo lo vendes suelto?', type: 'select', value: cat.unidad_medida_id, options: [...C.unidades.map(u => ({ value: u.id, label: 'Por ' + u.nombre.toLowerCase() })), { value: '__otra', label: 'Otra forma (escríbela abajo)' }] },
+    { label: 'Otra forma de vender (solo si elegiste "Otra")' },
+    { label: '¿En qué te llega cuando compras?', value: cat.paquete_nombre || '', ph: 'Vacío si compras por unidad' },
+    { label: '¿Cuántas unidades trae normalmente? (opcional)', type: 'number', value: cat.paquete_unidades || '' },
+    { label: '¿También vendes el paquete completo?', type: 'select', value: cat.vende_paquete ? 'si' : 'no', options: [{ value: 'no', label: 'No, solo suelto' }, { value: 'si', label: 'Sí, también entero' }] },
+  ], 'Guardar');
+  if (!v) return;
+  if (v[0] === '__otra' && !singular(v[1])) return aviso('Escribe la otra forma de vender', true);
+  if (v[3] !== '' && num(v[3]) < 2) return aviso('El paquete debe traer al menos 2 unidades', true);
+  try {
+    const unidadId = v[0] === '__otra' ? await asegurarUnidad(v[1]) : Number(v[0]);
+    await q(sb.from('categorias').update({ unidad_medida_id: unidadId, paquete_nombre: singular(v[2]) || null, paquete_unidades: num(v[3]) >= 2 ? Math.round(num(v[3])) : null, vende_paquete: !!singular(v[2]) && v[4] === 'si' }).eq('id', cat.id));
+    aviso('Categoría actualizada'); await cargarCatalogos(); await ir('catalogo'); $('#pCat').value = cat.id; pintarDetalleProducto();
+  } catch (e) { aviso(textoError(e), true); }
+}
+
 async function vCatalogo(el) {
   const precios = await q(sb.from('v_precios_vigentes').select('*'));
   const precioDe = id => precios.find(p => p.presentacion_id === id)?.precio;
@@ -2203,17 +2329,9 @@ async function vCatalogo(el) {
       <div id="simOut"></div>` : '<p class="vacio">Cuando registres compras (para saber el costo) y pongas precios, aquí podrás simular cambios.</p>'}
   </div>
   <div class="cols dos">
-    <div class="panel"><h2>Nuevo producto</h2>
-      <div class="fila"><div style="flex:2 1 200px"><label>Nombre</label><input id="pNom" placeholder="Ej.: Gomitas Mogul ositos"></div><div><label>Código</label><input id="pSku" placeholder="GOM-MOGUL"></div></div>
-      <div class="fila" style="margin-top:8px"><div><label>Categoría</label><select id="pCat">${C.categorias.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select></div>
-        <div><label>Se cuenta por</label><select id="pUni">${C.unidades.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>
-        <div><label>Avisar si quedan menos de</label><input type="number" id="pMin" min="0" value="0"></div></div>
-      <h3>Precio suelto</h3>
-      <div class="fila"><div><label>Precio por unidad (vacío si no se vende suelto)</label><input type="number" id="pPU" min="0" step="0.10" inputmode="decimal"></div></div>
-      <h3>Paquete (opcional)</h3>
-      <div class="fila"><div><label>Nombre</label><input id="pPkN" placeholder="Bolsa x 12"></div><div><label>Unidades</label><input type="number" id="pPkF" min="2" step="1"></div><div><label>Precio</label><input type="number" id="pPkP" min="0" step="0.10" inputmode="decimal"></div></div>
-      <p class="sub" style="margin-top:8px">Si tiene paquete, las compras se registran por paquete; si no, por unidad.</p>
-      <button class="btn" id="btnProd">Crear producto</button>
+    <div class="panel"><h2>Nuevo producto</h2><p class="sub">Primero elige qué tipo de producto es: la app llena el resto según cómo lo compras y lo vendes.</p>
+      <div class="fila"><div><label for="pCat">Categoría</label><select id="pCat"><option value="">Elige una categoría</option>${C.categorias.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}<option value="__nueva">＋ Crear categoría nueva</option></select></div></div>
+      <div id="pDetalle"></div>
     </div>
     <div class="panel"><h2>Clientes</h2><p class="sub">Solo necesitas registrar a quienes les fías.</p>
       <table>${C.clientes.map(c => `<tr><td>${esc(c.nombre)}</td><td>${c.permite_credito ? `<span class="chip aviso">fiado${c.limite_credito != null ? ' hasta ' + S(c.limite_credito) : ''}</span>` : ''}</td></tr>`).join('')}</table>
@@ -2265,19 +2383,10 @@ async function vCatalogo(el) {
     reiniciar();
   }
   $('#guardarUmbral').onclick = () => { const v = Math.round(num($('#umbral').value)); if (v < 1 || v > 90) return aviso('Escribe un porcentaje entre 1 y 90', true); fijarUmbral(v); aviso(`Margen mínimo: ${v}%`); ir('catalogo'); };
-  $('#btnProd').onclick = async () => {
-    const nom = $('#pNom').value.trim(), sku = $('#pSku').value.trim().toUpperCase();
-    const pu = $('#pPU').value, pkN = $('#pPkN').value.trim(), pkF = num($('#pPkF').value), pkP = $('#pPkP').value;
-    if (!nom || !sku) return aviso('Escribe el nombre y el código', true);
-    if (pkN && pkF < 2) return aviso('El paquete debe traer al menos 2 unidades', true);
-    try {
-      const prod = await q(sb.from('productos').insert({ sku, nombre: nom, categoria_id: $('#pCat').value, unidad_base_id: Number($('#pUni').value), stock_minimo: num($('#pMin').value) }).select().single());
-      const filas = [{ producto_id: prod.id, nombre: 'Unidad', factor: 1, es_base: true, se_compra: !pkN, se_vende: pu !== '' }];
-      if (pkN) filas.push({ producto_id: prod.id, nombre: pkN, factor: pkF, es_base: false, se_compra: true, se_vende: pkP !== '' });
-      const pres = await q(sb.from('presentaciones').insert(filas).select());
-      for (const p of pres) { const pr = p.es_base ? pu : pkP; if (pr !== '') await q(sb.rpc('establecer_precio_venta', { p_presentacion_id: p.id, p_precio: r2(pr) })); }
-      aviso('Producto creado'); await cargarCatalogos(); ir('catalogo');
-    } catch (e) { aviso(textoError(e), true); }
+  // ----- Nuevo producto guiado por la categoría -----
+  $('#pCat').onchange = async () => {
+    if ($('#pCat').value === '__nueva') { $('#pCat').value = ''; $('#pDetalle').innerHTML = ''; const id = await crearCategoria(); if (id) { await ir('catalogo'); $('#pCat').value = id; $('#pCat').onchange(); } return; }
+    pintarDetalleProducto();
   };
   $('#btnCli').onclick = async () => {
     const v = await dialogo('Nuevo cliente', [{ label: 'Nombre', required: true },

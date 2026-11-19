@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-l2U1PphXnO8gVl/RNFC3rGUyx2FLVuh12/1lPmmpzrY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-HiH+UH+qa8QRogxhMwF0CIeza6KQo7cztL2UF5r0OOA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3458,7 +3458,7 @@ async function vCuenta(el) {
     <div class="panel"><h2>Verificación en dos pasos</h2>
       ${verificados.length ? `<p><span class="chip ok">Activada</span></p>
         <p class="sub">Cada vez que entres, la app te pedirá el código de 6 dígitos de tu app autenticadora. Sin ese código nadie puede ver ni registrar nada, aunque sepa tu contraseña.</p>
-        <table>${verificados.map(f => `<tr><td>${esc(f.friendly_name || 'Autenticador')}</td><td class="sub">desde ${fd(String(f.created_at).slice(0, 10))}</td><td class="n"><button class="btn claro mini" data-quitar="${esc(f.id)}">Desactivar</button></td></tr>`).join('')}</table>
+        <div class="scroll"><table>${verificados.map(f => `<tr><td>${esc(f.friendly_name || 'Autenticador')}</td><td class="sub">desde ${fd(String(f.created_at).slice(0, 10))}</td><td class="n"><button class="btn claro mini" data-quitar="${esc(f.id)}">Desactivar</button></td></tr>`).join('')}</table></div>
         <button class="btn claro" id="otro2fa" style="margin-top:12px">Agregar otro celular</button>`
       : `<p><span class="chip mal">Desactivada</span></p>
         <p class="sub">Además de tu contraseña, necesitarás un código que cambia cada 30 segundos en tu celular. Si alguien roba tu contraseña, igual no podrá entrar.</p>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-AJVF7+IyYBfNr8ll1Vu8KYBW0OCD8YLqnOVAIzi2r3k='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-q1ZiSTKW7eigFlpLqDmxlCckPCqJvYSvQ3ho5p3ZSuQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -451,6 +451,7 @@ body.soltando #vista::after{content:"Suelta aquí la factura (foto o PDF)";posit
 .seg-lista{display:grid;gap:8px;margin:14px 0 4px}.seg-item{display:flex;gap:12px;align-items:center;background:var(--tono);border-radius:16px;padding:11px 14px}
 .seg-item>div{flex:1}.seg-item b{display:block;font-size:14.5px}.seg-item small{color:var(--gris);font-size:12.5px}
 .seg-ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:none}.seg-item.ok .seg-ic{background:#4FE3C126;color:var(--menta)}.seg-item.falta .seg-ic{background:#FF7A8A26;color:var(--coral)}
+.hp-cab .empresa-txt{display:block;margin-top:2px;font-size:13px;color:var(--gris);font-weight:500}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -624,11 +625,10 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 </div>
 <div id="hojaPerfil" class="velo hoja-velo oculto" role="dialog" aria-modal="true" aria-label="Tu perfil">
   <div class="hoja">
-    <div class="hp-cab"><span class="avatar xl" data-avatar></span><div><b id="hpNombre"></b><small class="cargo-txt">Gerente General</small></div></div>
+    <div class="hp-cab"><span class="avatar xl" data-avatar></span><div><b id="hpNombre"></b><small class="cargo-txt">Gerente General</small><small class="empresa-txt">Oni Cobin S.A.C.</small></div></div>
     <div class="hp-acc">
       <label class="btn claro" for="fotoIn">Cambiar mi foto</label><input type="file" id="fotoIn" accept="image/*" class="oculto">
       <button class="btn claro" id="fotoQuitar">Quitar foto</button>
-      <button class="btn claro" id="cargoEditar">Cambiar cargo</button>
       <button class="btn claro" data-ir="cuenta">Seguridad y cuenta</button>
     </div>
     <p class="sub hp-nota">Tu foto se guarda en este equipo. Si entras desde otro celular o computadora, súbela ahí también.</p>
@@ -898,8 +898,10 @@ function abrirHoja(sel) { const h = $(sel); h.classList.remove('oculto'); h.quer
 function cerrarHojas() { document.querySelectorAll('.hoja-velo').forEach(h => h.classList.add('oculto')); }
 document.querySelectorAll('.hoja-velo').forEach(h => h.addEventListener('click', e => { if (e.target === h || e.target.closest('[data-cerrar]')) cerrarHojas(); }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarHojas(); });
-// Foto y cargo (se guardan en este equipo)
-const cargo = () => local.leer('cargo') || 'Gerente General';
+// Tu cargo y tu empresa son fijos; solo la foto se guarda en este equipo
+const CARGO = 'Gerente General', EMPRESA = 'Oni Cobin S.A.C.';
+const cargo = () => CARGO;
+try { localStorage.removeItem('caja:cargo'); } catch {}
 function iniciales(n) { const p = (n || '').trim().split(/\s+/).filter(Boolean); return ((p[0]?.[0] || 'L') + (p[1]?.[0] || '')).toUpperCase(); }
 function pintarPerfil() {
   const foto = local.leer('foto'), nom = local.leer('perfil')?.nombre || '';
@@ -908,7 +910,8 @@ function pintarPerfil() {
     if (foto && /^data:image\/(jpeg|png|webp);base64,/.test(foto)) { const im = new Image(); im.alt = ''; im.src = foto; a.appendChild(im); }
     else a.textContent = iniciales(nom);
   });
-  document.querySelectorAll('.cargo-txt').forEach(c => c.textContent = cargo());
+  document.querySelectorAll('.cargo-txt').forEach(c => c.textContent = CARGO);
+  document.querySelectorAll('.empresa-txt').forEach(c => c.textContent = EMPRESA);
   $('#hpNombre').textContent = nom; $('#bvNombre').textContent = primerNombre();
   $('#bienvenida').classList.toggle('oculto', !nom);
   $('#fotoQuitar').classList.toggle('oculto', !foto);
@@ -933,11 +936,6 @@ $('#fotoIn').onchange = async e => {
   try { local.guardar('foto', await reducirFoto(f)); pintarPerfil(); aviso('Foto actualizada'); } catch (err) { aviso(err.message, true); }
 };
 $('#fotoQuitar').onclick = () => { try { localStorage.removeItem('caja:foto'); } catch {} pintarPerfil(); aviso('Foto quitada'); };
-$('#cargoEditar').onclick = async () => {
-  cerrarHojas();
-  const v = await dialogo('Tu cargo', [{ label: 'Cargo', value: cargo(), required: true }], 'Guardar');
-  if (v && v[0].trim()) { local.guardar('cargo', v[0].trim().slice(0, 40)); pintarPerfil(); aviso('Cargo actualizado'); }
-};
 async function ir(v) {
   vistaActual = v; cerrarHojas(); pintarTabs(); $('#barraMovil').classList.remove('ver'); window.scrollTo(0, 0);
   $('#vista').innerHTML = '<p class="vacio">Cargando…</p>';
@@ -1119,7 +1117,7 @@ async function vPanel(el) {
   const porCobrar = fiados.reduce((a, f) => a + num(f.saldo), 0), vencido = fiados.filter(f => num(f.dias_vencido) > 0).reduce((a, f) => a + num(f.saldo), 0);
   const fechaLarga = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
   const lineasRes = [
-    `*Caja, ${fechaLarga}*`,
+    `*${EMPRESA}*`, `Caja, ${fechaLarga}`,
     nVentas ? `💰 Vendiste *${S(vn(H0))}* en ${nVentas} ${nVentas === 1 ? 'venta' : 'ventas'}${vVar === null ? '' : ` (${vVar >= 0 ? '▲' : '▼'} ${P(Math.abs(vVar))} vs. ayer)`}` : '💰 Hoy no registraste ventas',
     ...(nVentas ? [`📈 Ganancia bruta *${S(gb(H0))}*${margen(H0) === null ? '' : `, margen ${P(margen(H0))}`}`] : []),
     `🧾 Gastos ${S(gastos(H0))}`,

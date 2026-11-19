@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-Pfi4MxGNKJ6ouBoo/7UtRMAql51xb4q0hkFqwUFd45Q='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-9XWXdzr1Wr40J6EXLIXn6RtcdC+CXsjUa6S9BWd2Qls='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#231942">
 <link rel="manifest" href="manifest.webmanifest">
@@ -86,6 +86,12 @@ tr:last-child td{border-bottom:0}
 .meta-txt{font-size:13px;color:#c9c4dc;margin-top:6px}.meta-txt b{color:#fff}
 .lnk{background:none;border:0;padding:0;color:#fff;text-decoration:underline;font:inherit;font-weight:600;cursor:pointer}.claro-lnk{margin-top:12px;font-size:13.5px;color:#e4e0f2}
 .recordar{display:flex;gap:14px;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}.recordar a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.cnt-lista{display:grid;gap:8px;margin-top:14px}
+.cnt-fila{display:grid;grid-template-columns:minmax(180px,2fr) 1fr 1fr minmax(120px,1fr);gap:10px;align-items:end;padding:10px 12px;border:1px solid var(--linea);border-radius:10px}
+.cnt-nom small{display:block;color:var(--gris);font-size:12.5px;margin-top:2px}.cnt-dif{align-self:center;text-align:right}.cnt-dif small{display:block;font-size:12px;color:var(--tinta2);margin-top:3px}
+.cnt-fila label{font-size:12px}
+@media(max-width:640px){.cnt-fila{grid-template-columns:1fr 1fr}.cnt-nom{grid-column:1/-1}.cnt-dif{grid-column:1/-1;text-align:left}}
+.aviso-txt{background:#fdf0d3;color:#8a5a0c;border-radius:8px;padding:8px 10px;margin:0 0 10px;font-size:13.5px}
 .sim-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}.sim-res>div{background:#f6f5fa;border-radius:10px;padding:10px 12px}
 .sim-res small{display:block;color:var(--tinta2);font-size:12px}.sim-res b{font-size:18px}.sim-pasos{display:flex;gap:6px;flex-wrap:wrap}
 .chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#eceaf3;color:var(--tinta2);white-space:nowrap}
@@ -1487,6 +1493,116 @@ async function escanearFactura(archivo) {
 }
 
 // ============ STOCK ============
+// ============ CONTEO DE INVENTARIO FÍSICO ============
+// Cuentas lo que hay de verdad (paquetes cerrados + sueltos) y se compara con el sistema.
+// Las diferencias se registran como "Faltante / Sobrante en conteo físico" (ajustes con motivo).
+const conteoLocal = { leer: () => local.leer('conteo'), guardar: c => local.guardar('conteo', c), borrar: () => { try { localStorage.removeItem('caja:conteo'); } catch {} } };
+async function historialConteos() {
+  const ids = C.motivos.filter(m => ['CONTEO_SOBRANTE', 'CONTEO_FALTANTE'].includes(m.codigo)).map(m => m.id);
+  if (!ids.length) return [];
+  const movs = await q(sb.from('movimientos_inventario').select('fecha, observacion, movimiento_detalles(cantidad_base, costo_total)').in('motivo_id', ids).order('fecha', { ascending: false }).limit(60));
+  const g = {};
+  movs.forEach(m => { const o = g[m.observacion] ??= { fecha: m.fecha, falt: 0, sobr: 0, uFalt: 0, uSobr: 0 };
+    m.movimiento_detalles.forEach(d => { const c = num(d.cantidad_base), v = Math.abs(num(d.costo_total)); if (c < 0) { o.falt += v; o.uFalt -= c; } else { o.sobr += v; o.uSobr += c; } }); });
+  return Object.values(g);
+}
+async function pintarConteo(ex, factorMax) {
+  const caja = $('#conteo'); if (!caja) return;
+  const borr = conteoLocal.leer();
+  const ult = local.leer('ultimoConteo');
+  if (!borr) {
+    const hist = await historialConteos().catch(() => []);
+    const ultimaFecha = [ult?.fecha, hist[0]?.fecha].filter(Boolean).sort().pop();
+    const dias = ultimaFecha ? Math.floor((Date.now() - new Date(ultimaFecha)) / 864e5) : null;
+    caja.innerHTML = `<div class="panel"><div class="envio-cab"><div><h2>Conteo de inventario</h2>
+      <p class="sub">Cuenta lo que tienes de verdad y la app te dice si falta o sobra mercadería, y cuánta plata es. Lo ideal: una vez por semana, cuando no estés vendiendo.</p>
+      <p class="sub" style="margin:4px 0 0">${dias === null ? 'Todavía no has hecho ningún conteo.' : `Último conteo: <b>${dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias} días`}</b>${dias >= 8 ? ' <span class="chip aviso">ya toca contar</span>' : ''}`}</p></div>
+      <div class="envio-btns"><button class="btn" id="cntEmpezar">Empezar conteo</button></div></div>
+      ${hist.length || ult ? `<h3>Conteos anteriores</h3><div class="scroll"><table><tr><th>Fecha</th><th class="n">Faltó</th><th class="n">Sobró</th><th class="n">Resultado</th></tr>
+        ${ult?.cuadro && (!hist[0] || ult.fecha > hist[0].fecha) ? `<tr><td>${fh(ult.fecha)}</td><td class="n">—</td><td class="n">—</td><td class="n"><span class="chip ok">Todo cuadró</span></td></tr>` : ''}
+        ${hist.slice(0, 8).map(h => `<tr><td>${fh(h.fecha)}</td><td class="n">${h.uFalt ? `${N(h.uFalt)} und. · ${S(h.falt)}` : '—'}</td><td class="n">${h.uSobr ? `${N(h.uSobr)} und. · ${S(h.sobr)}` : '—'}</td>
+          <td class="n">${(v => `<span class="chip ${v < -0.005 ? 'mal' : 'ok'}">${v < -0.005 ? 'Perdiste ' + S(-v) : 'Neto ' + S(v)}</span>`)(h.sobr - h.falt)}</td></tr>`).join('')}</table></div>` : ''}
+    </div>`;
+    $('#cntEmpezar').onclick = () => {
+      conteoLocal.guardar({ inicio: new Date().toISOString(), sistema: Object.fromEntries(ex.map(e => [e.producto_id, num(e.cantidad)])), valores: {} });
+      pintarConteo(ex, factorMax); $('#conteo').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    return;
+  }
+  // Conteo en curso (se guarda solo en este equipo mientras cuentas)
+  const val = borr.valores;
+  const contado = id => { const v = val[id]; if (!v || (v.p === '' && v.s === '') || (v.p == null && v.s == null)) return null; return num(v.p) * factorMax(id) + num(v.s); };
+  const fila = e => { const f = factorMax(e.producto_id), c = num(e.cantidad), v = val[e.producto_id] || {};
+    return `<div class="cnt-fila" data-id="${e.producto_id}">
+      <div class="cnt-nom"><b>${esc(e.producto)}</b><small>Sistema: ${f > 1 ? `${Math.floor(c / f)} paq. + ${N(c % f)} sueltos` : `${N(c)} und.`} (${N(c)} und.)</small></div>
+      ${f > 1 ? `<div><label>Paquetes x ${N(f)}</label><input type="number" min="0" step="1" inputmode="numeric" data-cp="${e.producto_id}" value="${esc(v.p ?? '')}" placeholder="0"></div>` : '<div></div>'}
+      <div><label>${f > 1 ? 'Sueltos' : 'Unidades'}</label><input type="number" min="0" step="1" inputmode="numeric" data-cs="${e.producto_id}" value="${esc(v.s ?? '')}" placeholder="0"></div>
+      <div class="cnt-dif" id="dif-${e.producto_id}"></div></div>`; };
+  caja.innerHTML = `<div class="panel cnt"><div class="envio-cab"><div><h2>Conteo en curso</h2>
+    <p class="sub">Empezaste el ${fh(borr.inicio)}; escribe lo que cuentas: paquetes cerrados y sueltos. Lo que dejes vacío no se cuenta. Se guarda solo, así que puedes salir y volver.</p></div>
+    <div class="envio-btns"><button class="btn claro" id="cntDescartar">Descartar</button></div></div>
+    <div class="cnt-lista">${ex.map(fila).join('')}</div>
+    <div class="cnt-total" id="cntTotal"></div>
+    <button class="btn" id="cntRegistrar" style="margin-top:12px">Terminar conteo</button></div>`;
+  const cp = Object.fromEntries(ex.map(e => [e.producto_id, num(e.costo_promedio)]));
+  const sist = Object.fromEntries(ex.map(e => [e.producto_id, num(e.cantidad)]));
+  const resumen = () => {
+    let falt = 0, sobr = 0, n = 0, uF = 0, uS = 0;
+    ex.forEach(e => { const id = e.producto_id, c = contado(id), box = $('#dif-' + id);
+      if (c === null) { box.innerHTML = '<span class="sub">sin contar</span>'; return; }
+      n++; const d = c - sist[id], v = d * cp[id];
+      if (d < 0) { falt += -v; uF += -d; } else if (d > 0) { sobr += v; uS += d; }
+      box.innerHTML = d === 0 ? '<span class="chip ok">Cuadra</span>' : `<span class="chip ${d < 0 ? 'mal' : 'aviso'}">${d < 0 ? 'Faltan' : 'Sobran'} ${N(Math.abs(d))}</span>${cp[id] > 0 ? `<small>${S(Math.abs(v))}</small>` : ''}`; });
+    $('#cntTotal').innerHTML = n ? `<div class="sim-res"><div><small>Productos contados</small><b>${n} de ${ex.length}</b></div>
+      <div><small>Falta</small><b>${uF ? S(falt) : '—'}</b><small>${uF ? N(uF) + ' unidades' : 'nada'}</small></div>
+      <div><small>Sobra</small><b>${uS ? S(sobr) : '—'}</b><small>${uS ? N(uS) + ' unidades' : 'nada'}</small></div>
+      <div><small>Resultado</small><b>${S(sobr - falt)}</b><small>${uF || uS ? (sobr - falt < -0.005 ? 'se te fue plata' : 'a favor') : 'todo cuadra'}</small></div></div>` : '<p class="sub" style="margin:12px 0 0">Cuando escribas lo que contaste, aquí verás cuánto falta o sobra.</p>';
+    return { falt, sobr, n, uF, uS };
+  };
+  const guardar = inp => { const id = inp.dataset.cp || inp.dataset.cs, o = val[id] ??= { p: '', s: '' };
+    o[inp.dataset.cp ? 'p' : 's'] = inp.value; conteoLocal.guardar(borr); resumen(); };
+  caja.querySelectorAll('[data-cp],[data-cs]').forEach(i => i.oninput = () => guardar(i));
+  resumen();
+  $('#cntDescartar').onclick = async () => {
+    if (!(await dialogo('¿Descartar el conteo?', [{ type: 'info', html: '<p class="sub" style="margin:0">Se borra lo que escribiste. Tu stock no cambia.</p>' }], 'Descartar'))) return;
+    conteoLocal.borrar(); pintarConteo(ex, factorMax);
+  };
+  $('#cntRegistrar').onclick = async () => {
+    const r = resumen(); if (!r.n) return aviso('Escribe al menos un producto contado', true);
+    // Stock actual: si vendiste mientras contabas, avisamos
+    const ahora = await q(sb.from('v_existencias').select('producto_id, producto, cantidad, costo_promedio').eq('activo', true));
+    const act = Object.fromEntries(ahora.map(e => [e.producto_id, e]));
+    const contados = ex.filter(e => contado(e.producto_id) !== null);
+    const cambiaron = contados.filter(e => act[e.producto_id] && num(act[e.producto_id].cantidad) !== num(borr.sistema?.[e.producto_id] ?? e.cantidad));
+    const lineas = contados.map(e => ({ e, d: contado(e.producto_id) - num(act[e.producto_id]?.cantidad ?? e.cantidad) })).filter(x => x.d !== 0);
+    const base = id => C.presentaciones.find(p => p.producto_id === id && p.es_base) || C.presentaciones.find(p => p.producto_id === id && num(p.factor) === 1);
+    const sinBase = lineas.filter(x => !base(x.e.producto_id));
+    if (sinBase.length) return aviso('Falta la presentación por unidad de: ' + sinBase.map(x => x.e.producto).join(', '), true);
+    if (!lineas.length) {
+      if (!(await dialogo('Todo cuadra', [{ type: 'info', html: `<p class="sub" style="margin:0">Los ${r.n} productos que contaste coinciden con el sistema. No hay nada que ajustar.</p>` }], 'Terminar'))) return;
+      local.guardar('ultimoConteo', { fecha: new Date().toISOString(), cuadro: true }); conteoLocal.borrar(); aviso('Conteo terminado: todo cuadra'); return ir('stock');
+    }
+    const ok = await dialogo('Registrar diferencias', [{ type: 'info', html: `
+      ${cambiaron.length ? `<p class="aviso-txt"><b>Ojo:</b> desde que empezaste, el stock de ${cambiaron.map(e => esc(e.producto)).join(', ')} cambió (ventas o compras). Revisa que tu conteo de ${cambiaron.length === 1 ? 'ese producto' : 'esos productos'} esté al día.</p>` : ''}
+      <div class="scroll"><table><tr><th>Producto</th><th class="n">Diferencia</th><th class="n">Valor</th></tr>
+      ${lineas.map(x => `<tr><td>${esc(x.e.producto)}</td><td class="n">${x.d > 0 ? '+' : '−'}${N(Math.abs(x.d))}</td><td class="n">${S(x.d * num(act[x.e.producto_id]?.costo_promedio))}</td></tr>`).join('')}</table></div>
+      <p class="sub" style="margin:10px 0 0">Tu stock quedará igual a lo que contaste. Lo que falta se registra como pérdida y lo verás en tus reportes como merma.</p>` }], 'Registrar');
+    if (!ok) return;
+    const obs = `Conteo físico ${new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+    const mot = cod => C.motivos.find(m => m.codigo === cod)?.id;
+    const neg = lineas.filter(x => x.d < 0).map(x => ({ presentacion_id: base(x.e.producto_id).id, cantidad: -x.d }));
+    const pos = lineas.filter(x => x.d > 0).map(x => { const c = num(act[x.e.producto_id]?.costo_promedio); return { presentacion_id: base(x.e.producto_id).id, cantidad: x.d, ...(c > 0 ? { costo_unitario: c } : {}) }; });
+    if (neg.length && !(await rpc('registrar_ajuste_inventario', { p: { tipo: 'AJUSTE_NEGATIVO', motivo_id: mot('CONTEO_FALTANTE'), observacion: obs, lineas: neg } })).ok) return;
+    if (pos.length && !(await rpc('registrar_ajuste_inventario', { p: { tipo: 'AJUSTE_POSITIVO', motivo_id: mot('CONTEO_SOBRANTE'), observacion: obs, lineas: pos } })).ok) {
+      // Los faltantes ya quedaron; dejamos solo los sobrantes pendientes en el borrador
+      if (neg.length) { lineas.filter(x => x.d < 0).forEach(x => delete val[x.e.producto_id]); conteoLocal.guardar(borr); }
+      return;
+    }
+    local.guardar('ultimoConteo', { fecha: new Date().toISOString(), cuadro: false });
+    conteoLocal.borrar(); aviso('Conteo registrado: tu stock ya está al día'); ir('stock');
+  };
+}
+
 async function vStock(el) {
   const ex = await q(sb.from('v_existencias').select('*').eq('activo', true).order('producto'));
   const factorMax = pid => Math.max(1, ...C.presentaciones.filter(p => p.producto_id === pid).map(p => num(p.factor)));
@@ -1494,6 +1610,7 @@ async function vStock(el) {
   el.innerHTML = `
   <div class="cifras"><div class="cifra"><small>Valor del inventario (a costo)</small><b>${S(valor)}</b></div>
     <div class="cifra"><small>Productos</small><b>${ex.length}</b></div><div class="cifra"><small>Por reponer</small><b>${reponer}</b></div></div>
+  <div id="conteo"></div>
   <div id="pedido"></div>
   <div class="panel"><h2>Existencias</h2><div class="scroll"><table>
     <tr><th>Producto</th><th class="n">Unidades</th><th class="n">Paquetes + sueltos</th><th class="n">Costo promedio</th><th class="n">Valor</th><th></th></tr>
@@ -1512,6 +1629,7 @@ async function vStock(el) {
       <div class="oculto" id="aCuBox"><label>Costo c/u (si no había stock)</label><input type="number" id="aCu" min="0" step="0.01" inputmode="decimal"></div></div>
     <div class="fila" style="margin-top:8px"><div><label>Detalle</label><input id="aObs" placeholder="Ej.: cajetilla mojada"></div><div class="auto"><button class="btn" id="btnAjuste">Registrar ajuste</button></div></div>
   </div>`;
+  pintarConteo(ex, factorMax).catch(e => { $('#conteo').innerHTML = `<div class="panel"><h2>Conteo de inventario</h2><p class="sub">No se pudo cargar: ${esc(textoError(e))}</p></div>`; });
   pintarPedido(ex).catch(e => { $('#pedido').innerHTML = `<div class="panel"><h2>Qué comprar</h2><p class="sub">No se pudo calcular: ${esc(textoError(e))}</p></div>`; });
   const pintarMot = () => { $('#aMot').innerHTML = C.motivos.filter(m => m.tipo_aplicable === $('#aTipo').value).map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join(''); $('#aCuBox').classList.toggle('oculto', $('#aTipo').value !== 'AJUSTE_POSITIVO'); };
   $('#aTipo').onchange = pintarMot; pintarMot();

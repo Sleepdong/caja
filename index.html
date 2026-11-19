@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-fQnBMGXMFcRF/pV/VR+QFErvXor4NNlvMffXY6PibNM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-EUTt+bzE9QL8zQbXVJYuiFOSBiEj2ABeBpsCXg01hu8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -401,6 +401,14 @@ svg .eje,svg text{fill:var(--gris)}svg .rejilla{stroke:var(--linea)}
 .anillo button{background:none;border:0;color:#fff;font:inherit;font-size:10.5px;text-decoration:underline;cursor:pointer;padding:0;margin-top:2px}
 .consejo{display:flex;gap:9px;align-items:flex-start;background:#ffffff26;border-radius:16px;padding:11px 13px;font-size:13px;line-height:1.45;margin:2px 0 0;color:#fff;grid-column:1/-1}
 .consejo svg{flex:none;margin-top:1px}
+.precios-prov{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:14px}
+.pp{background:var(--tono);border-radius:18px;padding:14px 16px}
+.pp-cab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}.pp-cab b{font-size:15.5px}.pp-cab small{color:var(--gris);font-size:12.5px}
+.pp-fila{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--linea)}
+.pp-prov small{display:block;color:var(--gris);font-size:12px;margin-top:2px}.pp-precio{text-align:right}.pp-precio b{display:block;font-size:16px;letter-spacing:-.03em;margin-bottom:3px}
+.pp-fila.mejor .pp-precio b{color:var(--menta)}
+tr.pista td{font-size:12.5px;color:var(--gris);padding-top:0;line-height:1.45}tr.pista b{color:var(--texto)}
+.txt-mal{color:var(--coral);font-weight:600}.txt-ok{color:var(--menta);font-weight:600}.txt-aviso{color:var(--ambar)}
 .yape-cfg{min-width:240px}.yape-cfg .fila{gap:8px;flex-wrap:nowrap}.yape-cfg input{max-width:150px}
 .deudores{display:grid;gap:10px;margin-top:16px}
 .deudor{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;background:var(--tono);border-radius:18px;padding:13px 14px 13px 16px}
@@ -1428,10 +1436,72 @@ async function vCaja(el) {
 
 // ============ COMPRAS ============
 let lineasCompra = [];
+// ============ PRECIOS DE PROVEEDORES ============
+// Historial de costos por producto y proveedor (solo compras vigentes).
+async function historialCostos() {
+  const filas = await todo(() => sb.from('compra_detalles').select('presentacion_id, costo_unitario, costo_unitario_base, compras!inner(proveedor_id, fecha_emision, fecha_ingreso, estado)').eq('compras.estado', 'REGISTRADA'));
+  return filas.map(f => {
+    const pr = C.presentaciones.find(p => p.id === f.presentacion_id);
+    return { presentacion_id: f.presentacion_id, producto_id: pr?.producto_id, proveedor_id: f.compras.proveedor_id, fecha: f.compras.fecha_emision, orden: f.compras.fecha_ingreso,
+      costo: num(f.costo_unitario), base: num(f.costo_unitario_base) };
+  }).filter(f => f.producto_id).sort((a, b) => (a.fecha + a.orden).localeCompare(b.fecha + b.orden));
+}
+const paqueteDe = id => C.presentaciones.filter(p => p.producto_id === id).sort((a, b) => num(b.factor) - num(a.factor))[0];
+const nomProv = id => C.proveedores.find(p => p.id === id)?.razon_social || 'Proveedor';
+const nomProd = id => C.presentaciones.find(p => p.producto_id === id)?.productos?.nombre || 'Producto';
+// Cambio de costo entre dos compras: sube / baja / igual
+function cambio(ant, act) { if (!(ant > 0)) return null; const d = act - ant; return { d, pct: d / ant * 100, tipo: Math.abs(d) < 0.005 ? 'igual' : d > 0 ? 'sube' : 'baja' }; }
+function panelProveedores(hist) {
+  if (!hist.length) return `<div class="panel"><h2>Precios de tus proveedores</h2><p class="sub" style="margin:0">Cuando registres compras, aquí verás cuánto te cobra cada proveedor por cada marca, quién te vende más barato y si alguien te subió el precio.</p></div>`;
+  const prods = {};
+  hist.forEach(h => { const pr = prods[h.producto_id] ??= {}; (pr[h.proveedor_id] ??= []).push(h); });
+  const subidas = [], filas = [];
+  Object.entries(prods).forEach(([pid, provs]) => {
+    const paq = paqueteDe(pid), f = num(paq?.factor) || 1;
+    const ult = Object.entries(provs).map(([prov, hs]) => { const u = hs[hs.length - 1], a = hs[hs.length - 2]; return { prov, u, c: a ? cambio(a.base * f, u.base * f) : null, precio: u.base * f }; })
+      .sort((a, b) => a.precio - b.precio);
+    ult.forEach(x => { if (x.c?.tipo === 'sube' && x.c.pct >= 0.5) subidas.push({ pid, ...x }); });
+    filas.push({ pid, paq, ult });
+  });
+  filas.sort((a, b) => nomProd(a.pid).localeCompare(nomProd(b.pid)));
+  const flecha = c => !c ? '<span class="chip">primera compra</span>' : c.tipo === 'igual' ? '<span class="chip">igual que antes</span>'
+    : `<span class="chip ${c.tipo === 'sube' ? 'mal' : 'ok'}">${c.tipo === 'sube' ? '▲ subió' : '▼ bajó'} ${S(Math.abs(c.d))} (${P(Math.abs(c.pct))})</span>`;
+  return `<div class="panel"><h2>Precios de tus proveedores</h2>
+    <p class="sub">Lo último que te cobró cada proveedor por paquete, con flete e IGV incluidos si forman parte de tu costo. El más barato de cada marca aparece primero.</p>
+    ${subidas.length ? `<div class="aviso-txt"><b>${subidas.length === 1 ? 'Un proveedor te subió el precio' : subidas.length + ' subidas de precio'}:</b> ${subidas.map(x => `${esc(nomProv(x.prov))} subió ${esc(nomProd(x.pid))} en ${P(x.c.pct)} (${S(x.c.d)} por paquete)`).join('; ')}. Revisa si te conviene comprarle a otro o subir tu precio de venta.</div>` : ''}
+    <div class="precios-prov">${filas.map(r => `<div class="pp">
+      <div class="pp-cab"><b>${esc(nomProd(r.pid))}</b><small>por ${esc((r.paq?.nombre || 'unidad').toLowerCase())}</small></div>
+      ${r.ult.map((x, i) => `<div class="pp-fila ${i === 0 && r.ult.length > 1 ? 'mejor' : ''}">
+        <span class="pp-prov">${esc(nomProv(x.prov))}${i === 0 && r.ult.length > 1 ? ' <span class="chip ok">el más barato</span>' : ''}<small>última compra: ${fd(x.u.fecha)}</small></span>
+        <span class="pp-precio"><b>${S(x.precio)}</b>${flecha(x.c)}</span></div>`).join('')}
+      ${r.ult.length > 1 ? `<p class="explica">Comprándole a ${esc(nomProv(r.ult[0].prov))} ahorras ${S(r.ult[r.ult.length - 1].precio - r.ult[0].precio)} por paquete frente al más caro.</p>` : ''}
+    </div>`).join('')}</div></div>`;
+}
+// Pista bajo cada línea de la compra: cómo se compara con la última vez
+function pistaCosto(hist, provId, presId, costo) {
+  if (!hist.length || !presId) return '';
+  const pr = C.presentaciones.find(p => p.id === presId); if (!pr) return '';
+  const f = num(pr.factor) || 1, mismos = hist.filter(h => h.producto_id === pr.producto_id);
+  const propio = mismos.filter(h => h.proveedor_id === provId), u = propio[propio.length - 1];
+  const partes = [];
+  if (u) {
+    const antes = u.presentacion_id === presId ? u.costo : u.costo / num(C.presentaciones.find(p => p.id === u.presentacion_id)?.factor || 1) * f;
+    const c = num(costo) > 0 ? cambio(antes, num(costo)) : null;
+    partes.push(`La última vez (${fd(u.fecha)}) te lo vendió a <b>${S(antes)}</b>${c ? c.tipo === 'igual' ? ', igual que ahora.' : `. <span class="${c.tipo === 'sube' ? 'txt-mal' : 'txt-ok'}">${c.tipo === 'sube' ? '▲ Te subió' : '▼ Te bajó'} ${S(Math.abs(c.d))} (${P(Math.abs(c.pct))})</span>.` : '.'}`);
+  } else if (provId) partes.push('Primera vez que le compras este producto a este proveedor.');
+  // ¿Otro proveedor lo vende más barato? (comparado por unidad base, sin flete ni IGV)
+  const otros = {}; mismos.filter(h => h.proveedor_id !== provId).forEach(h => otros[h.proveedor_id] = h);
+  const ref = num(costo) > 0 ? num(costo) / f : u ? u.costo / num(C.presentaciones.find(p => p.id === u.presentacion_id)?.factor || 1) : null;
+  const mejor = Object.values(otros).map(h => ({ h, pu: h.costo / num(C.presentaciones.find(p => p.id === h.presentacion_id)?.factor || 1) })).sort((a, b) => a.pu - b.pu)[0];
+  if (ref && mejor && mejor.pu < ref - 0.0005) partes.push(`<span class="txt-aviso">${esc(nomProv(mejor.h.proveedor_id))} te lo vendió a ${S(mejor.pu * f)} el ${fd(mejor.h.fecha)}.</span>`);
+  return partes.length ? `<tr class="pista"><td colspan="5">${partes.join(' ')}</td></tr>` : '';
+}
+
 async function vCompras(el) {
-  const [porPagar, recientes] = await Promise.all([
+  const [porPagar, recientes, hist] = await Promise.all([
     q(sb.from('v_cuentas_por_pagar').select('*').order('fecha')),
     q(sb.from('v_compras_totales').select('*').order('fecha_ingreso', { ascending: false }).limit(20)),
+    historialCostos().catch(() => []),
   ]);
   const comprables = C.presentaciones.filter(p => p.se_compra);
   if (!lineasCompra.length) lineasCompra = [{ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }];
@@ -1463,6 +1533,7 @@ async function vCompras(el) {
     <div class="total" style="margin-top:16px"><span>Total de la compra</span><b id="totC">S/ 0.00</b></div>
     <button class="btn rotulo cobrar" id="btnComprar" style="max-width:340px">Registrar compra</button>
   </div>
+  ${panelProveedores(hist)}
   ${porPagar.length ? `<div class="panel"><h2>Por pagar</h2><p class="sub">Compras a crédito y gastos que aún debes.</p><div class="scroll"><table>
     <tr><th>A quién</th><th>Fecha</th><th class="n">Total</th><th class="n">Debes</th><th>Vence</th><th></th></tr>
     ${porPagar.map(p => `<tr><td>${esc(p.proveedor)} <span class="chip">${{ COMPRA: 'compra', GASTO: 'gasto', COSTO_ADICIONAL: 'flete' }[p.origen]}</span></td><td>${fd(p.fecha)}</td><td class="n">${S(p.total)}</td><td class="n"><b>${S(p.saldo)}</b></td>
@@ -1481,15 +1552,15 @@ async function vCompras(el) {
       ${lineasCompra.map((l, i) => `<tr><td style="min-width:200px"><select data-lp="${i}">${comprables.map(p => `<option value="${p.id}" ${p.id === l.presentacion_id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select></td>
         <td class="n"><input style="width:80px" type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}"></td>
         <td class="n"><input style="width:100px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" placeholder="0.00" data-lu="${i}"></td>
-        <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button class="quitar" data-ld="${i}">Quitar</button>` : ''}</td></tr>`).join('')}`;
+        <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button class="quitar" data-ld="${i}">Quitar</button>` : ''}</td></tr>${pistaCosto(hist, $('#prov').value, l.presentacion_id, l.costo)}`).join('')}`;
     const t = $('#tLineas');
-    t.querySelectorAll('[data-lp]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lp].presentacion_id = x.value; });
+    t.querySelectorAll('[data-lp]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lp].presentacion_id = x.value; setTimeout(pintarLineas); });
     t.querySelectorAll('[data-lc]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lc].cantidad = num(x.value); setTimeout(pintarLineas); });
     t.querySelectorAll('[data-lu]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lu].costo = x.value; setTimeout(pintarLineas); });
     t.querySelectorAll('[data-ld]').forEach(x => x.onclick = () => { lineasCompra.splice(x.dataset.ld, 1); pintarLineas(); });
     $('#totC').textContent = S(totalC());
   };
-  $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas;
+  $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => setTimeout(pintarLineas));
   $('#cond').onchange = () => $('#venceBox').classList.toggle('oculto', $('#cond').value !== 'CREDITO');
   $('#masLinea').onclick = () => { lineasCompra.push({ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }); pintarLineas(); };
   $('#nuevoProv').onclick = async () => {

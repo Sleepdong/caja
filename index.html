@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-wDJONqI2c67jT8Pq7cUMu5AHe4/qR9sfUefu2f6yxMs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-jh/eezPFDmym5OsWiVKaiLxm99WbvlPKIOkZEUcEfUs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2001,6 +2001,7 @@ function presCompraDe(prodId, factor, comprables) {
 }
 function emparejar(desc, alias, comprables, linea = {}) {
   const n = normTexto(desc);
+  if (linea.codigo && alias['#' + linea.codigo]) return { id: alias['#' + linea.codigo], por: 'codigo' };   // código de este proveedor ya aprendido
   if (linea.codigo) {
     let p = comprables.find(x => x.productos.codigo_factura && x.productos.codigo_factura === linea.codigo);
     if (!p) { // el OCR a veces lee un dígito mal (480022 en vez de 460022): se acepta si solo hay un código parecido
@@ -2034,7 +2035,7 @@ function leerDescripcion(texto) {
   const t = texto.toUpperCase().replace(/^BONIF\.?\s*/, '');
   const cat = C.categorias.find(c => c.prefijo_factura && (t.startsWith(c.prefijo_factura + ' ') || t.startsWith(c.prefijo_factura + '.')));
   let cuerpo = cat ? t.slice(cat.prefijo_factura.length).trim() : t.replace(/^\S+\s+/, '');
-  cuerpo = cuerpo.replace(/\(.*?\)/g, ' ').replace(/\bUNX?\s?\d+\s?GR?\b/g, ' ').replace(/\b(XL|UND|UN|CAJT?|PZA|BOLSA|CJA?|P)\b/g, ' ').replace(/\b\d+\b/g, ' ').replace(/\s+/g, ' ').trim();
+  cuerpo = cuerpo.replace(/\(.*?\)/g, ' ').replace(/\bUNX?\s?\d+\s?GR?\b/g, ' ').replace(/\b(XL|YL|XT|UND|UNO|UN|CAJT?|CA\.?IT|PZA|BOLSA|CJA?|P)\b/g, ' ').replace(/\b\d+\b/g, ' ').replace(/\s+/g, ' ').trim();
   const marcas = [...new Set(C.presentaciones.map(p => p.productos?.marca).filter(Boolean))];
   let marca = marcas.find(m => cuerpo.startsWith(m.toUpperCase() + ' ') || cuerpo === m.toUpperCase());
   let variante;
@@ -2152,7 +2153,8 @@ async function escanearFactura(archivo) {
         if (Object.keys(cambio).length) { await q(sb.from('productos').update(cambio).eq('id', pr.id)).catch(() => {}); Object.assign(pr, cambio); }
       }
       // Aprender: texto de la factura -> producto elegido
-      const aprender = usar.filter(l => l.texto !== '(agregada a mano)').map(l => ({ proveedor_id: prov.id, texto: normTexto(l.texto).slice(0, 200), presentacion_id: l.id, actualizado_en: new Date().toISOString() })).filter(a => a.texto.length >= 2);
+      const aprender = usar.filter(l => l.texto !== '(agregada a mano)').map(l => ({ proveedor_id: prov.id, texto: normTexto(l.texto).slice(0, 200), presentacion_id: l.id, actualizado_en: new Date().toISOString() })).filter(a => a.texto.length >= 2)
+        .concat(usar.filter(l => l.codigo && !l.bonif).map(l => ({ proveedor_id: prov.id, texto: '#' + l.codigo, presentacion_id: l.id, actualizado_en: new Date().toISOString() })));
       const unicos = Object.values(Object.fromEntries(aprender.map(a => [a.texto, a])));
       if (unicos.length) await q(sb.from('alias_compra').upsert(unicos, { onConflict: 'proveedor_id,texto' })).catch(er => aviso('No pude guardar lo aprendido: ' + textoError(er), true));
       lineasCompra = usar.map(l => ({ presentacion_id: l.id, cantidad: l.cantidad, costo: String(l.costo) }));
@@ -2566,6 +2568,23 @@ async function crearProductoDesdeFactura(l) {
     { label: 'Precio por paquete completo (S/, vacío si no lo vendes entero)', type: 'number' },
   ], 'Crear producto');
   if (!v) return null;
+  // ¿Ya existe? Misma marca y variante, o un nombre muy parecido: se pregunta antes de crear un repetido
+  const nuevoNom = normTexto([singular(v[2]), singular(v[3])].filter(Boolean).join(' '));
+  const vistos = new Map();
+  C.presentaciones.forEach(p => {
+    const pr = p.productos; if (!pr || vistos.has(pr.id)) return;
+    const n = normTexto(pr.nombre || ''), mismaMarca = normTexto(pr.marca || '') === normTexto(v[2]), va = normTexto(pr.variante || ''), vn = normTexto(v[3]);
+    const tok = nuevoNom.split(' ').filter(t => t.length > 2), coinc = tok.filter(t => n.split(' ').includes(t)).length;
+    if (n === nuevoNom || (mismaMarca && va && vn && (va.includes(vn) || vn.includes(va))) || (tok.length && coinc / tok.length >= 0.75)) vistos.set(pr.id, pr);
+  });
+  if (vistos.size) {
+    const r = await dialogo('¿Ya lo tienes registrado?', [
+      { type: 'info', html: `<p class="sub" style="margin:0">Encontré ${vistos.size === 1 ? 'un producto parecido' : 'productos parecidos'} en tu catálogo. Si es el mismo, la compra se suma a ese producto y la app recordará este código para la próxima factura. Así no se reparte tu stock entre dos productos iguales.</p>` },
+      { label: '¿Qué hago?', type: 'select', value: [...vistos.keys()][0], options: [...[...vistos.values()].map(pr => ({ value: pr.id, label: `Es ${pr.nombre}: usar ese` })), { value: '__crear', label: 'Es otro producto: crear uno nuevo' }] },
+    ], 'Continuar');
+    if (!r) return null;
+    if (r[1] !== '__crear') { aviso(`Línea asignada a ${vistos.get(r[1]).nombre}`); return r[1]; }
+  }
   let cat = C.categorias.find(c => c.id === v[1]);
   if (v[1] === '__nueva') {
     try {

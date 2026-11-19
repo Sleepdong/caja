@@ -72,12 +72,12 @@ Lo más interesante del proyecto fue traducir criterios contables en reglas que 
 
 ![Pruebas](https://github.com/Sleepdong/caja/actions/workflows/pruebas.yml/badge.svg)
 
-Cada cambio publicado pasa por **37 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
+Cada cambio publicado pasa por **38 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
 
 | Grupo | Qué comprueba |
 |---|---|
 | Archivos | La CSP autoriza exactamente el código de la app, cada librería externa trae su huella (SRI), no hay `eval` ni claves secretas, la demo está al día |
-| Flujos del negocio | Todas las pantallas abren sin errores; vender descuenta el stock y suma a la caja; conteo de inventario con "Lo vendí"; asistente de cierre del día |
+| Flujos del negocio | Todas las pantallas abren sin errores y ninguna se sale de lado en un celular de 360 px; vender descuenta el stock y suma a la caja; conteo de inventario con "Lo vendí"; asistente de cierre del día |
 | Teclado | Buscar, Enter agrega, Retroceso y Supr corrigen, F2 cobra |
 | Seguridad | Cierre por inactividad, limpieza de datos al salir, aviso de ventas sin subir y un nombre de producto con código malicioso que se muestra como texto sin ejecutarse |
 

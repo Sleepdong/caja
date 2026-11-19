@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-iNFt9MTHS3nwHK0P/wvnweH4Q+KHupIT6k+xXo3jdJ8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-l2U1PphXnO8gVl/RNFC3rGUyx2FLVuh12/1lPmmpzrY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -93,8 +93,8 @@ main{max-width:1240px;margin:0 auto;padding:16px 20px 28px}
 .panel>h2,.titulo,.envio-cab h2{font-family:var(--display);font-stretch:var(--ancho);font-size:24px;font-weight:850;letter-spacing:-.005em;margin:0 0 4px;color:var(--tinta);line-height:1.1}
 .sub{color:var(--gris);font-size:13.5px;margin:0 0 14px}
 h3{font-size:14px;font-weight:700;margin:18px 0 8px}
-.cols{display:grid;gap:18px}
-@media(min-width:900px){.cols.dos{grid-template-columns:1fr 1fr}.cols.pos{grid-template-columns:minmax(0,1fr) 400px;align-items:start}}
+.cols{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}.cols>*{min-width:0}
+@media(min-width:900px){.cols.dos{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cols.pos{grid-template-columns:minmax(0,1fr) 400px;align-items:start}}
 .fila{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .fila>*{flex:1 1 140px}
 .fila>.auto{flex:0 0 auto}
@@ -116,6 +116,30 @@ td{padding:9px 8px;border-bottom:1px solid #E3E9DF;vertical-align:middle}
 tr:last-child td{border-bottom:0}
 .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* En celular: sin atajos de teclado y filas de tabla en una sola línea (la tabla se desliza de lado) */
+@media(hover:none) and (pointer:coarse),(max-width:700px){.atajos-tec{display:none!important}}
+@media(max-width:700px){.scroll th,.scroll td{white-space:nowrap}}
+/* Compra en celular: cada producto es una tarjeta (producto arriba; cantidad, costo e importe abajo) */
+@media(max-width:700px){
+  #tLineas,#tLineas tbody{display:block;width:100%;min-width:0!important}
+  #tLineas tr:first-child{display:none!important}
+  #tLineas tr:not(.pista){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;padding:12px 0;border-top:1px solid var(--tono)}
+  #tLineas tr:not(.pista):nth-child(2){border-top:0;padding-top:4px}
+  #tLineas tr:not(.pista) td{display:block;padding:0;border:0;min-width:0!important;white-space:normal;text-align:left}
+  #tLineas tr:not(.pista) td:first-child{grid-column:1/-1}
+  #tLineas td select,#tLineas td input{width:100%!important}
+  #tLineas tr:not(.pista) td:nth-child(n+2):nth-child(-n+4)::before{display:block;font-size:12px;font-weight:400;color:var(--gris);margin-bottom:4px}
+  #tLineas tr:not(.pista) td:nth-child(2)::before{content:'Cantidad'}
+  #tLineas tr:not(.pista) td:nth-child(3)::before{content:'Costo c/u'}
+  #tLineas tr:not(.pista) td:nth-child(4)::before{content:'Importe'}
+  #tLineas tr:not(.pista) td:nth-child(4){align-self:end;padding-bottom:12px;font-weight:600}
+  #tLineas tr:not(.pista) td:nth-child(5):empty{display:none}
+  #tLineas tr:not(.pista) td:nth-child(5){grid-column:1/-1;text-align:right}
+  #tLineas tr.pista{display:block}#tLineas tr.pista td{display:block;white-space:normal;padding:0 0 8px;border:0}
+  #tLineas .vence-lin{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+}
+/* Sombra en el borde cuando hay más columnas a la derecha o a la izquierda */
+.scroll{background:linear-gradient(to right,var(--blanco,#fff) 30%,transparent) left/36px 100% no-repeat local,linear-gradient(to left,var(--blanco,#fff) 30%,transparent) right/36px 100% no-repeat local,radial-gradient(farthest-side at 0 50%,#0009,transparent) left/14px 100% no-repeat scroll,radial-gradient(farthest-side at 100% 50%,#0009,transparent) right/14px 100% no-repeat scroll}
 @media(max-width:600px){.scroll>table{min-width:540px}}
 .envio-cab{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.envio-cab h2{margin-bottom:2px}
 .envio-btns{display:flex;gap:8px;flex-wrap:wrap}.envio-btns a.btn{text-decoration:none;display:inline-flex;align-items:center}
@@ -938,7 +962,8 @@ function puntos(a, b, txt) {
 }
 // Gráfico de barras en SVG (una o dos series, mismo eje en soles)
 function barras(cont, etiquetas, series, opts = {}) {
-  const W = 640, H = opts.alto || 220, m = { t: 12, r: 8, b: 26, l: 46 };
+  // Se dibuja al ancho real del contenedor: en celular las letras no se encogen
+  const W = Math.max(280, Math.min(640, Math.round(cont.clientWidth || 640))), H = opts.alto || 220, m = { t: 12, r: 8, b: 26, l: 46 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const max = Math.max(1, ...series.flatMap(s => s.valores));
   const paso = (() => { const r = max / 4, e = 10 ** Math.floor(Math.log10(r)), f = r / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * e; })();
@@ -948,7 +973,7 @@ function barras(cont, etiquetas, series, opts = {}) {
   const bw = Math.min(28, (grupo * 0.7 - gap * (nb - 1)) / nb);
   let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.titulo || '')}">`;
   for (let v = 0; v <= tope + 1e-9; v += paso) svg += `<line class="rejilla" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="eje" x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v >= 1000 ? N(v / 1000, 1) + 'k' : N(v)}</text>`;
-  const cadaN = Math.ceil(etiquetas.length / 12);
+  const cadaN = Math.ceil(etiquetas.length / Math.max(4, Math.floor(W / 52)));
   etiquetas.forEach((et, i) => {
     const x0 = m.l + grupo * i + (grupo - (bw * nb + gap * (nb - 1))) / 2;
     svg += `<g class="barra" data-i="${i}"><rect x="${m.l + grupo * i}" y="${m.t}" width="${grupo}" height="${ih}" fill="transparent"/>`;

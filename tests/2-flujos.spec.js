@@ -72,3 +72,14 @@ test('cerrar el día abre el asistente con el conteo de billetes', async ({ page
   await expect(asis).toBeVisible();
   await expect(asis).toContainText('Cuenta el efectivo');
 });
+
+test('en celular ninguna pantalla se sale de lado', async ({ page, errores }) => {
+  test.skip(test.info().project.name !== 'celular', 'Solo aplica al celular');
+  await page.setViewportSize({ width: 360, height: 780 });
+  await abrirDemo(page);
+  for (const p of PAGINAS) {
+    await irA(page, p);
+    const ancho = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(ancho, `La pantalla ${p} mide ${ancho}px en un celular de 360px`).toBeLessThanOrEqual(360);
+  }
+});

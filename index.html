@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-KEejA6vqqx3o/MHYl5bkP5Ffbuzs0wIgjB0TlXRJawA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; worker-src blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-qMSzRAj3Z7JYH5Y5xbqtMkjQLrbSm9ZdgLyH4YpJGhw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; worker-src blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <title>Caja · Gestión Comercial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1116,7 +1116,8 @@ async function escanearFactura(archivo) {
   caja.innerHTML = `<div class="escaner"><div class="cab-esc"><img class="prev" src="${url}" alt="Foto de la factura">
     <div style="flex:1 1 220px"><b id="escEstado">Buscando el código QR…</b><div class="progreso"><div id="escBarra"></div></div><p class="sub" style="margin:0">Todo se procesa en tu celular; la foto no se sube a ningún lado.</p></div></div></div>`;
   const avance = (f, t) => { $('#escBarra').style.width = Math.round(f * 100) + '%'; if (t) $('#escEstado').textContent = t; };
-  const img = new Image(); img.src = url; await img.decode();
+  // onload en vez de img.decode(): decode() se queda colgado en algunos navegadores
+  const img = await new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => mal(new Error('la imagen no se pudo abrir; prueba con otra foto')); i.src = url; });
   avance(0.05);
   await cargarLibreria(LIB.jsqr);
   const qr = interpretarQR(leerQR(img));

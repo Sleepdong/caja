@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-P/cG0TqXWDGh8X+5j+fSEuL5+e3XOvY2uTqRpMU7I5w='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-8+yQ4grIRSii6Chz9uzu1a3QV991wxeHqghpEcu4Y2c='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -401,6 +401,32 @@ svg .eje,svg text{fill:var(--gris)}svg .rejilla{stroke:var(--linea)}
 .anillo button{background:none;border:0;color:#fff;font:inherit;font-size:10.5px;text-decoration:underline;cursor:pointer;padding:0;margin-top:2px}
 .consejo{display:flex;gap:9px;align-items:flex-start;background:#ffffff26;border-radius:16px;padding:11px 13px;font-size:13px;line-height:1.45;margin:2px 0 0;color:#fff;grid-column:1/-1}
 .consejo svg{flex:none;margin-top:1px}
+.acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
+.cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
+button.cat-card{cursor:pointer;transition:background .15s,transform .1s}button.cat-card:hover{background:var(--tono2)}button.cat-card:active{transform:scale(.98)}
+.cat-top{display:flex;gap:12px;align-items:center}.cat-top b{display:block;font-size:16px}.cat-top small{color:var(--gris);font-size:12.5px;line-height:1.35;display:block;margin-top:2px}
+.cat-ini{width:42px;height:42px;border-radius:14px;flex:none;display:grid;place-items:center;font-weight:700;font-size:18px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c)}
+.cat-card.nueva{background:transparent;box-shadow:inset 0 0 0 1.5px var(--tono2)}.cat-card.nueva .cat-ini{background:var(--tono);color:var(--texto)}
+.receta-l{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:13.5px;color:var(--gris)}.receta-l b{color:var(--texto);font-weight:600}
+.cat-acc{display:flex;gap:8px;margin-top:auto}
+.asis-velo{z-index:60}
+.asis{background:var(--blanco);color:var(--texto);border-radius:28px;width:min(620px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 0 0 1px var(--linea),0 40px 80px -30px #000;animation:subir .2s ease-out}
+.asis-cab{display:flex;justify-content:space-between;align-items:flex-start;padding:22px 24px 6px}.asis-cab small{color:var(--violeta);font-weight:600;font-size:12.5px}.asis-cab h3{margin:2px 0 0;font-size:22px;letter-spacing:-.035em}
+.asis-x{background:var(--tono);border:0;color:var(--texto);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px}
+.asis-pasos{display:flex;gap:6px;list-style:none;margin:10px 24px 4px;padding:0}.asis-pasos li{flex:1;display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--gris);padding-top:9px;border-top:3px solid var(--tono)}
+.asis-pasos li span{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--tono)}
+.asis-pasos li.on{color:var(--texto);border-color:var(--violeta)}.asis-pasos li.on span{background:var(--violeta);color:#fff}.asis-pasos li.hecho{border-color:#7B5CFF80}.asis-pasos li.hecho span{background:#7B5CFF55;color:#fff}
+.asis-cuerpo{padding:16px 24px;overflow:auto}
+.asis-pie{display:flex;justify-content:space-between;gap:10px;padding:14px 24px 22px;border-top:1px solid var(--linea)}
+.vista-prod{background:var(--tono);border-radius:20px;padding:20px 18px 16px;margin-bottom:16px;position:relative;overflow:hidden}
+.vista-prod::before{content:"";position:absolute;left:18px;top:12px;width:36px;height:5px;border-radius:9px;background:var(--c)}
+.vista-prod .vp-cat{display:block;font-size:12px;color:var(--gris);margin-top:4px}.vista-prod b{display:block;font-size:22px;letter-spacing:-.035em;margin:2px 0}.vista-prod small{color:var(--gris)}
+.mini-chips{margin:8px 0 0}.mini-chips button{padding:6px 12px;font-size:13px}
+.frase{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px;font-size:15px}.frase.grande{font-size:16.5px;font-weight:600}
+.frase input{width:auto;padding:9px 11px}.frase input.mini{width:96px}.frase input.corto{width:130px}.frase .pre{color:var(--gris);margin-right:-4px}
+.chip-sug{border:0;background:#4FE3C126;color:var(--menta);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+@media(max-width:600px){.asis{border-radius:28px 28px 0 0;max-height:94vh}.asis-cab,.asis-cuerpo,.asis-pie{padding-left:18px;padding-right:18px}.asis-pasos{margin:10px 18px 4px}.asis-pie{padding-bottom:calc(18px + env(safe-area-inset-bottom))}}
 .lnk-ed{color:var(--menta);font-size:12.5px;margin-left:6px;text-decoration:none;font-weight:600}
 .lin-esc .cod{color:var(--gris);font-size:11.5px;font-variant-numeric:tabular-nums}
 .vence-lin{display:inline-flex;align-items:center;gap:8px;color:var(--ambar);font-weight:600;font-size:13px}.vence-lin input{width:auto;padding:6px 10px}
@@ -2379,65 +2405,97 @@ async function crearCategoria() {
     aviso('Categoría creada'); await cargarCatalogos(); return cat.id;
   } catch (e) { aviso(textoError(e), true); return null; }
 }
-function pintarDetalleProducto() {
-  const caja = $('#pDetalle'), cat = C.categorias.find(c => c.id === $('#pCat').value);
-  if (!cat) { caja.innerHTML = ''; return; }
-  // Receta: la de la categoría; si falta algo, se deduce del último producto de esa categoría
-  const ejemplo = C.presentaciones.filter(p => p.productos?.categoria_id === cat.id);
-  const paqEj = ejemplo.filter(p => num(p.factor) > 1).pop();
-  const uniId = cat.unidad_medida_id || ejemplo[0]?.productos?.unidad_base_id || C.unidades[0]?.id;
-  const uni = C.unidades.find(u => u.id === uniId);
-  const paqNom = cat.paquete_nombre ?? (paqEj ? paqEj.nombre.replace(/\s*x\s*\d+\s*$/i, '') : '');
-  const paqCant = cat.paquete_unidades || (paqEj && !cat.paquete_nombre ? num(paqEj.factor) : '');
-  const vendePaq = cat.vende_paquete || (!!paqEj && !!paqEj.se_vende && !cat.paquete_nombre);
-  const nomEj = ejemplo.length ? ejemplo[ejemplo.length - 1].productos.nombre : '';
-  caja.innerHTML = `<div class="receta"><span>${esc(cat.nombre)}:</span> se ${paqNom ? `compran por <b>${esc(paqNom.toLowerCase())}</b>${paqCant ? ` de ${paqCant}` : ''}` : 'compran por unidad'} y se venden por <b>${esc((uni?.nombre || 'unidad').toLowerCase())}</b>${vendePaq ? ` o por ${esc(paqNom.toLowerCase())} completa` : ''}${cat.controla_vencimiento ? '; tienen <b>fecha de vencimiento</b>' : ''}. <button class="lnk" id="editarReceta">Cambiar</button></div>
-    <div class="fila" style="margin-top:12px"><div><label for="pMarca">Marca</label><input id="pMarca" list="marcasLista" placeholder="${esc(ejemplo.at(-1)?.productos?.marca ? 'Ej.: ' + ejemplo.at(-1).productos.marca : 'Ej.: Fini')}" autocomplete="off"></div>
-      <div><label for="pVar">Variante</label><input id="pVar" placeholder="${esc(ejemplo.at(-1)?.productos?.variante ? 'Ej.: ' + ejemplo.at(-1).productos.variante : 'Ej.: Ositos')}"></div></div>
-    <datalist id="marcasLista">${[...new Set(C.presentaciones.map(p => p.productos?.marca).filter(Boolean))].map(m => `<option value="${esc(m)}">`).join('')}</datalist>
-    <p class="sub" id="pNomVer" style="margin:6px 0 0"></p>
-    <div class="fila" style="margin-top:8px"><div style="flex:2 1 240px"><label for="pFac">Nombre en la factura (opcional)</label><input id="pFac" placeholder="${esc(ejemplo.at(-1)?.productos?.nombre_factura ? 'Ej.: ' + ejemplo.at(-1).productos.nombre_factura : 'Cópialo tal cual de la factura')}"></div>
-      <div><label for="pCodF">Código en la factura</label><input id="pCodF" inputmode="numeric" placeholder="Ej.: 460069"></div></div>
-    <p class="sub" style="margin:6px 0 0">Con el nombre y el código de la factura, el escáner reconocerá este producto solo.</p>
-    <h3>Cómo lo compras</h3>
-    <div class="fila"><div><label for="pPkN">Viene en</label><input id="pPkN" value="${esc(paqNom)}" placeholder="Vacío si compras por unidad"></div>
-      <div><label for="pPkF">¿${/(a|ad)$/i.test(singular(uni?.nombre)) ? 'Cuántas' : 'Cuántos'} ${esc(plural(uni?.nombre))} trae?</label><input type="number" id="pPkF" min="2" step="1" inputmode="numeric" value="${paqCant}" placeholder="Ej.: 12"></div></div>
-    <h3>Cómo lo vendes</h3>
-    <div class="fila"><div><label for="pPU">Precio por ${esc((uni?.nombre || 'unidad').toLowerCase())} (S/)</label><input type="number" id="pPU" min="0" step="0.10" inputmode="decimal" placeholder="Vacío si no lo vendes suelto"></div>
-      <div id="pPkPBox" class="${vendePaq ? '' : 'oculto'}"><label for="pPkP" id="pPkPLbl"></label><input type="number" id="pPkP" min="0" step="0.10" inputmode="decimal"></div></div>
-    <label class="check"><input type="checkbox" id="pVendePaq" ${vendePaq ? 'checked' : ''}> También lo vendo por paquete completo</label>
-    <div class="fila" style="margin-top:12px"><div><label for="pUni">Se cuenta por</label><select id="pUni">${C.unidades.map(u => `<option value="${u.id}" ${u.id === uniId ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select></div>
-      <div><label for="pMin" id="pMinLbl">Avisar si quedan menos de (${esc(plural(uni?.nombre))})</label><input type="number" id="pMin" min="0" value="0" inputmode="numeric"></div></div>
-    <p class="consejo-claro" id="pResumen"></p>
-    <button class="btn" id="btnProd">Crear producto</button>`;
-  const uniNom = () => (C.unidades.find(u => u.id == $('#pUni').value)?.nombre || 'unidad').toLowerCase();
-  const resumen = () => {
-    const pk = singular($('#pPkN').value), f = num($('#pPkF').value), pu = $('#pPU').value, pp = $('#pPkP').value, vp = $('#pVendePaq').checked && pk;
-    $('#pPkPBox').classList.toggle('oculto', !vp);
-    $('#pPkPLbl').textContent = `Precio por ${pk.toLowerCase() || 'paquete'}${f >= 2 ? ' x ' + f : ''} (S/)`;
-    $('#pMinLbl').textContent = `Avisar si quedan menos de (${plural(uniNom())})`;
-    const partes = [];
-    partes.push(pk ? `Compras por <b>${esc(pk.toLowerCase())}${f >= 2 ? ' x ' + f : ''}</b>` : `Compras por <b>${esc(uniNom())}</b>`);
-    const v = [];
-    if (pu !== '') v.push(`por <b>${esc(uniNom())}</b> a ${S(num(pu))}`);
-    if (vp && pp !== '') v.push(`por <b>${esc(pk.toLowerCase())}</b> a ${S(num(pp))}`);
-    partes.push(v.length ? 'vendes ' + v.join(' y ') : '<span class="txt-aviso">aún no pones precio de venta</span>');
-    if (pk && f >= 2 && pu !== '' && vp && pp !== '') { const suelto = num(pu) * f; if (suelto > num(pp)) partes.push(`vendiendo suelto ganas ${S(suelto - num(pp))} más por ${esc(pk.toLowerCase())}`); }
-    $('#pResumen').innerHTML = partes.join(', ') + '.';
+// ============ ASISTENTE: PRODUCTO NUEVO EN 3 PASOS ============
+function abrirAsistenteProducto(catInicial) {
+  const st = { paso: catInicial ? 2 : 1, cat: C.categorias.find(c => c.id === catInicial) || null, marca: '', variante: '', nf: '', cf: '', pkBase: '', pkF: '', vendePaq: false, pu: '', pkP: '', min: '', costo: '' };
+  const usar = cat => Object.assign(st, { cat, pkBase: cat.paquete_nombre || '', pkF: cat.paquete_unidades || '', vendePaq: !!cat.vende_paquete });
+  if (st.cat) usar(st.cat);
+  const v = document.createElement('div'); v.className = 'velo hoja-velo asis-velo';
+  v.innerHTML = '<div class="asis" role="dialog" aria-modal="true" aria-labelledby="asisT"></div>';
+  document.body.appendChild(v);
+  const caja = v.firstChild, cerrar = () => v.remove();
+  v.addEventListener('click', e => { if (e.target === v) cerrar(); });
+  const uniNom = () => (C.unidades.find(u => u.id === st.cat?.unidad_medida_id)?.nombre || 'Unidad').toLowerCase();
+  const art = w => /(a|ad|ón)$/i.test(w) ? 'la' : 'el';
+  const cuantos = w => /(a|ad)$/i.test(w) ? 'Cuántas' : 'Cuántos';
+  const nombre = () => [singular(st.marca), singular(st.variante)].filter(Boolean).join(' ');
+  const duplicado = () => { const n = normTexto(nombre()); return n ? C.presentaciones.find(p => normTexto(p.productos?.nombre || '') === n)?.productos : null; };
+  const pasos = ['Tipo', 'Producto', 'Precios'];
+  const pintar = () => {
+    const u = uniNom(), dup = duplicado();
+    const marcas = [...new Set(C.presentaciones.filter(p => !st.cat || p.productos?.categoria_id === st.cat.id).map(p => p.productos?.marca).filter(Boolean))];
+    const cu = num(st.costo) > 0 && num(st.pkF) >= 2 && st.pkBase ? num(st.costo) / num(st.pkF) : num(st.costo) > 0 && !st.pkBase ? num(st.costo) : 0;
+    const sug = cu > 0 ? precioSugerido(cu) : 0;
+    const ganU = cu > 0 && num(st.pu) > 0 ? num(st.pu) - cu : null;
+    caja.innerHTML = `
+      <header class="asis-cab"><div><small>Nuevo producto</small><h3 id="asisT">${st.paso === 1 ? '¿Qué tipo de producto es?' : st.paso === 2 ? '¿Cuál es?' : '¿Cómo lo compras y lo vendes?'}</h3></div>
+        <button class="asis-x" data-a="cerrar" aria-label="Cerrar">✕</button></header>
+      <ol class="asis-pasos">${pasos.map((t, i) => `<li class="${i + 1 < st.paso ? 'hecho' : i + 1 === st.paso ? 'on' : ''}"><span>${i + 1}</span>${t}</li>`).join('')}</ol>
+      <div class="asis-cuerpo">${
+      st.paso === 1 ? `<div class="cats elegir">${C.categorias.map(c => { const un = C.unidades.find(x => x.id === c.unidad_medida_id)?.nombre?.toLowerCase() || 'unidad';
+          return `<button class="cat-card" data-cat="${c.id}" style="--c:${colorProducto(c.id)}"><div class="cat-top"><span class="cat-ini">${esc(c.nombre.charAt(0))}</span><div><b>${esc(c.nombre)}</b><small>${c.paquete_nombre ? `Compras ${esc(c.paquete_nombre.toLowerCase())}${c.paquete_unidades ? ' x ' + c.paquete_unidades : ''}, vendes por ${esc(un)}` : `Compras y vendes por ${esc(un)}`}</small></div></div></button>`; }).join('')}
+          <button class="cat-card nueva" data-a="nuevacat"><div class="cat-top"><span class="cat-ini">＋</span><div><b>Otra categoría</b><small>Crea un tipo nuevo, p. ej. Chocolates</small></div></div></button></div>`
+      : st.paso === 2 ? `
+        <div class="vista-prod" style="--c:${colorProducto(st.cat.id + nombre())}"><span class="vp-cat">${esc(st.cat.nombre)}</span><b>${esc(nombre() || 'Marca y variante')}</b><small>${st.pkBase ? `${esc(st.pkBase)}${num(st.pkF) >= 2 ? ' x ' + st.pkF : ''}` : 'Por ' + esc(u)}</small></div>
+        <label for="aMarca">Marca</label><input id="aMarca" value="${esc(st.marca)}" placeholder="Ej.: ${esc(marcas[0] || 'Fini')}" autocomplete="off">
+        ${marcas.length ? `<div class="chips-cat mini-chips">${marcas.map(m => `<button data-marca="${esc(m)}" class="${m === st.marca ? 'on' : ''}">${esc(m)}</button>`).join('')}</div>` : ''}
+        <label for="aVar" style="margin-top:12px">Variante <span class="sub">(sabor, color o tipo)</span></label><input id="aVar" value="${esc(st.variante)}" placeholder="Ej.: ${st.cat.prefijo_factura === 'CIG' ? 'RED, Click, Menta' : 'Ositos, Besos de fresa'}">
+        ${dup ? `<div class="aviso-txt" style="margin-top:12px"><b>Ya tienes "${esc(dup.nombre)}".</b> Si es el mismo producto, edítalo en vez de crear otro, para no repartir el stock. <button class="lnk" data-a="editardup">Ir a editarlo</button></div>` : ''}
+        <details class="extra" style="margin-top:14px" ${st.nf || st.cf ? 'open' : ''}><summary>Datos de la factura (para que el escáner lo reconozca)</summary>
+          <div class="fila" style="margin-top:10px"><div style="flex:2 1 220px"><label for="aNf">Nombre en la factura</label><input id="aNf" value="${esc(st.nf)}" placeholder="Cópialo tal cual"></div>
+          <div><label for="aCf">Código</label><input id="aCf" value="${esc(st.cf)}" inputmode="numeric" placeholder="Ej.: 460069"></div></div>
+          <p class="sub" style="margin:6px 0 0">Si no lo pones, la app lo aprende sola la primera vez que escanees su factura.</p></details>`
+      : `
+        <div class="frase"><span>Lo compras en</span><input id="aPk" class="corto" value="${esc(st.pkBase)}" placeholder="suelto"><span>de</span><input id="aPkF" class="mini" type="number" min="2" inputmode="numeric" value="${esc(st.pkF)}" ${st.pkBase ? '' : 'disabled'}><span>${esc(plural(u))}</span></div>
+        <div class="frase"><span>${st.pkBase ? `${art(st.pkBase)[0].toUpperCase() + art(st.pkBase).slice(1)} ${esc(st.pkBase.toLowerCase())} te cuesta` : `Cada ${esc(u)} te cuesta`}</span><span class="pre">S/</span><input id="aCosto" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.costo)}" placeholder="0.00"><span class="sub">opcional, para sugerirte el precio</span></div>
+        <div class="frase grande"><span>Vendes cada ${esc(u)} a</span><span class="pre">S/</span><input id="aPu" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pu)}" placeholder="0.00">
+          ${sug ? `<button class="chip-sug" data-a="sug">Sugerido S/ ${sug.toFixed(2)}</button>` : ''}</div>
+        ${st.pkBase ? `<label class="check"><input type="checkbox" id="aVp" ${st.vendePaq ? 'checked' : ''}> También vendo ${art(st.pkBase)} ${esc(st.pkBase.toLowerCase())} completa</label>
+          ${st.vendePaq ? `<div class="frase"><span>${art(st.pkBase)[0].toUpperCase() + art(st.pkBase).slice(1)} ${esc(st.pkBase.toLowerCase())} completa a</span><span class="pre">S/</span><input id="aPkP" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pkP)}" placeholder="0.00"></div>` : ''}` : ''}
+        <div class="frase"><span>Avísame cuando queden menos de</span><input id="aMin" class="mini" type="number" min="0" inputmode="numeric" value="${esc(st.min)}" placeholder="0"><span>${esc(plural(u))}</span></div>
+        <div class="consejo-claro">${[
+          `<b>${esc(nombre())}</b>: compras ${st.pkBase ? `${esc(st.pkBase.toLowerCase())}${num(st.pkF) >= 2 ? ' x ' + st.pkF : ''}` : 'por ' + esc(u)}`,
+          num(st.pu) > 0 ? `vendes por ${esc(u)} a ${S(num(st.pu))}` : '<span class="txt-aviso">falta el precio de venta</span>',
+          ganU != null ? (ganU > 0 ? `ganas <b>${S(ganU)}</b> por ${esc(u)} (${P(ganU / num(st.pu) * 100)})` : `<span class="txt-mal">pierdes ${S(-ganU)} por ${esc(u)}</span>`) : '',
+          st.vendePaq && num(st.pkP) > 0 && num(st.pu) > 0 && num(st.pkF) >= 2 && num(st.pu) * num(st.pkF) > num(st.pkP) ? `suelto ganas ${S(num(st.pu) * num(st.pkF) - num(st.pkP))} más por ${esc(st.pkBase.toLowerCase())}` : '',
+        ].filter(Boolean).join(', ')}.</div>`}
+      </div>
+      <footer class="asis-pie">${st.paso > 1 ? '<button class="btn claro" data-a="atras">Atrás</button>' : '<span></span>'}
+        ${st.paso === 2 ? `<button class="btn" data-a="sig" ${singular(st.marca) ? '' : 'disabled'}>Siguiente</button>` : st.paso === 3 ? '<button class="btn rotulo" data-a="crear">Crear producto</button>' : ''}</footer>`;
+    // Eventos
+    const leer = () => {
+      const val = id => caja.querySelector('#' + id)?.value;
+      if (st.paso === 2) Object.assign(st, { marca: val('aMarca') ?? st.marca, variante: val('aVar') ?? st.variante, nf: val('aNf') ?? st.nf, cf: val('aCf') ?? st.cf });
+      if (st.paso === 3) { Object.assign(st, { pkBase: singular(val('aPk') ?? st.pkBase), pkF: val('aPkF') ?? st.pkF, costo: val('aCosto') ?? st.costo, pu: val('aPu') ?? st.pu, pkP: val('aPkP') ?? st.pkP, min: val('aMin') ?? st.min });
+        const c = caja.querySelector('#aVp'); if (c) st.vendePaq = c.checked; }
+    };
+    const repintar = foco => { leer(); const pos = foco && caja.querySelector('#' + foco)?.selectionStart; pintar(); const f = foco && caja.querySelector('#' + foco); if (f) { f.focus(); try { f.setSelectionRange(pos, pos); } catch {} } };
+    caja.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { usar(C.categorias.find(c => c.id === b.dataset.cat)); st.paso = 2; pintar(); caja.querySelector('#aMarca')?.focus(); });
+    caja.querySelectorAll('[data-marca]').forEach(b => b.onclick = () => { leer(); st.marca = b.dataset.marca; pintar(); caja.querySelector('#aVar')?.focus(); });
+    ['aMarca', 'aVar'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.oninput = () => repintar(id); });
+    ['aPk', 'aPkF', 'aCosto', 'aPu', 'aPkP', 'aMin'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.onchange = () => repintar(); });
+    ['aCosto', 'aPu', 'aPkP', 'aPkF'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.oninput = () => { leer(); const r = caja.querySelector('.consejo-claro'); if (r) { const pos = i.selectionStart; pintar(); const f = caja.querySelector('#' + id); f.focus(); try { f.setSelectionRange(pos, pos); } catch {} } }; });
+    caja.querySelector('#aPk') && (caja.querySelector('#aPk').oninput = () => { leer(); const f = caja.querySelector('#aPkF'); if (f) f.disabled = !st.pkBase; });
+    caja.querySelector('#aVp') && (caja.querySelector('#aVp').onchange = () => repintar());
+    caja.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+      const a = b.dataset.a; leer();
+      if (a === 'cerrar') return cerrar();
+      if (a === 'atras') { st.paso--; return pintar(); }
+      if (a === 'sig') { if (!singular(st.marca)) return aviso('Escribe la marca', true); st.paso = 3; pintar(); return caja.querySelector('#aPu')?.focus(); }
+      if (a === 'sug') { st.pu = sug.toFixed(2); return pintar(); }
+      if (a === 'editardup') { const d = duplicado(); cerrar(); const prs = { ...d }; return editarProducto(d.id, prs); }
+      if (a === 'nuevacat') { v.style.display = 'none'; const id = await crearCategoria(); v.style.display = ''; if (id) { usar(C.categorias.find(c => c.id === id)); st.paso = 2; } return pintar(); }
+      if (a === 'crear') {
+        if (duplicado() && !(await dialogo('¿Crear un producto repetido?', [{ type: 'info', html: `<p class="sub" style="margin:0">Ya tienes "${esc(duplicado().nombre)}". Si es el mismo, mejor edítalo para no repartir el stock.</p>` }], 'Crear igual'))) return;
+        b.disabled = true;
+        const id = await crearProducto({ cat: st.cat, marca: st.marca, variante: st.variante, uniId: st.cat.unidad_medida_id || C.unidades[0].id, pkBase: st.pkBase, pkF: num(st.pkF),
+          pu: st.pu, pkP: st.vendePaq ? st.pkP : '', min: num(st.min), nombre_factura: st.nf, codigo_factura: st.cf });
+        if (id) { cerrar(); ir('catalogo'); } else b.disabled = false;
+      }
+    });
   };
-  ['pPkN', 'pPkF', 'pPU', 'pPkP'].forEach(id => $('#' + id).oninput = resumen);
-  $('#pVendePaq').onchange = resumen; $('#pUni').onchange = resumen;
-  const nomVer = () => { const n = [singular($('#pMarca').value), singular($('#pVar').value)].filter(Boolean).join(' '); $('#pNomVer').innerHTML = n ? `Se verá como <b>${esc(n)}</b>` : ''; };
-  $('#pMarca').oninput = nomVer; $('#pVar').oninput = nomVer;
-  $('#editarReceta').onclick = () => editarReceta(cat);
-  resumen();
-  $('#btnProd').onclick = async () => {
-    const pkBase = singular($('#pPkN').value), vendePaq = $('#pVendePaq').checked && !!pkBase;
-    $('#btnProd').disabled = true;
-    const ok = await crearProducto({ cat, marca: $('#pMarca').value, variante: $('#pVar').value, uniId: Number($('#pUni').value), pkBase, pkF: num($('#pPkF').value),
-      pu: $('#pPU').value, pkP: vendePaq ? $('#pPkP').value : '', min: num($('#pMin').value), nombre_factura: $('#pFac').value, codigo_factura: $('#pCodF').value });
-    if (ok) ir('catalogo'); else $('#btnProd').disabled = false;
-  };
+  pintar();
+  if (st.paso === 2) caja.querySelector('#aMarca')?.focus();
 }
 // Corrige los datos de un producto o lo desactiva
 async function editarProducto(id, pr) {
@@ -2540,7 +2598,7 @@ async function editarReceta(cat) {
   try {
     const unidadId = v[0] === '__otra' ? await asegurarUnidad(v[1]) : Number(v[0]);
     await q(sb.from('categorias').update({ unidad_medida_id: unidadId, paquete_nombre: singular(v[2]) || null, paquete_unidades: num(v[3]) >= 2 ? Math.round(num(v[3])) : null, vende_paquete: !!singular(v[2]) && v[4] === 'si', controla_vencimiento: v[5] === 'si' }).eq('id', cat.id));
-    aviso('Categoría actualizada'); await cargarCatalogos(); await ir('catalogo'); $('#pCat').value = cat.id; pintarDetalleProducto();
+    aviso('Categoría actualizada'); await cargarCatalogos(); ir('catalogo');
   } catch (e) { aviso(textoError(e), true); }
 }
 
@@ -2557,6 +2615,10 @@ async function vCatalogo(el) {
   const simulables = C.presentaciones.filter(p => p.se_vende && precioDe(p.id) != null && costoP(p) > 0);
   const inactivos = await q(sb.from('productos').select('id, nombre, categoria_id').eq('activo', false).order('nombre')).catch(() => []);
   el.innerHTML = `
+  <div class="acciones-pagina">
+    <button class="btn rotulo" id="btnNuevoProd">${ico('catalogo', 18)}<span>Nuevo producto</span></button>
+    <button class="btn claro" id="btnDesdeFactura">${ico('compras', 18)}<span>Crear desde una factura</span></button>
+  </div>
   <div class="panel"><h2>Productos y precios</h2><p class="sub">Toca un precio para cambiarlo. Rige desde ahora; las ventas pasadas no cambian. El costo es el promedio de tus compras.</p>
     <div class="fila" style="margin-bottom:12px;max-width:520px"><div><label for="umbral">Margen mínimo que quieres ganar (%)</label><input type="number" id="umbral" min="1" max="90" step="1" value="${umbral()}" inputmode="numeric"></div>
       <div class="auto"><button class="btn claro" id="guardarUmbral">Guardar</button></div></div>
@@ -2569,6 +2631,13 @@ async function vCatalogo(el) {
       <td class="n">${p.se_vende && precioDe(p.id) != null ? chipMargen(evalMargen(num(precioDe(p.id)), costoP(p))) : ''}</td>
       <td class="n">${p.se_vende && costoP(p) > 0 ? (num(precioDe(p.id)) >= precioSugerido(costoP(p)) ? `<span class="sub">${S(precioSugerido(costoP(p)))}</span>` : `<b>${S(precioSugerido(costoP(p)))}</b>`) : ''}</td></tr>`).join('')).join('')}
   </table></div></div>
+  <div class="panel"><div class="envio-cab"><div><h2>Categorías</h2><p class="sub" style="margin:0">Cada categoría guarda cómo compras y vendes ese tipo de producto. Así, cada producto nuevo se llena solo.</p></div>
+    <div class="envio-btns"><button class="btn claro" id="btnNuevaCat">Nueva categoría</button></div></div>
+    <div class="cats">${C.categorias.map(c => { const u = C.unidades.find(x => x.id === c.unidad_medida_id)?.nombre?.toLowerCase() || 'unidad';
+      const n = new Set(C.presentaciones.filter(p => p.productos?.categoria_id === c.id).map(p => p.producto_id)).size;
+      return `<div class="cat-card" style="--c:${colorProducto(c.id)}"><div class="cat-top"><span class="cat-ini">${esc(c.nombre.charAt(0))}</span><div><b>${esc(c.nombre)}</b><small>${n} ${n === 1 ? 'producto' : 'productos'}${c.prefijo_factura ? ` · en factura: ${esc(c.prefijo_factura)}` : ''}</small></div></div>
+        <ul class="receta-l"><li>Compras: <b>${c.paquete_nombre ? `${esc(c.paquete_nombre.toLowerCase())}${c.paquete_unidades ? ' x ' + c.paquete_unidades : ''}` : 'por ' + esc(u)}</b></li><li>Vendes: <b>por ${esc(u)}</b>${c.vende_paquete && c.paquete_nombre ? ` y por ${esc(c.paquete_nombre.toLowerCase())}` : ''}</li><li>${c.controla_vencimiento ? 'Tiene <b>fecha de vencimiento</b>' : 'No vence'}</li></ul>
+        <div class="cat-acc"><button class="btn mini" data-nuevocat="${c.id}">Agregar producto</button><button class="btn claro mini" data-editcat="${c.id}">Editar</button></div></div>`; }).join('')}</div></div>
   ${inactivos.length ? `<div class="panel"><h2>Productos desactivados</h2><p class="sub">No aparecen al vender ni al comprar. Su historial se conserva.</p>
     <div class="vencen">${inactivos.map(p => `<div class="vence-item"><div><b>${esc(p.nombre)}</b><small>${esc(C.categorias.find(c => c.id === p.categoria_id)?.nombre || '')}</small></div><button class="btn claro mini" data-reactivar="${p.id}">Reactivar</button></div>`).join('')}</div></div>` : ''}
   <div class="panel"><h2>Simulador de precios</h2><p class="sub">Prueba un precio antes de cambiarlo: ves cuánto ganarías y cuánto puedes dejar de vender sin perder plata.</p>
@@ -2578,14 +2647,11 @@ async function vCatalogo(el) {
       <div id="simOut"></div>` : '<p class="vacio">Cuando registres compras (para saber el costo) y pongas precios, aquí podrás simular cambios.</p>'}
   </div>
   <div class="cols dos">
-    <div class="panel"><h2>Nuevo producto</h2><p class="sub">Primero elige qué tipo de producto es: la app llena el resto según cómo lo compras y lo vendes.</p>
-      <div class="fila"><div><label for="pCat">Categoría</label><select id="pCat"><option value="">Elige una categoría</option>${C.categorias.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}<option value="__nueva">＋ Crear categoría nueva</option></select></div></div>
-      <div id="pDetalle"></div>
-    </div>
     <div class="panel"><h2>Clientes</h2><p class="sub">Solo necesitas registrar a quienes les fías.</p>
       <table>${C.clientes.map(c => `<tr><td>${esc(c.nombre)}</td><td>${c.permite_credito ? `<span class="chip aviso">fiado${c.limite_credito != null ? ' hasta ' + S(c.limite_credito) : ''}</span>` : ''}</td></tr>`).join('')}</table>
       <button class="btn claro" id="btnCli" style="margin-top:10px">Nuevo cliente</button>
-      <h3>Proveedores</h3>
+    </div>
+    <div class="panel"><h2>Proveedores</h2><p class="sub">Se crean solos al registrar o escanear una compra.</p>
       <table>${C.proveedores.map(p => `<tr><td>${esc(p.razon_social)}</td><td class="sub">${esc(p.numero_documento || '')} ${esc(p.telefono || '')}</td></tr>`).join('') || '<tr><td class="sub">Los creas al registrar una compra.</td></tr>'}</table>
     </div>
   </div>`;
@@ -2636,11 +2702,12 @@ async function vCatalogo(el) {
     reiniciar();
   }
   $('#guardarUmbral').onclick = () => { const v = Math.round(num($('#umbral').value)); if (v < 1 || v > 90) return aviso('Escribe un porcentaje entre 1 y 90', true); fijarUmbral(v); aviso(`Margen mínimo: ${v}%`); ir('catalogo'); };
-  // ----- Nuevo producto guiado por la categoría -----
-  $('#pCat').onchange = async () => {
-    if ($('#pCat').value === '__nueva') { $('#pCat').value = ''; $('#pDetalle').innerHTML = ''; const id = await crearCategoria(); if (id) { await ir('catalogo'); $('#pCat').value = id; $('#pCat').onchange(); } return; }
-    pintarDetalleProducto();
-  };
+  // ----- Nuevo producto y categorías -----
+  $('#btnNuevoProd').onclick = () => abrirAsistenteProducto();
+  $('#btnDesdeFactura').onclick = async () => { await ir('compras'); $('#btnEscanear')?.click(); };
+  el.querySelectorAll('[data-editcat]').forEach(b => b.onclick = () => editarReceta(C.categorias.find(c => c.id === b.dataset.editcat)));
+  el.querySelectorAll('[data-nuevocat]').forEach(b => b.onclick = () => abrirAsistenteProducto(b.dataset.nuevocat));
+  $('#btnNuevaCat').onclick = async () => { if (await crearCategoria()) ir('catalogo'); };
   $('#btnCli').onclick = async () => {
     const v = await dialogo('Nuevo cliente', [{ label: 'Nombre', required: true },
       { label: 'Documento', type: 'select', options: [{ value: '', label: 'Sin documento' }, { value: 'DNI', label: 'DNI' }, { value: 'RUC', label: 'RUC' }] },

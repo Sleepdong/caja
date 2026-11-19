@@ -3,8 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-kZ9R+ldmnRhqW+CdQ1gt36uJ+0lLzoXrqhuhasAE4ng='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; worker-src blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vOUVsLFBVDua99vdVtDx2CitBkVCO935gksrxr4sJDM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#231942">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Caja">
 <title>Caja · Gestión Comercial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -199,6 +206,9 @@ tr:last-child td{border-bottom:0}
 .qr img{width:190px;height:190px;background:#fff;border:1px solid var(--linea);border-radius:12px;padding:8px}
 .clave{font-family:var(--display);font-size:15px;letter-spacing:.06em;word-break:break-all;background:#f3f1fa;border-radius:8px;padding:8px 10px;margin:6px 0}
 .pasos{margin:0;padding-left:20px}.pasos li{margin-bottom:6px}
+/* ---------- Sin conexión ---------- */
+#sinRed{background:#ffc93c;color:var(--tinta);padding:8px 20px;font-size:13.5px;font-weight:600;text-align:center}
+#btnPendientes::before{background:#c2410c}
 /* ---------- Diálogos y avisos ---------- */
 #aviso{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;max-width:min(92vw,520px);font-size:14.5px;font-weight:500;z-index:60;transition:.2s;pointer-events:none}
 #aviso.ver{opacity:1;transform:translateX(-50%)}
@@ -249,8 +259,10 @@ main{padding:12px}.panel{padding:14px}.top{padding:10px 14px}.fecha{display:none
     <span class="esp"></span>
     <button class="estado-caja" id="estadoCaja">Caja cerrada</button>
     <span class="usuario" id="usuario"></span>
+    <button class="estado-caja oculto" id="btnPendientes" style="background:#ffc93c;color:#231942">Por subir</button>
     <button class="salir" id="btnSalir">Salir</button>
   </div>
+  <div id="sinRed" class="oculto" role="status">Sin internet. Puedes seguir vendiendo: las ventas se guardan en este equipo y se suben solas al volver la conexión.</div>
   <nav class="tabs" id="tabs"></nav>
   <main id="vista"></main>
 </div>
@@ -288,7 +300,9 @@ function aviso(msg, error) {
   const t = $('#aviso'); t.textContent = msg; t.className = 'ver' + (error ? ' error' : '');
   clearTimeout(t._h); t._h = setTimeout(() => t.className = '', error ? 7000 : 3200);
 }
+const esErrorRed = e => !navigator.onLine || /Failed to fetch|NetworkError|Load failed|network|ERR_INTERNET|fetch failed|timeout/i.test(String(e?.message || e || ''));
 function textoError(e) {
+  if (esErrorRed(e)) return 'Sin conexión a internet. Puedes seguir vendiendo en Vender; lo demás se actualiza al volver la señal.';
   const m = e?.message || String(e);
   if (/JWT|not authenticated/i.test(m)) return 'Tu sesión venció. Sal y vuelve a entrar.';
   if (/caja .* está cerrada/i.test(m)) return 'La caja está cerrada. Ábrela para cobrar en efectivo.';
@@ -344,6 +358,12 @@ async function alertasMargen(soloProductos) {
 const tablaAlertas = lista => `<div class="scroll"><table><tr><th>Producto</th><th class="n">Costo</th><th class="n">Precio</th><th class="n">Margen</th><th class="n">Precio mínimo</th></tr>
   ${lista.map(a => `<tr><td>${esc(a.producto)} <span class="sub">${esc(a.presentacion)}</span></td><td class="n">${S(a.costo)}</td><td class="n">${S(a.precio)}</td><td class="n">${chipMargen(a.e)}</td><td class="n"><b>${S(precioSugerido(a.costo))}</b></td></tr>`).join('')}</table></div>`;
 
+// ============ Copia local (para trabajar sin internet) ============
+const local = {
+  leer(k, def = null) { try { const v = localStorage.getItem('caja:' + k); return v ? JSON.parse(v) : def; } catch { return def; } },
+  guardar(k, v) { try { localStorage.setItem('caja:' + k, JSON.stringify(v)); } catch {} },
+};
+
 // ============ Catálogos ============
 const C = {};
 const medios = codigos => codigos.map(c => C.metodos.find(m => m.codigo === c)).filter(Boolean);
@@ -362,7 +382,15 @@ async function asegurarYapePlin() {
   }
 }
 async function cargarCatalogos() {
-  try { await asegurarYapePlin(); } catch (e) { aviso('No se pudo crear Yape/Plin: ' + textoError(e), true); }
+  try { await cargarCatalogosRed(); local.guardar('catalogos', C); }
+  catch (e) {
+    const copia = local.leer('catalogos');
+    if (!esErrorRed(e) || !copia) throw e;
+    Object.assign(C, copia); // sin internet: usa la última copia
+  }
+}
+async function cargarCatalogosRed() {
+  try { await asegurarYapePlin(); } catch (e) { if (!esErrorRed(e)) aviso('No se pudo crear Yape/Plin: ' + textoError(e), true); else throw e; }
   const [metodos, cuentas, clientes, proveedores, categorias, unidades, catGasto, pres, motivos, tiposComp] = await Promise.all([
     q(sb.from('metodos_pago').select('*').eq('activo', true).order('id')),
     q(sb.from('cuentas_financieras').select('*').eq('activo', true).order('creado_en')),
@@ -566,12 +594,23 @@ async function vPanel(el) {
 let ticket = [];               // {presentacion_id, producto_id, nombre, factor, cantidad, precio, lista}
 let medioVenta = 'EFECTIVO';
 async function vVender(el) {
-  const [precios, stock, ses, cobrosHoy] = await Promise.all([
-    q(sb.from('v_precios_vigentes').select('*')),
-    q(sb.from('v_existencias').select('producto_id,cantidad,stock_minimo,costo_promedio')),
-    pintarEstadoCaja(),
-    q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())),
-  ]);
+  let precios, stock, ses = null, cobrosHoy = [], offline = false;
+  try {
+    [precios, stock, ses, cobrosHoy] = await Promise.all([
+      q(sb.from('v_precios_vigentes').select('*')),
+      q(sb.from('v_existencias').select('producto_id,cantidad,stock_minimo,costo_promedio')),
+      pintarEstadoCaja(),
+      q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())),
+    ]);
+    local.guardar('vender', { precios, stock, en: Date.now() });
+  } catch (e) {
+    const copia = local.leer('vender');
+    if (!esErrorRed(e) || !copia) throw e;
+    offline = true; precios = copia.precios; stock = copia.stock;
+  }
+  // Lo vendido sin internet que aún no se sube también descuenta del stock que ves
+  const pend = colaVentas.leer();
+  pend.forEach(v => v.p.lineas.forEach(l => { const pr = precios.find(x => x.presentacion_id === l.presentacion_id); const s0 = pr && stock.find(x => x.producto_id === pr.producto_id); if (s0 && !v.descontado) s0.cantidad = num(s0.cantidad) - l.cantidad * num(pr.factor); }));
   const stk = Object.fromEntries(stock.map(s => [s.producto_id, s]));
   const productos = {};
   precios.filter(p => p.precio != null).forEach(p => (productos[p.producto_id] ??= { id: p.producto_id, nombre: p.producto, ops: [] }).ops.push(p));
@@ -583,7 +622,7 @@ async function vVender(el) {
   const porMedio = {}; cobrosHoy.forEach(m => porMedio[m.metodo_pago_id] = (porMedio[m.metodo_pago_id] || 0) + num(m.monto));
 
   el.innerHTML = `
-  ${ses ? '' : `<div class="aviso-barra"><p><b>La caja está cerrada.</b> Puedes cobrar con Yape o Plin, pero para recibir efectivo tienes que abrirla.</p><button class="btn rotulo" id="abrirAqui">Abrir caja</button></div>`}
+  ${offline ? `<div class="aviso-barra"><p><b>Modo sin internet.</b> Usas los precios y el stock de tu última conexión (${fh(local.leer('vender')?.en)}). Las ventas se guardan aquí y se suben solas.</p></div>` : ses ? '' : `<div class="aviso-barra"><p><b>La caja está cerrada.</b> Puedes cobrar con Yape o Plin, pero para recibir efectivo tienes que abrirla.</p><button class="btn rotulo" id="abrirAqui">Abrir caja</button></div>`}
   <div class="cols pos">
     <section>
       <div class="buscador"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -687,8 +726,10 @@ async function vVender(el) {
     if (cond === 'CONTADO' && medioVenta === 'EFECTIVO' && recibido !== '' && num(recibido) < t) return aviso('Lo recibido no alcanza para el total', true);
     const perdidas = ticket.filter(x => evalMargen(x.precio, costoDe(x.producto_id, x.factor))?.nivel === 'perdida');
     if (perdidas.length && !(await dialogo('Vas a vender bajo el costo', [{ type: 'info', html: `<p class="sub" style="margin:0">${perdidas.map(x => `<b>${esc(x.nombre)} (${esc(x.pres)})</b>: precio ${S(x.precio)}, te cuesta ${S(costoDe(x.producto_id, x.factor))}`).join('<br>')}</p>` }], 'Vender igual'))) return;
-    if (medioVenta === 'EFECTIVO' && monto > 0 && !(await sesionCaja())) {
-      if (!(await abrirCajaRapido())) return;
+    if (navigator.onLine && medioVenta === 'EFECTIVO' && monto > 0) {
+      let abierta = true;
+      try { abierta = !!(await sesionCaja()); } catch (e) { if (!esErrorRed(e)) throw e; }
+      if (!abierta && !(await abrirCajaRapido())) return;
     }
     const p = {
       cliente_id: cond === 'CREDITO' ? $('#cliCred').value : generico?.id,
@@ -698,10 +739,22 @@ async function vVender(el) {
     };
     if (cond === 'CREDITO') p.fecha_vencimiento = $('#vence').value;
     $('#btnCobrar').disabled = true;
-    const r = await rpc('registrar_venta', { p });
-    if (!r.ok) { $('#btnCobrar').disabled = false; return; }
+    let guardadaLocal = false;
+    const id = (crypto.randomUUID?.() || String(Date.now()) + Math.random().toString(16).slice(2));
+    p.fecha = new Date().toISOString();
+    p.observaciones = 'sinred:' + id; // marca única: evita duplicados al reintentar
+    try {
+      if (!navigator.onLine) throw new TypeError('Failed to fetch');
+      await q(sb.rpc('registrar_venta', { p }));
+    } catch (e) {
+      if (!esErrorRed(e)) { aviso(textoError(e), true); $('#btnCobrar').disabled = false; return; }
+      colaVentas.agregar({ id, p, total: t, medio: m.nombre, creada: p.fecha });
+      guardadaLocal = true;
+      ticket.forEach(x => { const s0 = stk[x.producto_id]; if (s0) s0.cantidad = num(s0.cantidad) - x.cantidad * x.factor; });
+    }
     const vuelto = medioVenta === 'EFECTIVO' && cond === 'CONTADO' && num(recibido) > t ? r2(num(recibido) - t) : 0;
     $('#ticket').innerHTML = `<div class="hecho"><div class="ic">✓</div><p class="sub" style="margin:0">${cond === 'CREDITO' ? 'Fiado registrado' : 'Cobrado con ' + esc(m.nombre)}</p>
+      ${guardadaLocal ? '<p class="chip aviso" style="margin:6px 0 0">Guardada sin internet: se sube sola</p>' : ''}
       <b>${S(t)}</b>${vuelto ? `<div class="vuelto" style="margin-top:14px"><span>Vuelto</span><b>${S(vuelto)}</b></div>` : ''}
       <button class="btn rotulo cobrar" id="nueva" style="margin-top:16px">Nueva venta</button></div>`;
     ticket = []; recibido = ''; cond = 'CONTADO'; $('#barraMovil').classList.remove('ver');
@@ -711,6 +764,55 @@ async function vVender(el) {
   $('#buscar').onkeydown = e => { if (e.key === 'Enter') { const b = $('#estante .opc:not(:disabled)'); b && b.click(); $('#buscar').select(); } };
   pintarTodo();
 }
+
+// ============ VENTAS SIN INTERNET ============
+const colaVentas = {
+  leer() { return local.leer('colaVentas', []); },
+  guardar(c) { local.guardar('colaVentas', c); pintarPendientes(); },
+  agregar(v) { const c = this.leer(); c.push(v); this.guardar(c); },
+};
+function pintarPendientes() {
+  const c = colaVentas.leer(), b = $('#btnPendientes'); if (!b) return;
+  b.classList.toggle('oculto', !c.length);
+  const conError = c.filter(v => v.error).length;
+  b.textContent = `${c.length} ${c.length === 1 ? 'venta' : 'ventas'} por subir${conError ? ' (revisar)' : ''}`;
+}
+let subiendo = false;
+async function subirPendientes(avisar) {
+  if (subiendo || !navigator.onLine) return;
+  const c = colaVentas.leer(); if (!c.length) return;
+  subiendo = true; let ok = 0;
+  try {
+    for (const v of c) {
+      try {
+        // ¿Ya llegó antes (se cortó la señal justo al subirla)? Entonces no se repite.
+        const ya = await q(sb.from('ventas').select('id').eq('observaciones', v.p.observaciones).maybeSingle());
+        if (!ya) await q(sb.rpc('registrar_venta', { p: v.p }));
+        v.hecha = true; delete v.error; ok++;
+      } catch (e) {
+        if (esErrorRed(e)) break; // sin señal otra vez: se intenta luego
+        v.error = /caja .* cerrada/i.test(e.message || '') ? 'La caja estaba cerrada: ábrela y vuelve a intentar.' : (e.message || String(e));
+      }
+    }
+  } finally {
+    colaVentas.guardar(c.filter(v => !v.hecha));
+    subiendo = false;
+  }
+  if (ok) { aviso(`${ok} ${ok === 1 ? 'venta hecha sin internet se subió' : 'ventas hechas sin internet se subieron'}`); if (vistaActual === 'vender' || vistaActual === 'panel') ir(vistaActual); }
+  else if (avisar && colaVentas.leer().some(v => v.error)) aviso('Hay ventas que no se pudieron subir. Toca el aviso amarillo para verlas.', true);
+}
+async function verPendientes() {
+  const c = colaVentas.leer();
+  const v = await dialogo('Ventas por subir', [{ type: 'info', html: `<p class="sub" style="margin:0 0 8px">Se hicieron sin internet. Se suben solas cuando hay conexión.</p><table>${c.map(x => `<tr><td>${fh(x.creada)}</td><td class="n">${S(x.total)}</td><td>${esc(x.medio)}</td></tr>${x.error ? `<tr><td colspan="3"><span class="chip mal">${esc(x.error)}</span></td></tr>` : ''}`).join('')}</table>` }], 'Subir ahora');
+  if (v) { if (!navigator.onLine) return aviso('Todavía no hay internet', true); c.forEach(x => delete x.error); colaVentas.guardar(c); subirPendientes(true); }
+}
+function actualizarRed() {
+  $('#sinRed').classList.toggle('oculto', navigator.onLine);
+  if (navigator.onLine) subirPendientes();
+}
+addEventListener('online', actualizarRed);
+addEventListener('offline', actualizarRed);
+setInterval(() => { if (colaVentas.leer().length) subirPendientes(); }, 60000);
 
 // ============ VENTAS ============
 async function vVentas(el) {
@@ -1668,6 +1770,11 @@ async function exportarExcel(d, h) {
   aviso('Excel descargado');
 }
 
+// ============ App instalable (PWA) ============
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW', e)));
+}
+
 // ============ Seguridad ============
 // Impide que otra página muestre la app dentro de un marco (clickjacking)
 if (window.top !== window.self) { document.body.innerHTML = ''; window.top.location = window.self.location.href; }
@@ -1836,7 +1943,9 @@ async function entrar(session) {
   entrando = true;
   try {
     if (await necesitaCodigo()) { if (!(await pedirCodigo())) return; }
-    const perfil = await q(sb.from('perfiles').select('nombre, activo, roles(codigo)').eq('id', session.user.id).maybeSingle());
+    let perfil;
+    try { perfil = await q(sb.from('perfiles').select('nombre, activo, roles(codigo)').eq('id', session.user.id).maybeSingle()); if (perfil) local.guardar('perfil', perfil); }
+    catch (e) { perfil = esErrorRed(e) ? local.leer('perfil') : null; if (!perfil) throw e; }
     if (!perfil?.activo) { aviso('Tu usuario no tiene un perfil activo en el sistema', true); await sb.auth.signOut(); return; }
     if (recuperacionPendiente) {
       recuperacionPendiente = false;
@@ -1853,6 +1962,8 @@ async function entrar(session) {
     $('#ingreso').classList.add('oculto'); $('#app').classList.remove('oculto');
     ultimaActividad = Date.now();
     await cargarCatalogos();
+    $('#btnPendientes').onclick = verPendientes;
+    actualizarRed(); pintarPendientes();
     ir(vistaActual);
   } catch (e) { aviso(textoError(e), true); }
   finally { entrando = false; }

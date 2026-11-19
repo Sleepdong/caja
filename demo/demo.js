@@ -142,6 +142,9 @@
 
   // ---------- 5. Vistas derivadas (se recalculan tras cada venta) ----------
   const D = {};
+  // Boletas emitidas (se conservan entre recálculos)
+  const boletas = [], boletaVentas = [];
+  let boletasSembradas = false;
   function derivar() {
     // Costo promedio y stock por producto, en orden cronológico
     const ev = [];
@@ -210,6 +213,18 @@
     // Resultados por día
     const dias = {};
     for (let n = DIAS - 1; n >= 0; n--) dias[diaMenos(n)] = { v: 0, c: 0, g: 0, aj: 0 };
+    // La historia ya tiene sus boletas registradas, salvo los últimos 2 días (para ver el control en acción)
+    if (!boletasSembradas) {
+      boletasSembradas = true;
+      const limite = diaMenos(1), porDia = {};
+      vtot.forEach(v => { const d = fechaLima(Date.parse(v.fecha)); if (d < limite) (porDia[d] ??= []).push(v); });
+      let n = 1;
+      Object.keys(porDia).sort().forEach(d => {
+        const chicas = porDia[d].filter(v => v.total <= 5), grandes = porDia[d].filter(v => v.total > 5);
+        grandes.forEach(v => { const id = uid('bo'); boletas.push({ id, serie: 'B001', numero: String(n++), fecha: d, importe: v.total, consolidada: false, estado: 'EMITIDA' }); boletaVentas.push({ boleta_id: id, venta_id: v.venta_id }); });
+        if (chicas.length) { const id = uid('bo'); boletas.push({ id, serie: 'B001', numero: String(n++), fecha: d, importe: r2(chicas.reduce((a, v) => a + v.total, 0)), consolidada: true, estado: 'EMITIDA' }); chicas.forEach(v => boletaVentas.push({ boleta_id: id, venta_id: v.venta_id })); }
+      });
+    }
     vtot.forEach(v => { const d = dias[fechaLima(Date.parse(v.fecha))]; if (d) { d.v += v.total; d.c += v.costo_ventas; } });
     gastos.forEach(g => { if (dias[g.dia]) dias[g.dia].g += g.monto; });
     const ajDia = diaMenos(5); if (dias[ajDia]) dias[ajDia].aj = r2(3 * costoBase.p2);
@@ -246,6 +261,9 @@
       v_existencias: productos.map(p => { const s = st[p.id]; return { producto_id: p.id, producto: p.nombre, sku: p.sku, cantidad: s.q, stock_minimo: p.stock_minimo, costo_promedio: +s.cp.toFixed(6),
         valor_total: r2(s.q * s.cp), requiere_reposicion: s.q <= p.stock_minimo, activo: true, almacen: 'Principal' }; }),
       existencias: productos.map(p => ({ producto_id: p.id, almacen_id: 'a1', cantidad: st[p.id].q, costo_promedio: st[p.id].cp })),
+      boletas_emitidas: boletas, boleta_ventas: boletaVentas,
+      v_ventas_comprobante: vtot.map(v => { const l = boletaVentas.find(x => x.venta_id === v.venta_id), b = l && boletas.find(x => x.id === l.boleta_id && x.estado === 'EMITIDA');
+        return { venta_id: v.venta_id, fecha: v.fecha, dia: fechaLima(Date.parse(v.fecha)), estado: v.estado, total: v.total, boleta_id: b?.id || null, serie: b?.serie || null, numero: b?.numero || null, consolidada: b ? b.consolidada : null }; }),
       ventas, venta_detalles: vdet, v_ventas_totales: vtot.slice().reverse(), v_lineas_rentabilidad: lineasRent, v_resultados_diarios: resultados,
       v_cuentas_por_cobrar: cxc, movimientos_financieros: movFin, gastos: gastosV,
       compras: compras.map(c => ({ id: c.id, proveedor_id: c.proveedor_id, fecha_emision: c.dia, serie: c.serie, numero: c.numero, estado: 'REGISTRADA' })),
@@ -333,12 +351,25 @@
         cliente: p.cliente_id || 'cl0', condicion: p.condicion || 'CONTADO', vence: p.fecha_vencimiento, obs: p.observaciones });
       derivar(); return ventasRaw[ventasRaw.length - 1].id;
     },
+    registrar_boleta({ p_serie, p_numero, p_fecha, p_ventas, p_consolidada }) {
+      const serie = String(p_serie || '').trim().toUpperCase(), numero = String(Number(p_numero));
+      if (!/^[A-Z0-9]{4}$/.test(serie) || !/^\d{1,8}$/.test(numero)) throw new Error('Serie o número no válidos');
+      if (boletas.some(b => b.serie === serie && b.numero === numero)) throw new Error(`La boleta ${serie}-${numero} ya está registrada`);
+      const vs = D.v_ventas_comprobante.filter(v => p_ventas.includes(v.venta_id));
+      if (vs.some(v => v.boleta_id)) throw new Error('Una de esas ventas ya tiene boleta');
+      if (p_consolidada && vs.some(v => v.total > 5)) throw new Error('Una venta supera S/ 5: necesita su propia boleta');
+      const id = uid('bo');
+      boletas.push({ id, serie, numero, fecha: p_fecha, importe: r2(vs.reduce((a, v) => a + v.total, 0)), consolidada: !!p_consolidada, estado: 'EMITIDA' });
+      p_ventas.forEach(v => boletaVentas.push({ boleta_id: id, venta_id: v }));
+      derivar(); return id;
+    },
+    anular_boleta({ p_boleta }) { const b = boletas.find(x => x.id === p_boleta); if (b) b.estado = 'ANULADA'; for (let i = boletaVentas.length - 1; i >= 0; i--) if (boletaVentas[i].boleta_id === p_boleta) boletaVentas.splice(i, 1); derivar(); return null; },
     telegram_estado: () => ({ vinculado: false, activo: false, hora_envio: 21, tiene_token: false }),
   };
   const soloLectura = new Set(['telegram_estado']);
   window.__demoAviso = () => {};
   const rpc = (fn, args) => Promise.resolve().then(() => {
-    if (RPC[fn]) return { data: RPC[fn](args || {}), error: null };
+    if (RPC[fn]) { try { return { data: RPC[fn](args || {}), error: null }; } catch (e) { return { data: null, error: { message: e.message } }; } }
     if (!soloLectura.has(fn)) window.__demoAviso(fn);
     return { data: null, error: null };
   });

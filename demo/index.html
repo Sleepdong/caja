@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-t10gb230lSLbjeYPK7zp9qg4/l5xMnFcJ8HXxnIbZlo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-QUqLX2kIRydc4ZOH+fLFuKGwRyFmmLokujCnyPMaKy0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -452,6 +452,10 @@ body.soltando #vista::after{content:"Suelta aquí la factura (foto o PDF)";posit
 .seg-item>div{flex:1}.seg-item b{display:block;font-size:14.5px}.seg-item small{color:var(--gris);font-size:12.5px}
 .seg-ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:none}.seg-item.ok .seg-ic{background:#4FE3C126;color:var(--menta)}.seg-item.falta .seg-ic{background:#FF7A8A26;color:var(--coral)}
 .hp-cab .empresa-txt{display:block;margin-top:2px;font-size:13px;color:var(--gris);font-weight:500}
+.bol-dia{margin-top:14px}.bol-dia h3{margin:0 0 8px;font-size:14px;color:var(--gris);font-weight:600}
+.bol-item{display:flex;gap:12px;align-items:center;background:var(--tono);border-radius:16px;padding:11px 14px;margin-top:8px}
+.bol-item>div{flex:1;min-width:0}.bol-item b{display:block;font-size:14.5px}.bol-item small{color:var(--gris);font-size:12.5px}
+.bol-item.mayor{box-shadow:inset 3px 0 0 var(--ambar)}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -1092,6 +1096,7 @@ async function vPanel(el) {
     <div class="cifra"><small>Gastos de hoy</small><b>${S(gastos(H0))}</b><div class="cmp">Mermas y ajustes: ${S(num(H0.de_ello_mermas_ajustes))}</div></div>
     <div class="cifra"><small>Ganancia neta (después de gastos)</small><b>${S(gn(H0))}</b><div class="cmp">Margen neto: ${margenNeto(H0) === null ? '—' : P(margenNeto(H0))}</div></div>
   </div>
+  <div id="boletasPanel"></div>
   <div class="panel envio"><div class="envio-cab"><div><h2>Resumen del día</h2><p class="sub">Envíatelo por WhatsApp para tenerlo a la mano. Elige tu propio chat ("Tú") o el de quien quieras.</p></div>
     <div class="envio-btns"><a class="btn" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div></div>
     <pre class="envio-txt" id="resTxt"></pre>
@@ -1152,6 +1157,7 @@ async function vPanel(el) {
   barras($('#g7'), ult7.map(nomDia), [
     { nombre: 'Venta', color: COL_VENTA, valores: ult7.map(f => vn(dia(f))) },
     { nombre: 'Ganancia', color: COL_GAN, valores: ult7.map(f => gb(dia(f))) }], { alto: 200, titulo: 'Venta y ganancia de los últimos 7 días' });
+  pintarBoletas();
 }
 
 // ============ VENDER ============
@@ -1318,13 +1324,14 @@ async function vVender(el) {
     };
     if (cond === 'CREDITO') p.fecha_vencimiento = $('#vence').value;
     $('#btnCobrar').disabled = true;
-    let guardadaLocal = false;
+    let guardadaLocal = false, ventaId = null;
     const id = (crypto.randomUUID?.() || String(Date.now()) + Math.random().toString(16).slice(2));
     p.fecha = new Date().toISOString();
     p.observaciones = 'sinred:' + id; // marca única: evita duplicados al reintentar
     try {
       if (!navigator.onLine) throw new TypeError('Failed to fetch');
-      await q(sb.rpc('registrar_venta', { p }));
+      const res = await q(sb.rpc('registrar_venta', { p }));
+      ventaId = typeof res === 'string' ? res : res?.venta_id || res?.id || null;
     } catch (e) {
       if (!esErrorRed(e)) { aviso(textoError(e), true); $('#btnCobrar').disabled = false; return; }
       colaVentas.agregar({ id, p, total: t, medio: m.nombre, creada: p.fecha });
@@ -1339,10 +1346,17 @@ async function vVender(el) {
       ${guardadaLocal ? '<p class="chip aviso" style="margin:6px 0 0">Guardada sin internet: se sube sola</p>' : ''}
       <b>${S(t)}</b>${vuelto ? `<div class="vuelto" style="margin-top:14px"><span>Vuelto</span><b>${S(vuelto)}</b></div>` : ''}
       <button class="btn rotulo cobrar" id="nueva" style="margin-top:16px">Nueva venta</button>
-      <button class="btn claro mini" id="enviarTicket" style="margin-top:10px">¿El cliente pide ticket? Enviar por WhatsApp</button></div>`;
+      <button class="btn claro mini" id="enviarTicket" style="margin-top:10px">¿El cliente pide ticket? Enviar por WhatsApp</button>
+      ${!guardadaLocal && t > LIMITE_SIN_BOLETA ? `<button class="btn claro mini" id="boletaVenta" style="margin-top:8px">Venta mayor a S/ 5: registrar su boleta</button>` : ''}</div>`;
     ticket = []; recibido = ''; cond = 'CONTADO'; $('#barraMovil').classList.remove('ver');
     $('#nueva').onclick = () => ir('vender'); $('#nueva').focus();
     $('#enviarTicket').onclick = () => enviarTicket(datosTicket).catch(e => aviso(textoError(e), true));
+    $('#boletaVenta') && ($('#boletaVenta').onclick = async () => {
+      try {
+        const vid = ventaId || (await q(sb.from('ventas').select('id').eq('observaciones', 'sinred:' + id).single())).id;
+        if (await registrarBoleta({ ventas: [{ venta_id: vid, total: t }], dia: hoy(), consolidada: false })) { $('#boletaVenta').disabled = true; $('#boletaVenta').textContent = 'Boleta registrada ✓'; }
+      } catch (e) { aviso(textoError(e), true); }
+    });
   }
   $('#buscar').oninput = pintarEstante;
   // Enter, flechas y F2: ver los atajos de teclado de Vender (más arriba)
@@ -1979,6 +1993,7 @@ async function cerrarElDia() {
     sesionCaja(), q(sb.from('v_saldos_cuentas').select('*')), q(sb.from('v_existencias').select('producto, cantidad, stock_minimo, requiere_reposicion').eq('activo', true)).catch(() => []),
     lotesPorVencer().catch(() => []), q(sb.from('v_cuentas_por_cobrar').select('cliente, saldo, dias_vencido')).catch(() => []),
   ]);
+  const sinBol = await ventasSinBoleta(hoy(), hoy()).catch(() => []);
   const esperado = num(saldos.find(x => x.cuenta_id === C.caja?.id)?.saldo);
   const st = { paso: ses ? 1 : 2, cuenta: local.leer('cuentaBilletes') || {}, obs: '', cerrada: !ses, dif: null };
   const v = document.createElement('div'); v.className = 'velo hoja-velo asis-velo'; v.innerHTML = '<div class="asis" role="dialog" aria-modal="true" aria-labelledby="cdT"></div>';
@@ -2007,6 +2022,7 @@ async function cerrarElDia() {
             vencen.length ? `<div class="rv mal"><b>⏳ Vence esta semana</b><span>${vencen.slice(0, 4).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : l.dias + ' d'})`).join(', ')}</span><button class="lnk" data-ir2="stock">Ver vencimientos</button></div>` : '',
             reponer.length ? `<div class="rv aviso"><b>📦 Por reponer</b><span>${reponer.slice(0, 5).map(e => `${esc(e.producto)} (quedan ${N(e.cantidad)})`).join(', ')}</span><button class="lnk" data-ir2="stock">Armar el pedido</button></div>` : '',
             atrasados.length ? `<div class="rv aviso"><b>🤝 Fiados atrasados</b><span>${atrasados.slice(0, 4).map(c => `${esc(c.cliente)} (${S(c.saldo)})`).join(', ')}</span><button class="lnk" data-ir2="ventas">Recordarles</button></div>` : '',
+            sinBol.length ? `<div class="rv aviso"><b>🧾 Boletas de hoy</b><span>${sinBol.length} ${sinBol.length === 1 ? 'venta' : 'ventas'} sin boleta (${S(sinBol.reduce((a, v) => a + num(v.total), 0))}). Emite la boleta del día en la APP Emprender.</span><button class="lnk" data-ir2="panel">Registrarla</button></div>` : '',
             respaldo === null || respaldo >= 7 ? `<div class="rv aviso"><b>💾 Copia de seguridad</b><span>${respaldo === null ? 'Aún no tienes ninguna.' : `La última fue hace ${respaldo} días.`}</span><button class="lnk" data-a="respaldo">Descargarla ahora</button></div>` : '',
           ].filter(Boolean).join('') || '<div class="rv ok"><b>✅ Todo en orden</b><span>Nada por vencer, nada urgente que reponer y ningún fiado atrasado.</span></div>'}
         </div>`
@@ -3101,11 +3117,14 @@ const finDeMes = ym => { const [a, m] = ym.split('-').map(Number); return `${ym}
 async function pintarDeclarar(ym = mesAnterior()) {
   const caja = $('#rDecl'); if (!caja) return;
   const [anio, mes] = ym.split('-').map(Number), ini = `${ym}-01`, fin = finDeMes(ym);
-  const [dias, diasAnio, compras] = await Promise.all([
+  const [dias, diasAnio, compras, conBol] = await Promise.all([
     q(sb.from('v_resultados_diarios').select('fecha, ventas_brutas, devoluciones, ventas_netas').gte('fecha', ini).lte('fecha', fin)),
     q(sb.from('v_resultados_diarios').select('ventas_netas').gte('fecha', `${anio}-01-01`).lte('fecha', fin)),
     q(sb.from('v_compras_totales').select('*').gte('fecha_ingreso', ini + 'T00:00:00-05:00').lte('fecha_ingreso', fin + 'T23:59:59-05:00').order('fecha_ingreso')).catch(() => []),
+    q(sb.from('v_ventas_comprobante').select('venta_id, total, estado, boleta_id').gte('dia', ini).lte('dia', fin)).catch(() => null),
   ]);
+  const vivas = (conBol || []).filter(v => v.estado !== 'ANULADA' && num(v.total) > 0), sinB = vivas.filter(v => !v.boleta_id);
+  const totSinB = r2(sinB.reduce((a, v) => a + num(v.total), 0));
   const vigentes = compras.filter(c => c.estado !== 'ANULADA');
   const det = vigentes.length ? await q(sb.from('compra_detalles').select('compra_id, importe_neto, igv_monto').in('compra_id', vigentes.map(c => c.compra_id))).catch(() => []) : [];
   const porCompra = {}; det.forEach(d => { const o = porCompra[d.compra_id] ??= { b: 0, i: 0 }; o.b += num(d.importe_neto); o.i += num(d.igv_monto); });
@@ -3121,7 +3140,8 @@ async function pintarDeclarar(ym = mesAnterior()) {
   const texto = [`*${EMPRESA}* · Declara Fácil 621`, `Periodo: ${String(mes).padStart(2, '0')}/${anio} (${nombreMes})`, '',
     `Ventas no gravadas (exoneradas, Ley de la Amazonía): ${S(ventas)}`, 'IGV de ventas: S/ 0.00 (exonerado)', '',
     `Renta ${TRIBUTARIO.regimen} ${P(TRIBUTARIO.tasaRenta * 100)}: ${S(renta)} → declarar S/ ${rentaDeclarar}`, '',
-    `Compras del mes: ${filasC.length} comprobantes · ${S(totC.total)} (IGV pagado ${S(totC.igv)}, va al costo)`].join('\n');
+    `Compras del mes: ${filasC.length} comprobantes · ${S(totC.total)} (IGV pagado ${S(totC.igv)}, va al costo)`,
+    conBol ? (sinB.length ? `⚠ ${sinB.length} ventas sin boleta (${S(totSinB)})` : '✓ Todas las ventas tienen boleta') : ''].filter(Boolean).join('\n');
   caja.innerHTML = `<div class="panel declarar"><div class="envio-cab"><div><h2>Para declarar · SUNAT</h2>
       <p class="sub" style="margin:0">Datos para el Declara Fácil 621 de ${EMPRESA}: ${TRIBUTARIO.regimen}, ventas exoneradas de IGV por la Ley de la Amazonía.</p></div>
       <div><label for="dMes">Periodo</label><input type="month" id="dMes" value="${ym}" max="${hoy().slice(0, 7)}"></div></div>
@@ -3138,6 +3158,7 @@ async function pintarDeclarar(ym = mesAnterior()) {
       <tr><td>Pago a cuenta de Renta · ${P(TRIBUTARIO.tasaRenta * 100)}</td><td class="n">${S(renta)}</td></tr>
       <tr><td><b>Renta a declarar (sin céntimos)</b></td><td class="n"><b>S/ ${rentaDeclarar}</b></td></tr>
       <tr><td>IGV a pagar</td><td class="n">S/ 0.00</td></tr></table>
+      ${conBol ? `<div class="cuadre ${sinB.length ? 'mal' : 'ok'}" style="margin-top:12px">${sinB.length ? `<b>${sinB.length} ${sinB.length === 1 ? 'venta' : 'ventas'} del mes sin boleta (${S(totSinB)}).</b> Regístralas en el Panel → Boletas antes de declarar, para que tus ventas cuadren con las boletas que ve SUNAT.` : `✓ Las ${vivas.length} ventas del mes tienen su boleta.`}</div>` : ''}
       <div class="consejo-claro" style="margin-top:12px">${pasaTope ? `<b>Atención:</b> en ${anio} ya vendiste ${S(acumulado)}, más de ${TRIBUTARIO.topeUIT} UIT (${S(tope)}). Desde ahora el pago a cuenta es el coeficiente o 1.5 %, no 1 %. Consúltalo con tu contador.`
         : `En ${anio} llevas ${S(acumulado)} vendidos: ${P(acumulado / tope * 100)} del tope de ${TRIBUTARIO.topeUIT} UIT (${S(tope)}) para pagar el 1 %.`}</div></div>
       <div><h3>Compras del mes</h3>${filasC.length ? `<div class="scroll"><table><tr><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th class="n">Base</th><th class="n">IGV</th><th class="n">Total</th></tr>
@@ -3163,6 +3184,72 @@ async function pintarDeclarar(ym = mesAnterior()) {
     XLSX.utils.book_append_sheet(libro, hc, 'Compras');
     XLSX.writeFile(libro, `Oni_Cobin_declaracion_${ym}.xlsx`);
   };
+}
+// ---------- Control de boletas (SUNAT) ----------
+// Ventas de hasta S/ 5: no requieren boleta salvo que el cliente la pida; al final del día se emite
+// una boleta por el total de ellas. Ventas mayores: cada una con su boleta. Las ventas siguen inmutables:
+// las boletas se registran aparte y se enlazan (registrar_boleta / anular_boleta).
+const LIMITE_SIN_BOLETA = 5, DIAS_BOLETAS = 35;
+const fechaMenos = n => new Date(Date.parse(hoy() + 'T12:00:00-05:00') - n * 864e5).toISOString().slice(0, 10);
+async function ventasSinBoleta(desde = fechaMenos(DIAS_BOLETAS), hasta = hoy()) {
+  const filas = await q(sb.from('v_ventas_comprobante').select('venta_id, fecha, dia, total, estado, boleta_id').gte('dia', desde).lte('dia', hasta));
+  return filas.filter(v => v.estado !== 'ANULADA' && !v.boleta_id && num(v.total) > 0);
+}
+function agruparPorDia(pend) {
+  const g = {};
+  pend.forEach(v => { const d = g[v.dia] ??= { dia: v.dia, chicas: [], grandes: [] }; (num(v.total) <= LIMITE_SIN_BOLETA ? d.chicas : d.grandes).push(v); });
+  return Object.values(g).sort((a, b) => b.dia.localeCompare(a.dia));
+}
+async function siguienteNumero(serie) {
+  const ult = await q(sb.from('boletas_emitidas').select('numero, creado_en').eq('serie', serie)).catch(() => []);
+  const max = ult.reduce((m, b) => Math.max(m, Number(b.numero) || 0), 0);
+  return max ? String(max + 1) : '';
+}
+async function registrarBoleta({ ventas, dia, consolidada }) {
+  const importe = r2(ventas.reduce((a, v) => a + num(v.total), 0));
+  const serie0 = local.leer('serieBoleta') || 'B001';
+  const sug = await siguienteNumero(serie0);
+  const cuando = dia === hoy() ? 'de hoy' : `del ${fd(dia)}`;
+  const que = consolidada
+    ? `<p class="sub" style="margin:0">En la <b>APP Emprender</b> de SUNAT emite <b>1 boleta por ${S(importe)}</b> con la descripción <i>"Ventas menores a S/ 5 ${cuando}"</i> (${ventas.length} ${ventas.length === 1 ? 'venta' : 'ventas'}). Luego anota aquí su serie y número.</p>`
+    : `<p class="sub" style="margin:0">Emite en la <b>APP Emprender</b> la boleta de esta venta por <b>${S(importe)}</b> y anota aquí su serie y número.</p>`;
+  const v = await dialogo(consolidada ? `Boleta del día · ${fd(dia)}` : `Boleta de la venta de ${S(importe)}`, [
+    { type: 'info', html: que },
+    { label: 'Serie', value: serie0, required: true, ph: 'B001' },
+    { label: 'Número', value: sug, required: true, ph: '123', type: 'number' },
+  ], 'Registrar boleta');
+  if (!v) return false;
+  const serie = String(v[1]).trim().toUpperCase(), numero = String(v[2]).trim();
+  if (!/^[A-Z0-9]{4}$/.test(serie)) { aviso('La serie tiene 4 caracteres, por ejemplo B001', true); return false; }
+  if (!/^\d{1,8}$/.test(numero)) { aviso('El número solo lleva dígitos', true); return false; }
+  const r = await rpc('registrar_boleta', { p_serie: serie, p_numero: numero, p_fecha: dia, p_ventas: ventas.map(x => x.venta_id), p_consolidada: !!consolidada }, `Boleta ${serie}-${Number(numero)} registrada`);
+  if (r.ok) local.guardar('serieBoleta', serie);
+  return r.ok;
+}
+async function pintarBoletas() {
+  const caja = $('#boletasPanel'); if (!caja) return;
+  let pend;
+  try { pend = await ventasSinBoleta(); } catch { caja.innerHTML = ''; return; }
+  const dias = agruparPorDia(pend), total = r2(pend.reduce((a, v) => a + num(v.total), 0));
+  const hora = f => new Date(f).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
+  caja.innerHTML = `<div class="panel boletas"><div class="envio-cab"><div><h2>Boletas</h2>
+    <p class="sub" style="margin:0">${dias.length ? `Tienes <b>${pend.length} ${pend.length === 1 ? 'venta' : 'ventas'} sin boleta</b> (${S(total)}) en los últimos ${DIAS_BOLETAS} días. Emítelas en la APP Emprender y anota el número aquí.` : `✓ Todas tus ventas de los últimos ${DIAS_BOLETAS} días tienen boleta.`}</p></div></div>
+    ${dias.slice(0, 6).map(d => {
+      const tCh = r2(d.chicas.reduce((a, v) => a + num(v.total), 0));
+      return `<div class="bol-dia"><h3>${d.dia === hoy() ? 'Hoy' : d.dia === fechaMenos(1) ? 'Ayer' : fd(d.dia)}</h3>
+        ${d.chicas.length ? `<div class="bol-item"><div><b>Boleta del día</b><small>${d.chicas.length} ${d.chicas.length === 1 ? 'venta' : 'ventas'} de hasta S/ 5 · ${S(tCh)}${d.dia === hoy() ? ' · emítela al cerrar' : ''}</small></div><button class="btn ${d.dia === hoy() ? 'claro' : 'rotulo'} mini" data-bol-dia="${d.dia}">Registrar</button></div>` : ''}
+        ${d.grandes.map(v => `<div class="bol-item mayor"><div><b>Venta de ${S(v.total)}</b><small>${hora(v.fecha)} · lleva su propia boleta</small></div><button class="btn rotulo mini" data-bol-venta="${esc(v.venta_id)}">Registrar</button></div>`).join('')}
+      </div>`; }).join('')}
+    ${dias.length > 6 ? `<p class="sub" style="margin:10px 0 0">Y ${dias.length - 6} días más con ventas sin boleta.</p>` : ''}
+  </div>`;
+  caja.querySelectorAll('[data-bol-dia]').forEach(b => b.onclick = async () => {
+    const d = dias.find(x => x.dia === b.dataset.bolDia);
+    if (await registrarBoleta({ ventas: d.chicas, dia: d.dia, consolidada: true })) pintarBoletas();
+  });
+  caja.querySelectorAll('[data-bol-venta]').forEach(b => b.onclick = async () => {
+    const v = pend.find(x => x.venta_id === b.dataset.bolVenta);
+    if (await registrarBoleta({ ventas: [v], dia: v.dia, consolidada: false })) pintarBoletas();
+  });
 }
 async function vReportes(el) {
   el.innerHTML = `<div class="panel"><div class="fila"><div><label>Desde</label><input type="date" id="rD" value="${iniMes()}"></div><div><label>Hasta</label><input type="date" id="rH" value="${hoy()}"></div>

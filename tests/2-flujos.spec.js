@@ -115,3 +115,32 @@ test('Para declarar: ventas exoneradas, IGV cero y Renta MYPE al 1 % redondeada'
   await page.locator('#dMes').dispatchEvent('change');
   await expect(page.locator('.declarar')).toContainText('Ventas del mes');
 });
+
+test('boletas: registrar la boleta del día quita las ventas pendientes y no acepta números repetidos', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'panel');
+  const card = page.locator('.boletas');
+  await expect(card).toContainText('sin boleta');
+  const antes = Number((await card.locator('p.sub b').first().innerText()).match(/\d+/)[0]);
+  // Boleta consolidada del primer día pendiente
+  const nVentas = Number((await card.locator('[data-bol-dia]').first().locator('xpath=..').innerText()).match(/(\d+) ventas? de hasta/)[1]);
+  await card.locator('[data-bol-dia]').first().click();
+  const form = page.locator('form.dialogo');
+  await expect(form).toContainText('APP Emprender');
+  const numero = await form.locator('input').nth(1).inputValue();
+  expect(Number(numero)).toBeGreaterThan(0);
+  await form.locator('.acc button:not([data-x])').click();
+  await expect(page.locator('#aviso')).toContainText(`B001-${Number(numero)} registrada`);
+  await expect(card.locator('p.sub b').first()).toContainText(String(antes - nVentas));
+  // El mismo número no se puede usar dos veces
+  const err = await page.evaluate(async n => { const v = (await sb.from('v_ventas_comprobante').select('*')).data.find(x => !x.boleta_id && x.total <= 5);
+    return (await sb.rpc('registrar_boleta', { p_serie: 'B001', p_numero: n, p_fecha: v.dia, p_ventas: [v.venta_id], p_consolidada: true })).error?.message; }, numero);
+  expect(err).toContain('ya está registrada');
+});
+
+test('boletas: una venta de más de S/ 5 no entra en la boleta consolidada', async ({ page, errores }) => {
+  await abrirDemo(page);
+  const err = await page.evaluate(async () => { const v = (await sb.from('v_ventas_comprobante').select('*')).data.find(x => !x.boleta_id && x.total > 5);
+    return (await sb.rpc('registrar_boleta', { p_serie: 'B001', p_numero: '99999', p_fecha: v.dia, p_ventas: [v.venta_id], p_consolidada: true })).error?.message; });
+  expect(err).toContain('supera S/ 5');
+});

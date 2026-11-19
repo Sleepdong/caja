@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-+eQ/YiIfp4Uwd252ydR7TJfEuAxIQ+GaafDzvDuxFn0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-HDnuXZ/K8vIUaRs36qDBsvALH+rTVlIoDckKXBONK+Q='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -401,6 +401,13 @@ svg .eje,svg text{fill:var(--gris)}svg .rejilla{stroke:var(--linea)}
 .anillo button{background:none;border:0;color:#fff;font:inherit;font-size:10.5px;text-decoration:underline;cursor:pointer;padding:0;margin-top:2px}
 .consejo{display:flex;gap:9px;align-items:flex-start;background:#ffffff26;border-radius:16px;padding:11px 13px;font-size:13px;line-height:1.45;margin:2px 0 0;color:#fff;grid-column:1/-1}
 .consejo svg{flex:none;margin-top:1px}
+.vence-lin{display:inline-flex;align-items:center;gap:8px;color:var(--ambar);font-weight:600;font-size:13px}.vence-lin input{width:auto;padding:6px 10px}
+.vencen{display:grid;gap:8px;margin-top:14px}.vence-item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--tono);border-radius:16px;padding:11px 14px}
+.vence-item.urge{box-shadow:inset 3px 0 0 var(--coral)}.vence-item b{display:block;font-size:14.5px}.vence-item small{color:var(--gris);font-size:12.5px}.vence-acc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.chips-cat{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding:2px}
+.chips-cat button{flex:none;border:0;background:var(--blanco);color:var(--gris);border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer}
+.chips-cat button.on{background:var(--texto);color:#0E0F1A;font-weight:600}
+.top-v{display:inline-block;vertical-align:2px;font-size:10.5px;font-weight:700;letter-spacing:.02em;background:var(--brillo);color:#fff;border-radius:999px;padding:2px 7px;margin-left:4px}
 .receta{margin-top:14px;background:var(--tono);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.5}.receta>span{color:var(--gris)}.receta .lnk{color:var(--menta);font-size:13px;margin-left:4px}
 .check{display:flex;gap:10px;align-items:center;margin-top:12px;font-size:14px;color:var(--texto);cursor:pointer}.check input{width:20px;height:20px;accent-color:var(--violeta);padding:0}
 .consejo-claro{background:#7B5CFF1f;color:var(--texto);border-radius:14px;padding:11px 13px;font-size:13.5px;line-height:1.5;margin:14px 0}
@@ -570,6 +577,7 @@ const S = v => (r2(v) < 0 ? '−S/ ' : 'S/ ') + Math.abs(num(v)).toLocaleString(
 const P = v => num(v).toLocaleString('es-PE', { maximumFractionDigits: 1 }) + '%';
 const N = (v, d = 0) => num(v).toLocaleString('es-PE', { minimumFractionDigits: d, maximumFractionDigits: d > 0 ? d : 3 });
 const hoy = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+const diasAtras = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
 const inicioHoy = () => hoy() + 'T00:00:00-05:00';
 const iniMes = () => hoy().slice(0, 8) + '01';
 const fh = t => t ? new Date(t).toLocaleString('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
@@ -886,11 +894,13 @@ async function vPanel(el) {
     q(sb.from('v_existencias').select('producto_id, producto, cantidad, stock_minimo, requiere_reposicion, costo_promedio').eq('activo', true)),
     q(sb.from('ventas').select('id', { count: 'exact', head: false }).eq('estado', 'EMITIDA').gte('fecha', ayer + 'T00:00:00-05:00').lt('fecha', inicioHoy())),
   ]);
-  const [fiados, sesAbierta, preciosV] = await Promise.all([
+  const [fiados, sesAbierta, preciosV, lotes] = await Promise.all([
     q(sb.from('v_cuentas_por_cobrar').select('saldo, dias_vencido')).catch(() => []),
     sesionCaja().catch(() => null),
     q(sb.from('v_precios_vigentes').select('*')).catch(() => []),
+    lotesPorVencer().catch(() => []),
   ]);
+  const urgentes = lotes.filter(l => l.dias <= 7);
   const dia = f => dias.find(x => x.fecha === f) || {};
   const H0 = dia(h), A = dia(ayer), SP = dia(semana);
   const vn = x => num(x.ventas_netas), gb = x => num(x.utilidad_bruta), gn = x => num(x.utilidad_neta_estimada), cmv = x => num(x.costo_mercaderia_vendida);
@@ -948,6 +958,7 @@ async function vPanel(el) {
     <div><small>Ganas sobre el costo</small><div class="med">${markup(H0) === null ? '—' : P(markup(H0))}</div><div class="explica">Por cada S/ 1 que invertiste, ganas ${S(markup(H0) === null ? 0 : markup(H0) / 100)}</div></div>
   </section>
   <nav class="atajos" aria-label="Accesos rápidos"><button data-ir="vender">${ico('vender', 24)}<span>Vender</span></button><button data-ir="compras">${ico('compras', 24)}<span>Comprar</span></button><button data-ir="stock">${ico('stock', 24)}<span>Contar</span></button><button data-ir="gastos">${ico('gastos', 24)}<span>Gasto</span></button></nav>
+  ${urgentes.length ? `<div class="aviso-barra"><p><b>${urgentes.some(l => l.dias < 0) ? 'Tienes mercadería vencida.' : 'Mercadería por vencer esta semana.'}</b> ${urgentes.slice(0, 3).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : `en ${l.dias} ${l.dias === 1 ? 'día' : 'días'}`})`).join(', ')}${urgentes.length > 3 ? ` y ${urgentes.length - 3} más` : ''}. Véndelo primero o dalo de baja.</p><button class="btn claro" data-ir="stock">Ver vencimientos</button></div>` : ''}
   ${(d => d === null || d >= 7 ? `<div class="aviso-barra"><p><b>${d === null ? 'Aún no tienes copia de seguridad.' : `Tu última copia fue hace ${d} días.`}</b> Descárgala en un minuto para no perder tus datos si algo falla.</p><button class="btn claro" data-ir="cuenta">Hacer copia</button></div>` : '')(diasDesdeRespaldo())}
   ${sin2fa ? `<div class="aviso-barra"><p><b>Protege tu caja:</b> activa la verificación en dos pasos. Sin el código de tu celular, nadie podrá entrar aunque sepa tu contraseña.</p><button class="btn rotulo" data-ir="cuenta">Activar ahora</button></div>` : ''}
   ${alertas.length ? `<div class="panel alerta"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
@@ -996,6 +1007,7 @@ async function vPanel(el) {
     ...(top.length ? [`🏆 Lo que más te dejó: ${nomProd[top[0][0]] || ''} (${S(top[0][1].v - top[0][1].k)})`] : []),
     ...(reponer.length ? [`⚠️ Por reponer: ${reponer.slice(0, 5).map(r => `${r.producto} (quedan ${N(r.cantidad)})`).join(', ')}${reponer.length > 5 ? ` y ${reponer.length - 5} más` : ''}`] : []),
     ...(alertas.length ? [`🔻 ${alertas.length === 1 ? '1 precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo`] : []),
+    ...(urgentes.length ? [`⏳ Por vencer: ${urgentes.slice(0, 4).map(l => `${l.producto} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : l.dias + ' d'})`).join(', ')}`] : []),
     ...(porCobrar > 0 ? [`🤝 Fiados por cobrar ${S(porCobrar)}${vencido > 0 ? ` (${S(vencido)} vencidos)` : ''}`] : []),
     ...(sesAbierta ? ['🔓 La caja sigue abierta: ciérrala cuando termines.'] : []),
   ];
@@ -1023,19 +1035,21 @@ async function vPanel(el) {
 let ticket = [];               // {presentacion_id, producto_id, nombre, factor, cantidad, precio, lista}
 let medioVenta = 'EFECTIVO';
 async function vVender(el) {
-  let precios, stock, ses = null, cobrosHoy = [], offline = false;
+  let precios, stock, ses = null, cobrosHoy = [], offline = false, rot = [];
+  const d30 = diasAtras(30);
   try {
-    [precios, stock, ses, cobrosHoy] = await Promise.all([
+    [precios, stock, ses, cobrosHoy, rot] = await Promise.all([
       q(sb.from('v_precios_vigentes').select('*')),
       q(sb.from('v_existencias').select('producto_id,cantidad,stock_minimo,costo_promedio')),
       pintarEstadoCaja(),
       q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())),
+      q(sb.from('v_lineas_rentabilidad').select('producto_id, venta_neta').gte('fecha', d30)).catch(() => []),
     ]);
-    local.guardar('vender', { precios, stock, en: Date.now() });
+    local.guardar('vender', { precios, stock, rot, en: Date.now() });
   } catch (e) {
     const copia = local.leer('vender');
     if (!esErrorRed(e) || !copia) throw e;
-    offline = true; precios = copia.precios; stock = copia.stock;
+    offline = true; precios = copia.precios; stock = copia.stock; rot = copia.rot || [];
   }
   // Lo vendido sin internet que aún no se sube también descuenta del stock que ves
   const pend = colaVentas.leer();
@@ -1043,7 +1057,14 @@ async function vVender(el) {
   const stk = Object.fromEntries(stock.map(s => [s.producto_id, s]));
   const productos = {};
   precios.filter(p => p.precio != null).forEach(p => (productos[p.producto_id] ??= { id: p.producto_id, nombre: p.producto, ops: [] }).ops.push(p));
-  const lista = Object.values(productos).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  // Lo que más vendes (en soles, últimos 30 días) aparece primero
+  const vendido30 = {}; rot.forEach(r => vendido30[r.producto_id] = (vendido30[r.producto_id] || 0) + num(r.venta_neta));
+  const catDe = id => C.presentaciones.find(p => p.producto_id === id)?.productos?.categoria_id || '';
+  const lista = Object.values(productos).sort((a, b) => num(vendido30[b.id]) - num(vendido30[a.id]) || a.nombre.localeCompare(b.nombre));
+  const top = new Set(lista.filter(p => num(vendido30[p.id]) > 0).slice(0, 3).map(p => p.id));
+  const catsEnUso = C.categorias.filter(c => lista.some(p => catDe(p.id) === c.id));
+  let filtroCat = local.leer('filtroVender') || '';
+  if (filtroCat && !catsEnUso.some(c => c.id === filtroCat)) filtroCat = '';
   lista.forEach(p => p.ops.sort((a, b) => a.factor - b.factor));
   const costoDe = (prodId, factor) => r2(num(stk[prodId]?.costo_promedio) * num(factor));
   const generico = C.clientes.find(c => c.es_generico);
@@ -1056,24 +1077,28 @@ async function vVender(el) {
     <section>
       <div class="buscador"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="buscar" placeholder="Buscar producto o escanear código" autocomplete="off"></div>
+      ${catsEnUso.length > 1 ? `<div class="chips-cat" id="chipsCat" role="tablist" aria-label="Filtrar por categoría"><button data-cat="" role="tab">Todo</button>${catsEnUso.map(c => `<button data-cat="${c.id}" role="tab">${esc(c.nombre)}</button>`).join('')}</div>` : ''}
       <div class="estante" id="estante"></div>
       <div class="resumen-dia">${medios(MEDIOS_VENTA).map(m => `<div><small><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)} hoy</small><b>${S(porMedio[m.id])}</b></div>`).join('')}
         <div><small>Total vendido hoy</small><b>${S(Object.values(porMedio).reduce((a, b) => a + b, 0))}</b></div></div>
     </section>
     <aside class="ticket" id="ticket"></aside>
   </div>`;
+  document.querySelectorAll('#chipsCat [data-cat]').forEach(b => b.onclick = () => { filtroCat = b.dataset.cat; local.guardar('filtroVender', filtroCat); $('#buscar').value = ''; pintarEstante(); });
   $('#abrirAqui') && ($('#abrirAqui').onclick = async () => { if (await abrirCajaRapido()) ir('vender'); });
 
   const enTicket = (prodId) => ticket.filter(t => t.producto_id === prodId).reduce((a, t) => a + t.cantidad * t.factor, 0);
   const pintarEstante = () => {
     const f = $('#buscar').value.trim().toLowerCase();
-    const vis = lista.filter(p => !f || p.nombre.toLowerCase().includes(f) || p.ops.some(o => o.codigo_barras === f));
+    // Al buscar se mira todo; si no, se respeta la categoría elegida
+    const vis = lista.filter(p => f ? (p.nombre.toLowerCase().includes(f) || p.ops.some(o => o.codigo_barras === f)) : (!filtroCat || catDe(p.id) === filtroCat));
+    document.querySelectorAll('#chipsCat [data-cat]').forEach(b => { const on = !f && b.dataset.cat === filtroCat; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
     $('#estante').innerHTML = vis.map(p => {
       const s = stk[p.id], base = num(s?.cantidad) - enTicket(p.id), caj = Math.max(...p.ops.map(o => num(o.factor)));
       const bajo = num(s?.cantidad) <= num(s?.stock_minimo);
       const pq = Math.floor(base / caj), su = base % caj;
       const txtStock = base <= 0 ? 'Sin stock' : caj > 1 ? 'Quedan ' + [pq ? `${pq} ${pq === 1 ? 'paquete' : 'paquetes'}` : '', su ? `${N(su)} ${su === 1 ? 'suelto' : 'sueltos'}` : ''].filter(Boolean).join(' y ') : `Quedan ${N(base)}`;
-      return `<div class="prod" style="--c:${colorProducto(p.id)}"><div><h4>${esc(p.nombre)}</h4><div class="stock ${bajo || base <= 0 ? 'bajo' : ''}">${txtStock}</div></div>
+      return `<div class="prod" style="--c:${colorProducto(p.id)}"><div><h4>${esc(p.nombre)}${top.has(p.id) ? ' <span class="top-v" title="De lo que más vendes en los últimos 30 días">Top</span>' : ''}</h4><div class="stock ${bajo || base <= 0 ? 'bajo' : ''}">${txtStock}</div></div>
         <div class="opciones">${p.ops.map(o => { const c = ticket.find(t => t.presentacion_id === o.presentacion_id)?.cantidad;
           return `<button class="opc" data-p="${o.presentacion_id}" ${base < num(o.factor) ? 'disabled' : ''}><span>${esc(o.presentacion)}${c ? `<em class="cnt">${c}</em>` : ''}${(e => e ? `<small class="mg ${e.nivel}">${e.nivel === 'perdida' ? 'bajo el costo' : 'ganas ' + P(e.m)}</small>` : '')(evalMargen(num(o.precio), costoDe(o.producto_id, o.factor)))}</span><b>${S(o.precio)}</b></button>`; }).join('')}</div></div>`;
     }).join('') || '<p class="vacio">No hay productos con ese nombre.</p>';
@@ -1500,6 +1525,54 @@ function pistaCosto(hist, provId, presId, costo) {
   return partes.length ? `<tr class="pista"><td colspan="5">${partes.join(' ')}</td></tr>` : '';
 }
 
+const vence = presId => { const pr = C.presentaciones.find(p => p.id === presId); return !!C.categorias.find(c => c.id === pr?.productos?.categoria_id)?.controla_vencimiento; };
+// ============ VENCIMIENTOS ============
+// Lo que queda en stock se asume de las compras más recientes (lo primero que entra es lo primero que se vende).
+async function lotesPorVencer() {
+  const cats = new Set(C.categorias.filter(c => c.controla_vencimiento).map(c => c.id));
+  if (!cats.size) return [];
+  const [det, ex] = await Promise.all([
+    todo(() => sb.from('compra_detalles').select('presentacion_id, cantidad_base, fecha_vencimiento, compras!inner(fecha_ingreso, estado)').eq('compras.estado', 'REGISTRADA')),
+    q(sb.from('v_existencias').select('producto_id, producto, cantidad, costo_promedio').eq('activo', true)),
+  ]);
+  const prodDe = id => C.presentaciones.find(p => p.id === id)?.productos;
+  const hoyMs = Date.parse(hoy() + 'T00:00:00-05:00'), out = [];
+  ex.filter(e => cats.has(C.presentaciones.find(p => p.producto_id === e.producto_id)?.productos?.categoria_id)).forEach(e => {
+    let queda = num(e.cantidad);
+    det.filter(d => prodDe(d.presentacion_id)?.id === e.producto_id).sort((a, b) => b.compras.fecha_ingreso.localeCompare(a.compras.fecha_ingreso)).forEach(d => {
+      if (queda <= 0) return;
+      const c = Math.min(queda, num(d.cantidad_base)); queda -= c;
+      if (d.fecha_vencimiento) out.push({ producto_id: e.producto_id, producto: e.producto, cantidad: c, vence: d.fecha_vencimiento,
+        dias: Math.round((Date.parse(d.fecha_vencimiento + 'T00:00:00-05:00') - hoyMs) / 864e5), valor: c * num(e.costo_promedio) });
+    });
+  });
+  return out.sort((a, b) => a.dias - b.dias);
+}
+const chipVence = d => d < 0 ? `<span class="chip mal">venció hace ${-d} ${-d === 1 ? 'día' : 'días'}</span>` : d === 0 ? '<span class="chip mal">vence hoy</span>'
+  : `<span class="chip ${d <= 7 ? 'mal' : d <= 30 ? 'aviso' : 'ok'}">vence en ${d} ${d === 1 ? 'día' : 'días'}</span>`;
+async function pintarVencimientos() {
+  const caja = $('#vencimientos'); if (!caja) return;
+  if (!C.categorias.some(c => c.controla_vencimiento)) { caja.innerHTML = ''; return; }
+  const lotes = await lotesPorVencer();
+  const proximos = lotes.filter(l => l.dias <= 30), enRiesgo = proximos.reduce((a, l) => a + l.valor, 0);
+  caja.innerHTML = `<div class="panel"><div class="envio-cab"><div><h2>Vencimientos</h2>
+    <p class="sub" style="margin:0">${proximos.length ? `En los próximos 30 días vence mercadería por <b>${S(enRiesgo)}</b> (a tu costo). Véndela primero o ponla en oferta.` : lotes.length ? 'Nada vence en los próximos 30 días.' : 'Cuando registres compras de golosinas con su fecha de vencimiento, aquí verás qué vender primero.'}</p></div></div>
+    ${lotes.length ? `<div class="vencen">${lotes.slice(0, 12).map((l, i) => `<div class="vence-item ${l.dias <= 7 ? 'urge' : ''}">
+      <div><b>${esc(l.producto)}</b><small>${N(l.cantidad)} und. · ${fd(l.vence)} · ${S(l.valor)}</small></div>
+      <div class="vence-acc">${chipVence(l.dias)}${l.dias < 0 ? `<button class="btn claro mini" data-merma="${i}">Dar de baja</button>` : ''}</div></div>`).join('')}</div>` : ''}</div>`;
+  caja.querySelectorAll('[data-merma]').forEach(b => b.onclick = async () => {
+    const l = lotes[Number(b.dataset.merma)];
+    const base = C.presentaciones.find(p => p.producto_id === l.producto_id && p.es_base) || C.presentaciones.find(p => p.producto_id === l.producto_id && num(p.factor) === 1);
+    const mot = C.motivos.find(m => m.codigo === 'VENCIDO');
+    if (!base || !mot) return aviso('Falta la presentación por unidad o el motivo "Producto vencido"', true);
+    const v = await dialogo('Dar de baja lo vencido', [{ type: 'info', html: `<p class="sub" style="margin:0">Se descuenta del stock y se registra como pérdida por <b>producto vencido</b>. Lo verás en tus reportes como merma.</p>` },
+      { label: `¿Cuántas unidades de ${l.producto} botas?`, type: 'number', value: l.cantidad, required: true }], 'Dar de baja');
+    if (!v) return; const c = Math.round(num(v[1]));
+    if (c <= 0 || c > l.cantidad) return aviso(`Escribe un número entre 1 y ${N(l.cantidad)}`, true);
+    if ((await rpc('registrar_ajuste_inventario', { p: { tipo: 'MERMA', motivo_id: mot.id, observacion: `Vencido el ${fd(l.vence)}`, lineas: [{ presentacion_id: base.id, cantidad: c }] } }, 'Merma registrada')).ok) ir('stock');
+  });
+}
+
 async function vCompras(el) {
   const [porPagar, recientes, hist] = await Promise.all([
     q(sb.from('v_cuentas_por_pagar').select('*').order('fecha')),
@@ -1555,12 +1628,13 @@ async function vCompras(el) {
       ${lineasCompra.map((l, i) => `<tr><td style="min-width:200px"><select data-lp="${i}">${comprables.map(p => `<option value="${p.id}" ${p.id === l.presentacion_id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select></td>
         <td class="n"><input style="width:80px" type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}"></td>
         <td class="n"><input style="width:100px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" placeholder="0.00" data-lu="${i}"></td>
-        <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button class="quitar" data-ld="${i}">Quitar</button>` : ''}</td></tr>${pistaCosto(hist, $('#prov').value, l.presentacion_id, l.costo)}`).join('')}`;
+        <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button class="quitar" data-ld="${i}">Quitar</button>` : ''}</td></tr>${pistaCosto(hist, $('#prov').value, l.presentacion_id, l.costo)}${vence(l.presentacion_id) ? `<tr class="pista"><td colspan="5"><label class="vence-lin">Vence el <input type="date" data-lv="${i}" value="${esc(l.vence || '')}" min="${hoy()}"></label> <span class="sub">Así la app te avisa antes de que se te venza.</span></td></tr>` : ''}`).join('')}`;
     const t = $('#tLineas');
     t.querySelectorAll('[data-lp]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lp].presentacion_id = x.value; setTimeout(pintarLineas); });
     t.querySelectorAll('[data-lc]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lc].cantidad = num(x.value); setTimeout(pintarLineas); });
     t.querySelectorAll('[data-lu]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lu].costo = x.value; setTimeout(pintarLineas); });
     t.querySelectorAll('[data-ld]').forEach(x => x.onclick = () => { lineasCompra.splice(x.dataset.ld, 1); pintarLineas(); });
+    t.querySelectorAll('[data-lv]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lv].vence = x.value; });
     $('#totC').textContent = S(totalC());
   };
   $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => setTimeout(pintarLineas));
@@ -1594,6 +1668,8 @@ async function vCompras(el) {
     const r = await rpc('registrar_compra', { p }, `Compra registrada por ${S(total)}. El stock ya se actualizó.`);
     $('#btnComprar').disabled = false;
     if (r.ok) {
+      const fechas = ls.map((l, i) => ({ linea: i + 1, fecha: l.vence || '' })).filter(x => x.fecha);
+      if (fechas.length && r.data) await rpc('fijar_vencimientos', { p_compra_id: r.data, p_fechas: fechas });
       const prodIds = [...new Set(ls.map(l => C.presentaciones.find(x => x.id === l.presentacion_id)?.producto_id))];
       lineasCompra = []; await ir('compras');
       const al = await alertasMargen(prodIds).catch(() => []);
@@ -2093,6 +2169,7 @@ async function vStock(el) {
   el.innerHTML = `
   <div class="cifras"><div class="cifra"><small>Valor del inventario (a costo)</small><b>${S(valor)}</b></div>
     <div class="cifra"><small>Productos</small><b>${ex.length}</b></div><div class="cifra"><small>Por reponer</small><b>${reponer}</b></div></div>
+  <div id="vencimientos"></div>
   <div id="conteo"></div>
   <div id="pedido"></div>
   <div class="panel"><h2>Existencias</h2><div class="scroll"><table>
@@ -2112,6 +2189,7 @@ async function vStock(el) {
       <div class="oculto" id="aCuBox"><label>Costo c/u (si no había stock)</label><input type="number" id="aCu" min="0" step="0.01" inputmode="decimal"></div></div>
     <div class="fila" style="margin-top:8px"><div><label>Detalle</label><input id="aObs" placeholder="Ej.: cajetilla mojada"></div><div class="auto"><button class="btn" id="btnAjuste">Registrar ajuste</button></div></div>
   </div>`;
+  pintarVencimientos().catch(() => { $('#vencimientos') && ($('#vencimientos').innerHTML = ''); });
   pintarConteo(ex, factorMax).catch(e => { $('#conteo').innerHTML = `<div class="panel"><h2>Conteo de inventario</h2><p class="sub">No se pudo cargar: ${esc(textoError(e))}</p></div>`; });
   pintarPedido(ex).catch(e => { $('#pedido').innerHTML = `<div class="panel"><h2>Qué comprar</h2><p class="sub">No se pudo calcular: ${esc(textoError(e))}</p></div>`; });
   const pintarMot = () => { $('#aMot').innerHTML = C.motivos.filter(m => m.tipo_aplicable === $('#aTipo').value).map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join(''); $('#aCuBox').classList.toggle('oculto', $('#aTipo').value !== 'AJUSTE_POSITIVO'); };
@@ -2192,6 +2270,7 @@ async function crearCategoria() {
     { label: '¿En qué te llega cuando compras?', ph: 'Ej.: Caja, Bolsa, Display. Vacío si compras por unidad' },
     { label: '¿Cuántas unidades trae normalmente? (opcional)', type: 'number', ph: 'Ej.: 12' },
     { label: '¿También vendes el paquete completo?', type: 'select', options: [{ value: 'no', label: 'No, solo suelto' }, { value: 'si', label: 'Sí, también entero' }] },
+    { label: '¿Tiene fecha de vencimiento?', type: 'select', options: [{ value: 'si', label: 'Sí, quiero que me avise' }, { value: 'no', label: 'No vence' }] },
   ], 'Crear categoría');
   if (!v) return null;
   const nombre = singular(v[1]), uni = v[2], otra = singular(v[3]), paq = singular(v[4]), cant = num(v[5]);
@@ -2200,7 +2279,7 @@ async function crearCategoria() {
   if (v[5] !== '' && cant < 2) { aviso('El paquete debe traer al menos 2 unidades', true); return null; }
   try {
     const unidadId = uni === '__otra' ? await asegurarUnidad(otra) : Number(uni);
-    const cat = await q(sb.from('categorias').insert({ nombre, unidad_medida_id: unidadId, paquete_nombre: paq || null, paquete_unidades: cant >= 2 ? Math.round(cant) : null, vende_paquete: !!paq && v[6] === 'si' }).select().single());
+    const cat = await q(sb.from('categorias').insert({ nombre, unidad_medida_id: unidadId, paquete_nombre: paq || null, paquete_unidades: cant >= 2 ? Math.round(cant) : null, vende_paquete: !!paq && v[6] === 'si', controla_vencimiento: v[7] === 'si' }).select().single());
     aviso('Categoría creada'); await cargarCatalogos(); return cat.id;
   } catch (e) { aviso(textoError(e), true); return null; }
 }
@@ -2216,7 +2295,7 @@ function pintarDetalleProducto() {
   const paqCant = cat.paquete_unidades || (paqEj && !cat.paquete_nombre ? num(paqEj.factor) : '');
   const vendePaq = cat.vende_paquete || (!!paqEj && !!paqEj.se_vende && !cat.paquete_nombre);
   const nomEj = ejemplo.length ? ejemplo[ejemplo.length - 1].productos.nombre : '';
-  caja.innerHTML = `<div class="receta"><span>${esc(cat.nombre)}:</span> se ${paqNom ? `compran por <b>${esc(paqNom.toLowerCase())}</b>${paqCant ? ` de ${paqCant}` : ''}` : 'compran por unidad'} y se venden por <b>${esc((uni?.nombre || 'unidad').toLowerCase())}</b>${vendePaq ? ` o por ${esc(paqNom.toLowerCase())} completa` : ''}. <button class="lnk" id="editarReceta">Cambiar</button></div>
+  caja.innerHTML = `<div class="receta"><span>${esc(cat.nombre)}:</span> se ${paqNom ? `compran por <b>${esc(paqNom.toLowerCase())}</b>${paqCant ? ` de ${paqCant}` : ''}` : 'compran por unidad'} y se venden por <b>${esc((uni?.nombre || 'unidad').toLowerCase())}</b>${vendePaq ? ` o por ${esc(paqNom.toLowerCase())} completa` : ''}${cat.controla_vencimiento ? '; tienen <b>fecha de vencimiento</b>' : ''}. <button class="lnk" id="editarReceta">Cambiar</button></div>
     <div class="fila" style="margin-top:12px"><div style="flex:2 1 220px"><label for="pNom">Nombre</label><input id="pNom" placeholder="${esc(nomEj ? 'Ej.: ' + nomEj : 'Ej.: Gomitas Mogul ositos')}"></div>
       <div><label for="pSku">Código</label><input id="pSku" placeholder="Se crea solo"></div></div>
     <h3>Cómo lo compras</h3>
@@ -2282,13 +2361,14 @@ async function editarReceta(cat) {
     { label: '¿En qué te llega cuando compras?', value: cat.paquete_nombre || '', ph: 'Vacío si compras por unidad' },
     { label: '¿Cuántas unidades trae normalmente? (opcional)', type: 'number', value: cat.paquete_unidades || '' },
     { label: '¿También vendes el paquete completo?', type: 'select', value: cat.vende_paquete ? 'si' : 'no', options: [{ value: 'no', label: 'No, solo suelto' }, { value: 'si', label: 'Sí, también entero' }] },
+    { label: '¿Tiene fecha de vencimiento?', type: 'select', value: cat.controla_vencimiento ? 'si' : 'no', options: [{ value: 'si', label: 'Sí, quiero que me avise' }, { value: 'no', label: 'No vence' }] },
   ], 'Guardar');
   if (!v) return;
   if (v[0] === '__otra' && !singular(v[1])) return aviso('Escribe la otra forma de vender', true);
   if (v[3] !== '' && num(v[3]) < 2) return aviso('El paquete debe traer al menos 2 unidades', true);
   try {
     const unidadId = v[0] === '__otra' ? await asegurarUnidad(v[1]) : Number(v[0]);
-    await q(sb.from('categorias').update({ unidad_medida_id: unidadId, paquete_nombre: singular(v[2]) || null, paquete_unidades: num(v[3]) >= 2 ? Math.round(num(v[3])) : null, vende_paquete: !!singular(v[2]) && v[4] === 'si' }).eq('id', cat.id));
+    await q(sb.from('categorias').update({ unidad_medida_id: unidadId, paquete_nombre: singular(v[2]) || null, paquete_unidades: num(v[3]) >= 2 ? Math.round(num(v[3])) : null, vende_paquete: !!singular(v[2]) && v[4] === 'si', controla_vencimiento: v[5] === 'si' }).eq('id', cat.id));
     aviso('Categoría actualizada'); await cargarCatalogos(); await ir('catalogo'); $('#pCat').value = cat.id; pintarDetalleProducto();
   } catch (e) { aviso(textoError(e), true); }
 }

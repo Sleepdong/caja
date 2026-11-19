@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-mCd95Eur+nHYuNRJSc8P5pLR5BVRwwJQpg9QIisSXss='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-P/cG0TqXWDGh8X+5j+fSEuL5+e3XOvY2uTqRpMU7I5w='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -401,6 +401,7 @@ svg .eje,svg text{fill:var(--gris)}svg .rejilla{stroke:var(--linea)}
 .anillo button{background:none;border:0;color:#fff;font:inherit;font-size:10.5px;text-decoration:underline;cursor:pointer;padding:0;margin-top:2px}
 .consejo{display:flex;gap:9px;align-items:flex-start;background:#ffffff26;border-radius:16px;padding:11px 13px;font-size:13px;line-height:1.45;margin:2px 0 0;color:#fff;grid-column:1/-1}
 .consejo svg{flex:none;margin-top:1px}
+.lnk-ed{color:var(--menta);font-size:12.5px;margin-left:6px;text-decoration:none;font-weight:600}
 .lin-esc .cod{color:var(--gris);font-size:11.5px;font-variant-numeric:tabular-nums}
 .vence-lin{display:inline-flex;align-items:center;gap:8px;color:var(--ambar);font-weight:600;font-size:13px}.vence-lin input{width:auto;padding:6px 10px}
 .vencen{display:grid;gap:8px;margin-top:14px}.vence-item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--tono);border-radius:16px;padding:11px 14px}
@@ -1941,24 +1942,29 @@ function extraerLineas(texto) {
     const decs = [...resto.matchAll(DEC)];
     if (!decs.length) continue;
     const importe = aNumero(decs.at(-1)[0]);
-    if (!(importe > 0)) continue;                                 // bonificaciones a S/ 0.00
+    const bonif = !(importe > 0);                                 // bonificación: mercadería de regalo a S/ 0.00
+    if (bonif && !(cant > 0)) continue;
     let pu = decs.length >= 2 ? aNumero(decs.at(-2)[0]) : null;
     let desc = resto.slice(0, decs[0].index).trim();
     if (!cant) { const mf = desc.match(/\s(\d{1,4})$/); if (mf) { cant = Number(mf[1]); desc = desc.slice(0, mf.index).trim(); } } // "… UND 4 13.06 52.25"
     if (!(pu > 0) && cant) pu = r2(importe / cant);
     if (!cant && pu) cant = Math.round(importe / pu * 100) / 100;
-    if (!cant || !pu) continue;
+    if (!cant || (!pu && !bonif)) continue;
     if (Math.abs(cant * pu - importe) > Math.max(0.06, importe * 0.02) && decs.length >= 3) {
       const pu2 = aNumero(decs.at(-3)[0]); if (Math.abs(cant * pu2 - importe) <= Math.max(0.06, importe * 0.02)) pu = pu2;
     }
     desc = desc.replace(/^[^A-Za-z0-9(]+/, '');
     const mu = desc.match(/^(?:CJA?|CIA|CAJ|BOL|PQT|PAQ)\s*x\s*([\dIl]+)\s+/i);   // "CJA x12" al inicio (el OCR a veces lee "CJAxI2")
     if (mu) { factor = Number(mu[1].replace(/[Il]/g, '1')) || null; desc = desc.slice(mu[0].length); }
-    desc = desc.replace(/^[^A-Za-z0-9(]+/, '').replace(/^(UND|UNID|NIU|UN)\s+/i, '').replace(/\s+(UND|UNID|NIU)$/i, '').replace(/[\s.,;:'"“”-]+$/, '').replace(/\s+/g, ' ').trim();
+    let porUnidad = /^(UND|UNID|NIU|UN)\s+/i.test(desc.replace(/^[^A-Za-z0-9(]+/, ''));
+    const ib = desc.search(/BONIF/i);   // "10 UND BONIF.REGALIZ…": lo de antes es la unidad (a veces el OCR la lee mal, p. ej. "luno")
+    if (ib > 0 && desc.slice(0, ib).trim().length <= 5) { porUnidad = true; desc = desc.slice(ib); }
+    desc = desc.replace(/^[^A-Za-z0-9(]+/, '').replace(/^(UND|UNID|NIU|UN)\s+/i, '').replace(/^BONIF\.?\s*/i, '').replace(/\s+(UND|UNID|NIU)$/i, '').replace(/[\s.,;:'"“”-]+$/, '').replace(/\s+/g, ' ').trim();
     const mp = desc.match(/\bCJ\s*X\s*(\d+)/i) || desc.match(/\bCAJT?\s*(\d+)/i) || desc.match(/\bX\s?(\d{2,3})\b/i);
     if (!factor && mp) factor = Number(mp[1]);
+    if (porUnidad && bonif) factor = 1;                           // "10 UND": vienen sueltas
     if (normTexto(desc).length < 3) continue;
-    out.push({ texto: desc, codigo, factor, cantidad: cant, costo: Math.round(pu * 10000) / 10000, importe: r2(importe), cuadra: Math.abs(cant * pu - importe) <= Math.max(0.06, importe * 0.02) });
+    out.push({ texto: desc, codigo, factor, bonif, cantidad: cant, costo: bonif ? 0 : Math.round(pu * 10000) / 10000, importe: r2(importe), cuadra: bonif || Math.abs(cant * pu - importe) <= Math.max(0.06, importe * 0.02) });
   }
   return out;
 }
@@ -1968,6 +1974,7 @@ function adivinarProveedor(texto) {
 }
 // Empareja una línea de la factura con tus productos: por código, por nombre de factura, por lo aprendido y por parecido
 function presCompraDe(prodId, factor, comprables) {
+  if (factor === 1) { const u = C.presentaciones.find(p => p.producto_id === prodId && num(p.factor) === 1); if (u) return u; }
   const ops = comprables.filter(p => p.producto_id === prodId);
   return ops.find(p => factor && num(p.factor) === factor) || ops.sort((a, b) => num(b.factor) - num(a.factor))[0];
 }
@@ -2071,11 +2078,11 @@ async function escanearFactura(archivo) {
       <h3>Productos (${lineas.length})</h3>
       ${lineas.length ? `<div class="scroll"><table class="lin-esc"><tr><th></th><th>En la factura</th><th>Es tu producto</th><th class="n">Cantidad</th><th class="n">Costo c/u</th><th class="n">Importe</th></tr>
         ${lineas.map((l, i) => `<tr class="${l.incluir ? '' : 'off'}"><td><input type="checkbox" data-inc="${i}" ${l.incluir ? 'checked' : ''} style="width:auto" aria-label="Incluir línea"></td>
-          <td class="txt">${l.codigo ? `<small class="cod">${esc(l.codigo)}</small> ` : ''}${esc(l.texto)}${l.cuadra ? '' : ' <span class="chip aviso">revisar</span>'}</td>
-          <td><select data-pres="${i}" style="min-width:190px"><option value="">— No es mercadería —</option>${comprables.map(p => `<option value="${p.id}" ${p.id === l.id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select>
+          <td class="txt">${l.codigo ? `<small class="cod">${esc(l.codigo)}</small> ` : ''}${esc(l.texto)}${l.bonif ? ' <span class="chip ok">regalo</span>' : l.cuadra ? '' : ' <span class="chip aviso">revisar</span>'}</td>
+          <td><select data-pres="${i}" style="min-width:190px"><option value="">— No es mercadería —</option>${(l.bonif ? C.presentaciones.filter(p => p.se_compra || num(p.factor) === 1) : comprables).map(p => `<option value="${p.id}" ${p.id === l.id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select>
             ${l.por === 'codigo' ? '<span class="chip ok">por código</span>' : l.por === 'factura' ? '<span class="chip ok">por nombre</span>' : l.por === 'aprendido' ? '<span class="chip ok">recordado</span>' : l.por === 'parecido' ? '<span class="chip">sugerido</span>' : `<button class="btn mini" data-crear="${i}">Crear producto</button>`}</td>
           <td class="n"><input style="width:72px" type="number" min="0" step="1" inputmode="decimal" value="${l.cantidad}" data-cant="${i}"></td>
-          <td class="n"><input style="width:92px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" data-cu="${i}"></td>
+          <td class="n">${l.bonif ? '<span class="sub">gratis</span>' : `<input style="width:92px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" data-cu="${i}">`}</td>
           <td class="n">${S(l.cantidad * l.costo)}</td></tr>`).join('')}</table></div>`
         : '<p class="sub">No reconocí líneas de productos en la foto. Prueba con una foto más cercana y con buena luz, o agrégalos a mano en la compra.</p>'}
       <button class="btn claro mini" id="escMas" style="margin-top:8px">Agregar línea</button>
@@ -2110,7 +2117,12 @@ async function escanearFactura(archivo) {
       if (!prov) return aviso('Primero crea o elige el proveedor', true);
       const usar = lineas.filter(l => l.incluir && l.id && l.cantidad > 0);
       if (!usar.length) return aviso('Elige al menos un producto', true);
-      if (usar.some(l => !(l.costo > 0))) return aviso('Hay productos sin costo', true);
+      if (usar.some(l => !l.bonif && !(l.costo > 0))) return aviso('Hay productos sin costo', true);
+      // Las bonificaciones por unidad entran con la presentación por unidad: se habilita para compras si hace falta
+      for (const pid of [...new Set(usar.filter(l => l.bonif).map(l => l.id))]) {
+        const pr = C.presentaciones.find(p => p.id === pid);
+        if (pr && !pr.se_compra) { try { await q(sb.from('presentaciones').update({ se_compra: true }).eq('id', pid)); pr.se_compra = true; } catch (er) { return aviso('No pude preparar la bonificación: ' + textoError(er), true); } }
+      }
       if (duplicada && !(await dialogo('Esta factura ya está registrada', [{ type: 'info', html: '<p class="sub" style="margin:0">Si sigues, la compra y el stock se sumarán dos veces.</p>' }], 'Seguir igual'))) return;
       // Aprender: el producto guarda su código y su nombre de factura si aún no los tiene
       for (const l of usar) {
@@ -2427,6 +2439,32 @@ function pintarDetalleProducto() {
     if (ok) ir('catalogo'); else $('#btnProd').disabled = false;
   };
 }
+// Corrige los datos de un producto o lo desactiva
+async function editarProducto(id, pr) {
+  if (!pr) return;
+  const [st] = await q(sb.from('v_existencias').select('cantidad').eq('producto_id', id)).catch(() => [null]);
+  const uni = C.unidades.find(u => u.id === pr.unidad_base_id)?.nombre || 'unidad';
+  const v = await dialogo('Editar ' + pr.nombre, [
+    { label: 'Categoría', type: 'select', value: pr.categoria_id, options: C.categorias.map(c => ({ value: c.id, label: c.nombre })) },
+    { label: 'Marca', value: pr.marca || pr.nombre, required: true },
+    { label: 'Variante', value: pr.variante || '' },
+    { label: 'Nombre en la factura', value: pr.nombre_factura || '', ph: 'Cópialo tal cual de la factura' },
+    { label: 'Código en la factura', value: pr.codigo_factura || '', ph: 'Ej.: 460069' },
+    { label: `Avisar si quedan menos de (${plural(uni)})`, type: 'number', value: num(pr.stock_minimo) },
+    { label: 'Estado', type: 'select', value: 'si', options: [{ value: 'si', label: 'Activo: se vende y se compra' }, { value: 'no', label: 'Desactivado: ya no lo vendo' }] },
+    { type: 'info', html: `<p class="sub" style="margin:0">El nombre que verás será marca + variante. Para cambiar precios usa los botones de precio; el historial de ventas y compras no cambia.${num(st?.cantidad) > 0 ? ` <b>Aún tienes ${N(st.cantidad)} ${plural(uni)} en stock:</b> si lo desactivas, véndelo o dalo de baja antes.` : ''}</p>` },
+  ], 'Guardar cambios');
+  if (!v) return;
+  const marca = singular(v[1]), variante = singular(v[2]);
+  if (!marca) return aviso('Escribe la marca', true);
+  const cod = singular(v[4]);
+  if (cod && C.presentaciones.some(p => p.producto_id !== id && p.productos?.codigo_factura === cod)) return aviso(`El código ${cod} ya lo tiene otro producto`, true);
+  try {
+    await q(sb.from('productos').update({ categoria_id: v[0], marca, variante: variante || null, nombre: [marca, variante].filter(Boolean).join(' '),
+      nombre_factura: singular(v[3]) || null, codigo_factura: cod || null, stock_minimo: num(v[5]), activo: v[6] === 'si' }).eq('id', id));
+    aviso(v[6] === 'si' ? 'Producto actualizado' : 'Producto desactivado'); await cargarCatalogos(); ir('catalogo');
+  } catch (e) { aviso(textoError(e), true); }
+}
 // Crea el producto con sus presentaciones y precios. Devuelve el id o null.
 async function crearProducto(d) {
   const marca = singular(d.marca), variante = singular(d.variante), nombre = [marca, variante].filter(Boolean).join(' ');
@@ -2455,19 +2493,37 @@ async function crearProducto(d) {
 // Desde una línea de factura que no se reconoció
 async function crearProductoDesdeFactura(l) {
   const g = leerDescripcion(l.texto);
+  // Si la factura trae un tipo nuevo (p. ej. REGALIZ), se ofrece crear esa categoría con la receta de una parecida
+  const tipo = (l.texto.toUpperCase().replace(/^BONIF\.?\s*/, '').match(/^[A-ZÑ]+/) || [''])[0];
+  const nuevaCat = !g.cat && tipo.length >= 3 && !C.categorias.some(c => c.nombre.toUpperCase() === tipo) ? tipo : '';
+  const hermana = C.categorias.find(c => C.presentaciones.some(p => p.productos?.categoria_id === c.id && p.productos?.marca?.toUpperCase() === g.marca.toUpperCase())) || C.categorias.find(c => c.controla_vencimiento) || C.categorias[0];
+  const catIni = g.cat || (nuevaCat ? null : hermana);
+  const factor = l.bonif ? (C.categorias.find(c => c.id === catIni?.id)?.paquete_unidades || '') : (l.factor || catIni?.paquete_unidades || '');
+  // Precio sugerido: costo por unidad que dice la factura + tu margen mínimo
+  const costoU = !l.bonif && l.costo > 0 ? l.costo / (num(l.factor) || 1) : 0;
+  const sugerido = costoU > 0 ? precioSugerido(costoU) : '';
   const v = await dialogo('Crear producto desde la factura', [
-    { type: 'info', html: `<p class="sub" style="margin:0">En la factura: <b>${l.codigo ? esc(l.codigo) + ' · ' : ''}${esc(l.texto)}</b>. Revisa lo que adiviné y pon tu precio de venta.</p>` },
-    { label: 'Categoría', type: 'select', value: g.cat?.id, options: C.categorias.map(c => ({ value: c.id, label: c.nombre })) },
+    { type: 'info', html: `<p class="sub" style="margin:0">En la factura: <b>${l.codigo ? esc(l.codigo) + ' · ' : ''}${esc(l.texto)}</b>${l.bonif ? ' <span class="chip ok">regalo</span>' : ''}.<br>Revisa lo que adiviné y confirma tu precio de venta.</p>` },
+    { label: 'Categoría', type: 'select', value: nuevaCat ? '__nueva' : catIni?.id, options: [...(nuevaCat ? [{ value: '__nueva', label: `＋ Nueva: ${titulo(nuevaCat)} (como ${hermana?.nombre || 'la primera'})` }] : []), ...C.categorias.map(c => ({ value: c.id, label: c.nombre }))] },
     { label: 'Marca', value: g.marca, required: true },
     { label: 'Variante', value: g.variante },
-    { label: '¿Cuántas unidades trae el paquete que compras?', type: 'number', value: l.factor || g.cat?.paquete_unidades || '' },
-    { label: 'Precio de venta por unidad (S/)', type: 'number', value: l.factor ? '' : '' },
+    { label: '¿Cuántas unidades trae el paquete que compras?', type: 'number', value: factor },
+    { type: 'info', html: costoU > 0 ? `<div class="consejo-claro" style="margin:0">Te cuesta <b>${S(costoU)}</b> por unidad (${S(l.costo)} ÷ ${N(num(l.factor) || 1)}). Para ganar tu margen mínimo de ${P(umbral())}, véndelo a <b>${S(sugerido)}</b> o más.</div>` : l.bonif ? '<p class="sub" style="margin:0">Llegó de regalo: entra a tu stock a costo cero y baja tu costo promedio.</p>' : '' },
+    { label: 'Precio de venta por unidad (S/)', type: 'number', value: sugerido },
     { label: 'Precio por paquete completo (S/, vacío si no lo vendes entero)', type: 'number' },
   ], 'Crear producto');
   if (!v) return null;
-  const cat = C.categorias.find(c => c.id === v[1]);
+  let cat = C.categorias.find(c => c.id === v[1]);
+  if (v[1] === '__nueva') {
+    try {
+      const h = hermana || {};
+      cat = await q(sb.from('categorias').insert({ nombre: titulo(nuevaCat), prefijo_factura: nuevaCat, unidad_medida_id: h.unidad_medida_id || null, paquete_nombre: h.paquete_nombre || null,
+        paquete_unidades: h.paquete_unidades || null, vende_paquete: !!h.vende_paquete, controla_vencimiento: !!h.controla_vencimiento }).select().single());
+      C.categorias.push(cat);
+    } catch (e) { aviso('No pude crear la categoría: ' + textoError(e), true); return null; }
+  }
   return crearProducto({ cat, marca: v[2], variante: v[3], uniId: cat.unidad_medida_id || C.unidades[0].id, pkBase: num(v[4]) >= 2 ? (cat.paquete_nombre || 'Paquete') : '', pkF: num(v[4]),
-    pu: v[5], pkP: v[6], min: 0, nombre_factura: l.texto, codigo_factura: l.codigo });
+    pu: v[6], pkP: v[7], min: 0, nombre_factura: l.texto, codigo_factura: l.codigo });
 }
 async function editarReceta(cat) {
   const v = await dialogo('Cómo se compra y vende: ' + cat.nombre, [
@@ -2499,6 +2555,7 @@ async function vCatalogo(el) {
   const lin30 = await q(sb.from('v_lineas_rentabilidad').select('producto_id, cantidad_base').gte('fecha', d30).lte('fecha', hoy())).catch(() => []);
   const vol30 = {}; lin30.forEach(l => vol30[l.producto_id] = (vol30[l.producto_id] || 0) + num(l.cantidad_base));
   const simulables = C.presentaciones.filter(p => p.se_vende && precioDe(p.id) != null && costoP(p) > 0);
+  const inactivos = await q(sb.from('productos').select('id, nombre, categoria_id').eq('activo', false).order('nombre')).catch(() => []);
   el.innerHTML = `
   <div class="panel"><h2>Productos y precios</h2><p class="sub">Toca un precio para cambiarlo. Rige desde ahora; las ventas pasadas no cambian. El costo es el promedio de tus compras.</p>
     <div class="fila" style="margin-bottom:12px;max-width:520px"><div><label for="umbral">Margen mínimo que quieres ganar (%)</label><input type="number" id="umbral" min="1" max="90" step="1" value="${umbral()}" inputmode="numeric"></div>
@@ -2506,12 +2563,14 @@ async function vCatalogo(el) {
     <div class="scroll"><table>
     <tr><th>Producto</th><th>Se vende como</th><th class="n">Trae</th><th class="n">Costo</th><th class="n">Precio</th><th class="n">Margen</th><th class="n">Precio mínimo</th></tr>
     ${Object.values(prods).sort((a, b) => a.nombre.localeCompare(b.nombre)).map(pr => pr.pres.map((p, i) => `<tr>
-      <td>${i === 0 ? `<b>${esc(pr.nombre)}</b>` : ''}</td><td>${esc(p.nombre)}${p.se_compra ? ' <span class="chip">se compra así</span>' : ''}</td><td class="n">${num(p.factor) > 1 ? N(p.factor) + ' und.' : ''}</td>
+      <td>${i === 0 ? `<b>${esc(pr.nombre)}</b> <button class="lnk lnk-ed" data-editar="${pr.id}">Editar</button><br><small class="sub">${esc(C.categorias.find(c => c.id === pr.categoria_id)?.nombre || 'Sin categoría')}${pr.codigo_factura ? ' · código ' + esc(pr.codigo_factura) : ''}</small>` : ''}</td><td>${esc(p.nombre)}${p.se_compra ? ' <span class="chip">se compra así</span>' : ''}</td><td class="n">${num(p.factor) > 1 ? N(p.factor) + ' und.' : ''}</td>
       <td class="n">${costoP(p) > 0 ? S(costoP(p)) : '<span class="sub">—</span>'}</td>
       <td class="n">${p.se_vende ? `<button class="btn claro mini" data-precio="${p.id}" data-n="${esc(presNombre(p))}" data-v="${precioDe(p.id) ?? ''}" data-k="${costoP(p)}">${precioDe(p.id) != null ? S(precioDe(p.id)) : 'Poner precio'}</button>` : '<span class="sub">no se vende</span>'}</td>
       <td class="n">${p.se_vende && precioDe(p.id) != null ? chipMargen(evalMargen(num(precioDe(p.id)), costoP(p))) : ''}</td>
       <td class="n">${p.se_vende && costoP(p) > 0 ? (num(precioDe(p.id)) >= precioSugerido(costoP(p)) ? `<span class="sub">${S(precioSugerido(costoP(p)))}</span>` : `<b>${S(precioSugerido(costoP(p)))}</b>`) : ''}</td></tr>`).join('')).join('')}
   </table></div></div>
+  ${inactivos.length ? `<div class="panel"><h2>Productos desactivados</h2><p class="sub">No aparecen al vender ni al comprar. Su historial se conserva.</p>
+    <div class="vencen">${inactivos.map(p => `<div class="vence-item"><div><b>${esc(p.nombre)}</b><small>${esc(C.categorias.find(c => c.id === p.categoria_id)?.nombre || '')}</small></div><button class="btn claro mini" data-reactivar="${p.id}">Reactivar</button></div>`).join('')}</div></div>` : ''}
   <div class="panel"><h2>Simulador de precios</h2><p class="sub">Prueba un precio antes de cambiarlo: ves cuánto ganarías y cuánto puedes dejar de vender sin perder plata.</p>
     ${simulables.length ? `<div class="fila" style="max-width:640px"><div style="flex:2 1 220px"><label for="simPres">Producto</label><select id="simPres">${simulables.map(p => `<option value="${p.id}">${esc(presNombre(p))}</option>`).join('')}</select></div>
       <div><label for="simPrecio">Precio a probar (S/)</label><input type="number" id="simPrecio" min="0" step="0.10" inputmode="decimal"></div></div>
@@ -2530,6 +2589,10 @@ async function vCatalogo(el) {
       <table>${C.proveedores.map(p => `<tr><td>${esc(p.razon_social)}</td><td class="sub">${esc(p.numero_documento || '')} ${esc(p.telefono || '')}</td></tr>`).join('') || '<tr><td class="sub">Los creas al registrar una compra.</td></tr>'}</table>
     </div>
   </div>`;
+  el.querySelectorAll('[data-editar]').forEach(b => b.onclick = () => editarProducto(b.dataset.editar, prods[b.dataset.editar]));
+  el.querySelectorAll('[data-reactivar]').forEach(b => b.onclick = async () => {
+    try { await q(sb.from('productos').update({ activo: true }).eq('id', b.dataset.reactivar)); aviso('Producto reactivado'); await cargarCatalogos(); ir('catalogo'); } catch (e) { aviso(textoError(e), true); }
+  });
   el.querySelectorAll('[data-precio]').forEach(b => b.onclick = async () => {
     const k = num(b.dataset.k);
     const v = await dialogo('Precio de ' + b.dataset.n, [

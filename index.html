@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vS1CG/X0odGAkIIpBltMci59YOQKmuCtH7thz4JnYrk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-yZIeWjZAG50KriLiCk0+M6Z7LIdpG1t0ayLkPVT4DmY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#231942">
 <link rel="manifest" href="manifest.webmanifest">
@@ -79,6 +79,11 @@ td{padding:9px 8px;border-bottom:1px solid #eceef3;vertical-align:middle}
 tr:last-child td{border-bottom:0}
 .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .scroll{overflow-x:auto}
+.envio-cab{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.envio-cab h2{margin-bottom:2px}
+.envio-btns{display:flex;gap:8px;flex-wrap:wrap}.envio-btns a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.envio-txt{margin:12px 0 0;padding:12px 14px;background:#f6f5fa;border-radius:10px;font-family:inherit;font-size:14px;line-height:1.55;white-space:pre-wrap;color:var(--tinta2);max-height:240px;overflow:auto}
+.sim-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}.sim-res>div{background:#f6f5fa;border-radius:10px;padding:10px 12px}
+.sim-res small{display:block;color:var(--tinta2);font-size:12px}.sim-res b{font-size:18px}.sim-pasos{display:flex;gap:6px;flex-wrap:wrap}
 .chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#eceaf3;color:var(--tinta2);white-space:nowrap}
 .chip.ok{background:#dff3e7;color:#1f6b40}.chip.mal{background:#fbe3df;color:#a8321f}.chip.aviso{background:#fdf0d3;color:#8a5a0c}
 .vacio{color:var(--gris);padding:18px 0;text-align:center}
@@ -516,6 +521,10 @@ async function vPanel(el) {
     q(sb.from('v_existencias').select('producto, cantidad, stock_minimo, requiere_reposicion').eq('activo', true)),
     q(sb.from('ventas').select('id', { count: 'exact', head: false }).eq('estado', 'EMITIDA').gte('fecha', ayer + 'T00:00:00-05:00').lt('fecha', inicioHoy())),
   ]);
+  const [fiados, sesAbierta] = await Promise.all([
+    q(sb.from('v_cuentas_por_cobrar').select('saldo, dias_vencido')).catch(() => []),
+    sesionCaja().catch(() => null),
+  ]);
   const dia = f => dias.find(x => x.fecha === f) || {};
   const H0 = dia(h), A = dia(ayer), SP = dia(semana);
   const vn = x => num(x.ventas_netas), gb = x => num(x.utilidad_bruta), gn = x => num(x.utilidad_neta_estimada), cmv = x => num(x.costo_mercaderia_vendida);
@@ -568,6 +577,9 @@ async function vPanel(el) {
     <div class="cifra"><small>Gastos de hoy</small><b>${S(gastos(H0))}</b><div class="cmp">Mermas y ajustes: ${S(num(H0.de_ello_mermas_ajustes))}</div></div>
     <div class="cifra"><small>Ganancia neta (después de gastos)</small><b>${S(gn(H0))}</b><div class="cmp">Margen neto: ${margenNeto(H0) === null ? '—' : P(margenNeto(H0))}</div></div>
   </div>
+  <div class="panel envio"><div class="envio-cab"><div><h2>Resumen del día</h2><p class="sub">Envíatelo por WhatsApp para tenerlo a la mano. Elige tu propio chat ("Tú") o el de quien quieras.</p></div>
+    <div class="envio-btns"><a class="btn" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div></div>
+    <pre class="envio-txt" id="resTxt"></pre></div>
   <div class="cols dos">
     <div class="panel"><h2>Ventas por hora</h2><p class="sub">${mejorHora !== undefined ? `Tu mejor hora hoy: ${mejorHora}:00 a ${mejorHora + 1}:00, con ${S(porHora[mejorHora].v)}.` : 'Todavía no hay ventas hoy.'}</p><div id="gHoras"></div></div>
     <div class="panel"><h2>Últimos 7 días</h2><p class="sub">Venta y ganancia bruta de cada día.</p>
@@ -583,6 +595,29 @@ async function vPanel(el) {
       <h3>Por reponer</h3>${reponer.length ? `<table>${reponer.map(r => `<tr><td>${esc(r.producto)}</td><td class="n"><span class="chip mal">quedan ${N(r.cantidad)}</span></td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Todo con stock suficiente.</p>'}
     </div>
   </div>`;
+  // Texto del resumen (negritas con *asteriscos*, formato de WhatsApp)
+  const nomMedio = Object.fromEntries(medios(MEDIOS_VENTA).map(m => [m.id, m.nombre]));
+  const vVar = pct(vn(H0), vn(A));
+  const porCobrar = fiados.reduce((a, f) => a + num(f.saldo), 0), vencido = fiados.filter(f => num(f.dias_vencido) > 0).reduce((a, f) => a + num(f.saldo), 0);
+  const fechaLarga = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+  const lineasRes = [
+    `*Caja, ${fechaLarga}*`,
+    nVentas ? `💰 Vendiste *${S(vn(H0))}* en ${nVentas} ${nVentas === 1 ? 'venta' : 'ventas'}${vVar === null ? '' : ` (${vVar >= 0 ? '▲' : '▼'} ${P(Math.abs(vVar))} vs. ayer)`}` : '💰 Hoy no registraste ventas',
+    ...(nVentas ? [`📈 Ganancia bruta *${S(gb(H0))}*${margen(H0) === null ? '' : `, margen ${P(margen(H0))}`}`] : []),
+    `🧾 Gastos ${S(gastos(H0))}`,
+    `✅ Ganancia neta *${S(gn(H0))}*`,
+    ...(totMedios ? ['Cobraste: ' + Object.entries(porMedio).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${nomMedio[k] || 'Otro'} ${S(v)}`).join(', ')] : []),
+    ...(top.length ? [`🏆 Lo que más te dejó: ${nomProd[top[0][0]] || ''} (${S(top[0][1].v - top[0][1].k)})`] : []),
+    ...(reponer.length ? [`⚠️ Por reponer: ${reponer.slice(0, 5).map(r => `${r.producto} (quedan ${N(r.cantidad)})`).join(', ')}${reponer.length > 5 ? ` y ${reponer.length - 5} más` : ''}`] : []),
+    ...(alertas.length ? [`🔻 ${alertas.length === 1 ? '1 precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo`] : []),
+    ...(porCobrar > 0 ? [`🤝 Fiados por cobrar ${S(porCobrar)}${vencido > 0 ? ` (${S(vencido)} vencidos)` : ''}`] : []),
+    ...(sesAbierta ? ['🔓 La caja sigue abierta: ciérrala cuando termines.'] : []),
+  ];
+  const txtRes = lineasRes.join('\n');
+  $('#resTxt').textContent = txtRes;
+  $('#resWa').href = 'https://wa.me/?text=' + encodeURIComponent(txtRes);
+  $('#resCopiar').onclick = async () => { try { await navigator.clipboard.writeText(txtRes); aviso('Resumen copiado'); } catch { aviso('No se pudo copiar', true); } };
+  $('#resCompartir') && ($('#resCompartir').onclick = () => navigator.share({ text: txtRes }).catch(() => {}));
   barras($('#gHoras'), rangoH.map(x => x + 'h'), [{ nombre: 'Venta', color: COL_VENTA, valores: rangoH.map(x => porHora[x]?.v || 0) }],
     { alto: 200, titulo: 'Ventas por hora de hoy', tituloTip: i => `${rangoH[i]}:00 a ${rangoH[i] + 1}:00 · ${porHora[rangoH[i]]?.n || 0} ventas` });
   barras($('#g7'), ult7.map(nomDia), [
@@ -1508,6 +1543,10 @@ async function vCatalogo(el) {
   const ex = await q(sb.from('v_existencias').select('producto_id, costo_promedio'));
   const cp = Object.fromEntries(ex.map(e => [e.producto_id, num(e.costo_promedio)]));
   const costoP = p => r2(cp[p.producto_id] * num(p.factor));
+  const d30 = (() => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - 30); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); })();
+  const lin30 = await q(sb.from('v_lineas_rentabilidad').select('producto_id, cantidad_base').gte('fecha', d30).lte('fecha', hoy())).catch(() => []);
+  const vol30 = {}; lin30.forEach(l => vol30[l.producto_id] = (vol30[l.producto_id] || 0) + num(l.cantidad_base));
+  const simulables = C.presentaciones.filter(p => p.se_vende && precioDe(p.id) != null && costoP(p) > 0);
   el.innerHTML = `
   <div class="panel"><h2>Productos y precios</h2><p class="sub">Toca un precio para cambiarlo. Rige desde ahora; las ventas pasadas no cambian. El costo es el promedio de tus compras.</p>
     <div class="fila" style="margin-bottom:12px;max-width:520px"><div><label for="umbral">Margen mínimo que quieres ganar (%)</label><input type="number" id="umbral" min="1" max="90" step="1" value="${umbral()}" inputmode="numeric"></div>
@@ -1521,6 +1560,12 @@ async function vCatalogo(el) {
       <td class="n">${p.se_vende && precioDe(p.id) != null ? chipMargen(evalMargen(num(precioDe(p.id)), costoP(p))) : ''}</td>
       <td class="n">${p.se_vende && costoP(p) > 0 ? (num(precioDe(p.id)) >= precioSugerido(costoP(p)) ? `<span class="sub">${S(precioSugerido(costoP(p)))}</span>` : `<b>${S(precioSugerido(costoP(p)))}</b>`) : ''}</td></tr>`).join('')).join('')}
   </table></div></div>
+  <div class="panel"><h2>Simulador de precios</h2><p class="sub">Prueba un precio antes de cambiarlo: ves cuánto ganarías y cuánto puedes dejar de vender sin perder plata.</p>
+    ${simulables.length ? `<div class="fila" style="max-width:640px"><div style="flex:2 1 220px"><label for="simPres">Producto</label><select id="simPres">${simulables.map(p => `<option value="${p.id}">${esc(presNombre(p))}</option>`).join('')}</select></div>
+      <div><label for="simPrecio">Precio a probar (S/)</label><input type="number" id="simPrecio" min="0" step="0.10" inputmode="decimal"></div></div>
+      <div class="sim-pasos" style="margin-top:8px"><button class="btn claro mini" data-paso="-0.5">−0.50</button><button class="btn claro mini" data-paso="-0.1">−0.10</button><button class="btn claro mini" data-paso="0.1">+0.10</button><button class="btn claro mini" data-paso="0.5">+0.50</button><button class="btn claro mini" data-paso="min">Precio mínimo</button></div>
+      <div id="simOut"></div>` : '<p class="vacio">Cuando registres compras (para saber el costo) y pongas precios, aquí podrás simular cambios.</p>'}
+  </div>
   <div class="cols dos">
     <div class="panel"><h2>Nuevo producto</h2>
       <div class="fila"><div style="flex:2 1 200px"><label>Nombre</label><input id="pNom" placeholder="Ej.: Gomitas Mogul ositos"></div><div><label>Código</label><input id="pSku" placeholder="GOM-MOGUL"></div></div>
@@ -1551,6 +1596,38 @@ async function vCatalogo(el) {
       v[0] = v[v.length - 1]; }
     if (v && (await rpc('establecer_precio_venta', { p_presentacion_id: b.dataset.precio, p_precio: r2(v[0]) }, 'Precio cambiado')).ok) ir('catalogo');
   });
+  if (simulables.length) {
+    const pres = () => simulables.find(p => p.id === $('#simPres').value);
+    const calcular = () => {
+      const p = pres(), k = costoP(p), pa = num(precioDe(p.id)), pn = r2($('#simPrecio').value), f = num(p.factor);
+      const gA = pa - k, gN = pn - k, eA = evalMargen(pa, k), eN = evalMargen(pn, k);
+      const uds = num(vol30[p.producto_id]) / f; // unidades de esta presentación (equivalentes) en 30 días
+      let txtVol = '';
+      if (!(pn > 0)) txtVol = 'Escribe un precio para simular.';
+      else if (gN <= 0) txtVol = `<b>Con ${S(pn)} pierdes plata en cada venta.</b> Tu costo es ${S(k)}.`;
+      else if (Math.abs(pn - pa) < 0.005) txtVol = 'Es tu precio actual.';
+      else if (gA > 0) { const c = (gA / gN - 1) * 100;
+        txtVol = c < 0 ? `Para ganar lo mismo que hoy, puedes vender hasta <b>${P(-c)} menos</b>. Si la clientela baja menos que eso, ganas más.`
+                       : `Para ganar lo mismo que hoy, tendrías que vender <b>${P(c)} más</b>. Si no vas a vender más, mejor no bajes el precio.`; }
+      else txtVol = `Con el precio actual pierdes ${S(-gA)} por unidad; con ${S(pn)} ganarías ${S(gN)}.`;
+      $('#simOut').innerHTML = `<div class="sim-res">
+        <div><small>Costo</small><b>${S(k)}</b></div>
+        <div><small>Ahora: ${S(pa)}</small><b>${S(gA)}</b><small>por venta · ${chipMargen(eA)}</small></div>
+        <div><small>Con ${pn > 0 ? S(pn) : '—'}</small><b>${pn > 0 ? S(gN) : '—'}</b><small>por venta · ${pn > 0 ? chipMargen(eN) : ''}</small></div>
+        ${uds > 0 && pn > 0 ? `<div><small>En 30 días, si vendes lo mismo (${N(uds, 1)} × ${esc(p.nombre.toLowerCase())})</small><b>${S(gN * uds)}</b><small>hoy ${S(gA * uds)} (${gN >= gA ? '+' : '−'}${S(Math.abs(gN - gA) * uds)})</small></div>` : ''}
+      </div><p class="sub" style="margin:12px 0 0">${txtVol}${uds > 0 ? '' : ' Aún no tienes ventas de este producto en los últimos 30 días; cuando las tengas, verás la ganancia del mes.'}</p>
+      ${pn > 0 && Math.abs(pn - pa) >= 0.005 ? `<button class="btn" id="simAplicar" style="margin-top:12px">Usar ${S(pn)} como precio</button>` : ''}`;
+      $('#simAplicar') && ($('#simAplicar').onclick = async () => {
+        if (gN <= 0 && !(await dialogo('Ese precio está bajo el costo', [{ type: 'info', html: `<p class="sub" style="margin:0">Perderías ${S(-gN)} en cada venta.</p>` }], 'Usarlo igual'))) return;
+        if ((await rpc('establecer_precio_venta', { p_presentacion_id: p.id, p_precio: pn }, 'Precio cambiado')).ok) ir('catalogo');
+      });
+    };
+    const reiniciar = () => { $('#simPrecio').value = num(precioDe(pres().id)).toFixed(2); calcular(); };
+    $('#simPres').onchange = reiniciar; $('#simPrecio').oninput = calcular;
+    el.querySelectorAll('[data-paso]').forEach(b => b.onclick = () => {
+      const p = pres(); $('#simPrecio').value = (b.dataset.paso === 'min' ? precioSugerido(costoP(p)) : Math.max(0, r2(num($('#simPrecio').value) + Number(b.dataset.paso)))).toFixed(2); calcular(); });
+    reiniciar();
+  }
   $('#guardarUmbral').onclick = () => { const v = Math.round(num($('#umbral').value)); if (v < 1 || v > 90) return aviso('Escribe un porcentaje entre 1 y 90', true); fijarUmbral(v); aviso(`Margen mínimo: ${v}%`); ir('catalogo'); };
   $('#btnProd').onclick = async () => {
     const nom = $('#pNom').value.trim(), sku = $('#pSku').value.trim().toUpperCase();

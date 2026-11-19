@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-SbLGQlvIy+hs4OTfOpwFVuPLu+sVsMerV/ZnawBl3HY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-iNFt9MTHS3nwHK0P/wvnweH4Q+KHupIT6k+xXo3jdJ8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -419,6 +420,13 @@ body.soltando #vista::after{content:"Suelta aquí la factura (foto o PDF)";posit
 .prod.sel{box-shadow:0 0 0 2px var(--violeta)}
 .atajos-tec{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 2px 0;font-size:12.5px;color:var(--gris)}.atajos-tec kbd{font:inherit;font-size:11.5px;font-weight:600;background:var(--tono);color:var(--texto);border-radius:6px;padding:2px 7px;margin-right:4px;box-shadow:inset 0 -2px 0 #0000004d}
 @media(pointer:coarse){.atajos-tec{display:none}}
+.cnt-dif .vendi{margin-top:6px;background:#4FE3C126;color:var(--menta)}.cnt-dif .vendi:hover{background:#4FE3C13a;color:var(--menta)}
+.seg-anillo{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:17px;background:conic-gradient(var(--c,var(--coral)) var(--p,30%),var(--tono) 0)}
+.seg-anillo b{width:50px;height:50px;border-radius:50%;background:var(--blanco);display:grid;place-items:center}
+.seg-anillo.ok{--c:var(--menta);--p:100%}.seg-anillo.medio{--c:var(--ambar);--p:60%}.seg-anillo.bajo{--c:var(--coral);--p:30%}
+.seg-lista{display:grid;gap:8px;margin:14px 0 4px}.seg-item{display:flex;gap:12px;align-items:center;background:var(--tono);border-radius:16px;padding:11px 14px}
+.seg-item>div{flex:1}.seg-item b{display:block;font-size:14.5px}.seg-item small{color:var(--gris);font-size:12.5px}
+.seg-ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;flex:none}.seg-item.ok .seg-ic{background:#4FE3C126;color:var(--menta)}.seg-item.falta .seg-ic{background:#FF7A8A26;color:var(--coral)}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -645,6 +653,7 @@ function textoError(e) {
   return m;
 }
 async function q(p) { const { data, error } = await p; if (error) throw error; return data; }
+const rpcLeer = (fn, args) => q(sb.rpc(fn, args || {}));
 async function rpc(fn, args, ok) {
   try { const d = await q(sb.rpc(fn, args)); if (ok) aviso(ok); return { ok: true, data: d }; }
   catch (e) { aviso(textoError(e), true); return { ok: false }; }
@@ -2486,18 +2495,46 @@ async function pintarConteo(ex, factorMax) {
     <button class="btn" id="cntRegistrar" style="margin-top:12px">Terminar conteo</button></div>`;
   const cp = Object.fromEntries(ex.map(e => [e.producto_id, num(e.costo_promedio)]));
   const sist = Object.fromEntries(ex.map(e => [e.producto_id, num(e.cantidad)]));
+  const preciosV = await q(sb.from('v_precios_vigentes').select('presentacion_id, precio')).catch(() => []);
+  const baseDe = id => C.presentaciones.find(p => p.producto_id === id && p.es_base) || C.presentaciones.find(p => p.producto_id === id && num(p.factor) === 1);
+  const precioU = id => num(preciosV.find(x => x.presentacion_id === baseDe(id)?.id)?.precio);
   const resumen = () => {
     let falt = 0, sobr = 0, n = 0, uF = 0, uS = 0;
     ex.forEach(e => { const id = e.producto_id, c = contado(id), box = $('#dif-' + id);
       if (c === null) { box.innerHTML = '<span class="sub">sin contar</span>'; return; }
       n++; const d = c - sist[id], v = d * cp[id];
       if (d < 0) { falt += -v; uF += -d; } else if (d > 0) { sobr += v; uS += d; }
-      box.innerHTML = d === 0 ? '<span class="chip ok">Cuadra</span>' : `<span class="chip ${d < 0 ? 'mal' : 'aviso'}">${d < 0 ? 'Faltan' : 'Sobran'} ${N(Math.abs(d))}</span>${cp[id] > 0 ? `<small>${S(Math.abs(v))}</small>` : ''}`; });
+      box.innerHTML = d === 0 ? '<span class="chip ok">Cuadra</span>' : `<span class="chip ${d < 0 ? 'mal' : 'aviso'}">${d < 0 ? 'Faltan' : 'Sobran'} ${N(Math.abs(d))}</span>${cp[id] > 0 ? `<small>${S(Math.abs(v))}</small>` : ''}${d < 0 && baseDe(id) ? `<button class="btn mini vendi" data-vendi="${id}">Lo vendí</button>` : ''}`; });
+    caja.querySelectorAll('[data-vendi]').forEach(b => b.onclick = () => loVendi(b.dataset.vendi).catch(e => aviso(textoError(e), true)));
     $('#cntTotal').innerHTML = n ? `<div class="sim-res"><div><small>Productos contados</small><b>${n} de ${ex.length}</b></div>
       <div><small>Falta</small><b>${uF ? S(falt) : '—'}</b><small>${uF ? N(uF) + ' unidades' : 'nada'}</small></div>
       <div><small>Sobra</small><b>${uS ? S(sobr) : '—'}</b><small>${uS ? N(uS) + ' unidades' : 'nada'}</small></div>
       <div><small>Resultado</small><b>${S(sobr - falt)}</b><small>${uF || uS ? (sobr - falt < -0.005 ? 'se te fue plata' : 'a favor') : 'todo cuadra'}</small></div></div>` : '<p class="sub" style="margin:12px 0 0">Cuando escribas lo que contaste, aquí verás cuánto falta o sobra.</p>';
     return { falt, sobr, n, uF, uS };
+  };
+  // "Lo vendí": el faltante era una venta que no se registró y la plata está en la caja
+  const loVendi = async id => {
+    const e = ex.find(x => x.producto_id === id), falta = -(contado(id) - sist[id]), base = baseDe(id), pu = precioU(id);
+    const uni = (C.unidades.find(u => u.id === C.presentaciones.find(p => p.producto_id === id)?.productos?.unidad_base_id)?.nombre || 'unidad').toLowerCase();
+    const v = await dialogo('Registrar como venta', [
+      { type: 'info', html: `<p class="sub" style="margin:0">Si te faltan <b>${N(falta)} ${esc(plural(uni))} de ${esc(e.producto)}</b> pero la plata está en tu caja, no es una pérdida: es una venta que no anotaste. Se registra como venta y el faltante desaparece del conteo.</p>` },
+      { label: `¿Cuántos ${esc(plural(uni))} vendiste?`, type: 'number', value: falta, required: true },
+      { label: '¿Cómo te pagaron?', type: 'select', options: medios(MEDIOS_VENTA).map(m => ({ value: m.id, label: m.nombre })) },
+      { label: `Precio por ${esc(uni)} (S/)`, type: 'number', value: pu || '', required: true },
+    ], 'Registrar venta');
+    if (!v) return;
+    const c = Math.round(num(v[1])), precio = r2(v[3]), met = Number(v[2]), m = C.metodos.find(x => x.id === met);
+    if (c <= 0 || c > falta) return aviso(`Escribe un número entre 1 y ${N(falta)}`, true);
+    if (!(precio > 0)) return aviso('Escribe el precio de venta', true);
+    if (m?.codigo === 'EFECTIVO' && !(await sesionCaja()) && !(await abrirCajaRapido())) return;
+    const p = { cliente_id: C.clientes.find(x => x.es_generico)?.id, condicion: 'CONTADO', fecha: new Date().toISOString(), observaciones: 'Venta registrada en el conteo físico',
+      lineas: [Object.assign({ presentacion_id: base.id, cantidad: c }, Math.abs(precio - pu) >= 0.005 ? { precio_unitario: precio } : {})],
+      pagos: [{ metodo_pago_id: met, monto: r2(c * precio), referencia: null }] };
+    if (!(await rpc('registrar_venta', { p }, `Venta registrada: ${N(c)} × ${e.producto} por ${S(c * precio)}`)).ok) return;
+    sist[id] -= c; if (borr.sistema && id in borr.sistema) borr.sistema[id] -= c; conteoLocal.guardar(borr);
+    const nom = caja.querySelector(`.cnt-fila[data-id="${id}"] .cnt-nom small`);
+    if (nom) { const f = factorMax(id), q2 = sist[id]; nom.textContent = `Sistema: ${f > 1 ? `${Math.floor(q2 / f)} paq. + ${N(q2 % f)} sueltos` : `${N(q2)} und.`} (${N(q2)} und.)`; }
+    resumen();
   };
   const guardar = inp => { const id = inp.dataset.cp || inp.dataset.cs, o = val[id] ??= { p: '', s: '' };
     o[inp.dataset.cp ? 'p' : 's'] = inp.value; conteoLocal.guardar(borr); resumen(); };
@@ -3280,18 +3317,29 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 // Impide que otra página muestre la app dentro de un marco (clickjacking)
 if (window.top !== window.self) { document.body.innerHTML = ''; window.top.location = window.self.location.href; }
 // Cierra la sesión tras 60 minutos sin actividad
-const MIN_INACTIVIDAD = 60;
+const minInactividad = () => { const v = Number(local.leer('minInactividad')); return [15, 30, 60, 120].includes(v) ? v : 60; };
+const MIN_INACTIVIDAD = minInactividad();
 let ultimaActividad = Date.now();
 ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(ev => addEventListener(ev, () => { ultimaActividad = Date.now(); }, { passive: true }));
-setInterval(async () => {
+async function revisarInactividad() {
   if ($('#app').classList.contains('oculto')) return;
-  if (Date.now() - ultimaActividad > MIN_INACTIVIDAD * 60000) {
-    await sb.auth.signOut();
+  if (Date.now() - ultimaActividad > minInactividad() * 60000) {
     try { sessionStorage.setItem('motivoSalida', 'inactividad'); } catch {}
-    location.reload();
+    await salir('local');
   }
-}, 30000);
-try { if (sessionStorage.getItem('motivoSalida') === 'inactividad') { sessionStorage.removeItem('motivoSalida'); setTimeout(() => aviso('Cerramos tu sesión por 60 minutos sin uso. Vuelve a entrar.'), 300); } } catch {}
+}
+setInterval(revisarInactividad, 30000);
+// Al volver a la app (celular desbloqueado, pestaña de nuevo visible) se revisa al instante, antes de mostrar datos
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') revisarInactividad(); });
+try { if (sessionStorage.getItem('motivoSalida') === 'inactividad') { sessionStorage.removeItem('motivoSalida'); setTimeout(() => aviso(`Cerramos tu sesión por ${minInactividad()} minutos sin uso. Vuelve a entrar.`), 300); } } catch {}
+// Al salir se borran de este equipo las copias de tus datos del negocio (precios, stock, ventas del día).
+// Se conservan solo las ventas sin internet que aún no se suben, tu foto y tus preferencias.
+const DATOS_NEGOCIO = ['vender', 'catalogos', 'perfil', 'conteo', 'cuentaBilletes', 'recordatorios'];
+async function salir(alcance = 'local') {
+  try { await sb.auth.signOut(alcance === 'global' ? { scope: 'global' } : undefined); } catch {}
+  DATOS_NEGOCIO.forEach(k => { try { localStorage.removeItem('caja:' + k); } catch {} });
+  location.reload();
+}
 
 // ============ Verificación en dos pasos (2FA) ============
 // Si la URL trae un enlace de recuperación, lo recordamos antes de que Supabase limpie la dirección
@@ -3360,7 +3408,27 @@ async function guardarContraseña(c1, c2) {
 async function vCuenta(el) {
   const [{ data: u }, { data: fs }] = await Promise.all([sb.auth.getUser(), sb.auth.mfa.listFactors()]);
   const verificados = (fs?.totp || []).filter(f => f.status === 'verified');
+  const sesiones = await rpcLeer('mis_sesiones').catch(() => null);
+  const dRes = diasDesdeRespaldo();
+  const checks = [
+    { ok: verificados.length > 0, t: 'Verificación en dos pasos', d: verificados.length ? 'Activada: sin el código de tu celular nadie entra.' : 'Desactivada: hoy basta tu contraseña para entrar.', a: verificados.length ? '' : '<button class="btn rotulo mini" data-ancla="activar2fa">Activar</button>' },
+    { ok: dRes !== null && dRes < 7, t: 'Copia de seguridad', d: dRes === null ? 'Nunca has descargado una.' : dRes === 0 ? 'Hecha hoy.' : `La última fue hace ${dRes} ${dRes === 1 ? 'día' : 'días'}.`, a: dRes !== null && dRes < 7 ? '' : '<button class="btn claro mini" data-ancla="btnRespaldo">Descargar</button>' },
+    { ok: Array.isArray(sesiones) && sesiones.length <= 2, t: 'Sesiones abiertas', d: Array.isArray(sesiones) ? `${sesiones.length} ${sesiones.length === 1 ? 'dispositivo' : 'dispositivos'} con tu cuenta abierta.` : 'No se pudo revisar.', a: '<button class="btn claro mini" data-ancla="misSesiones">Revisar</button>' },
+    { ok: minInactividad() <= 60, t: 'Cierre automático', d: `Tu sesión se cierra tras ${minInactividad()} minutos sin uso.`, a: '' },
+  ];
+  const puntos = checks.filter(c => c.ok).length;
+  const dispositivo = ua => { const u = ua || ''; const so = /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android' : /Windows/.test(u) ? 'Windows' : /Mac OS X/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'Dispositivo';
+    const nav = /Edg\//.test(u) ? 'Edge' : /Brave/.test(u) ? 'Brave' : /CriOS|Chrome\//.test(u) ? 'Chrome' : /FxiOS|Firefox\//.test(u) ? 'Firefox' : /Safari\//.test(u) ? 'Safari' : 'navegador'; return `${so} · ${nav}`; };
   el.innerHTML = `
+  <div class="panel seguridad"><div class="envio-cab"><div><h2>Tu seguridad</h2><p class="sub" style="margin:0">${puntos === checks.length ? 'Todo en orden. Tu negocio está bien protegido.' : `Cumples ${puntos} de ${checks.length}. Completa lo que falta para proteger tus datos.`}</p></div>
+    <div class="seg-anillo ${puntos === checks.length ? 'ok' : puntos >= 2 ? 'medio' : 'bajo'}"><b>${puntos}/${checks.length}</b></div></div>
+    <div class="seg-lista">${checks.map(c => `<div class="seg-item ${c.ok ? 'ok' : 'falta'}"><span class="seg-ic">${c.ok ? '✓' : '!'}</span><div><b>${c.t}</b><small>${c.d}</small></div>${c.a}</div>`).join('')}</div>
+    <h3 id="misSesiones">Dónde tienes tu cuenta abierta</h3>
+    ${Array.isArray(sesiones) ? `<div class="vencen">${sesiones.map(x => `<div class="vence-item"><div><b>${esc(dispositivo(x.dispositivo))}${x.es_esta ? ' <span class="chip ok">este equipo</span>' : ''}</b><small>Última actividad ${fh(x.ultima_actividad)}${x.ip ? ' · IP ' + esc(x.ip) : ''}</small></div>
+      ${x.es_esta ? '' : `<button class="btn claro mini" data-cerrarses="${esc(x.id)}">Cerrar</button>`}</div>`).join('')}</div>
+      <p class="sub" style="margin:10px 0 0">¿No reconoces alguno? Ciérralo y cambia tu contraseña.</p>` : '<p class="sub">No se pudo cargar la lista de sesiones.</p>'}
+    <div class="fila" style="margin-top:14px;max-width:520px"><div><label for="minInact">Cerrar mi sesión tras este tiempo sin uso</label><select id="minInact">${[15, 30, 60, 120].map(m => `<option value="${m}" ${m === minInactividad() ? 'selected' : ''}>${m < 60 ? m + ' minutos' : m === 60 ? '1 hora' : '2 horas'}${m === 60 ? ' (recomendado)' : ''}</option>`).join('')}</select></div></div>
+  </div>
   <div class="cols dos">
     <div class="panel"><h2>Verificación en dos pasos</h2>
       ${verificados.length ? `<p><span class="chip ok">Activada</span></p>
@@ -3376,7 +3444,7 @@ async function vCuenta(el) {
       <div class="fila"><div><label for="np1">Nueva contraseña</label><input type="password" id="np1" autocomplete="new-password"></div>
         <div><label for="np2">Repítela</label><input type="password" id="np2" autocomplete="new-password"></div></div>
       <button class="btn" id="cambiarPass" style="margin-top:12px">Cambiar contraseña</button>
-      <h3>Sesiones</h3><p class="sub">Tu sesión se cierra sola tras ${MIN_INACTIVIDAD} minutos sin uso. Si perdiste un celular o computadora donde tenías la app abierta, cierra todas las sesiones.</p>
+      <h3>Sesiones</h3><p class="sub">Tu sesión se cierra sola tras ${minInactividad()} minutos sin uso. Si perdiste un celular o computadora donde tenías la app abierta, cierra todas las sesiones.</p>
       <button class="btn claro" id="cerrarTodas">Cerrar sesión en todos los dispositivos</button>
       <p class="sub" style="margin:16px 0 0">Cuenta: ${esc(u?.user?.email)}</p>
     </div>
@@ -3385,6 +3453,12 @@ async function vCuenta(el) {
   <div class="panel" id="tgPanel"><h2>Resumen diario por Telegram</h2><p class="sub">Cargando…</p></div>`;
   pintarRespaldo();
   pintarTelegram();
+  el.querySelectorAll('[data-ancla]').forEach(b => b.onclick = () => { const t = $('#' + b.dataset.ancla); t?.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (t?.tagName === 'BUTTON') t.focus(); });
+  el.querySelectorAll('[data-cerrarses]').forEach(b => b.onclick = async () => {
+    if (!(await dialogo('Cerrar esa sesión', [{ type: 'info', html: '<p class="sub" style="margin:0">Ese dispositivo tendrá que volver a entrar con tu contraseña. Si no lo reconoces, cambia también tu contraseña.</p>' }], 'Cerrar sesión'))) return;
+    if ((await rpc('cerrar_sesion_dispositivo', { p_sesion: b.dataset.cerrarses }, 'Sesión cerrada en ese dispositivo')).ok) ir('cuenta');
+  });
+  $('#minInact').onchange = () => { local.guardar('minInactividad', Number($('#minInact').value)); aviso('Listo: tu sesión se cerrará sola tras ' + $('#minInact').selectedOptions[0].text.replace(' (recomendado)', '') + ' sin uso'); };
   const enrolar = async () => {
     try {
       // Limpia intentos anteriores que no se terminaron
@@ -3437,7 +3511,7 @@ async function vCuenta(el) {
   $('#cerrarTodas').onclick = async () => {
     const v = await dialogo('Cerrar todas las sesiones', [{ type: 'info', html: '<p class="sub" style="margin:0">Se cerrará la app en todos tus dispositivos, incluido este. Tendrás que volver a entrar.</p>' }], 'Cerrar todas');
     if (!v) return;
-    await sb.auth.signOut({ scope: 'global' }); location.reload();
+    await salir('global');
   };
 }
 
@@ -3573,7 +3647,11 @@ $('#fIngreso').onsubmit = async e => {
   $('#lPass').value = '';
   entrar(data.session);
 };
-$('#btnSalir').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+$('#btnSalir').onclick = async () => {
+  const pend = colaVentas.leer().length;
+  if (pend && !(await dialogo('Tienes ventas sin subir', [{ type: 'info', html: `<p class="sub" style="margin:0">Hay <b>${pend} ${pend === 1 ? 'venta' : 'ventas'}</b> registradas sin internet que aún no se suben. Se conservan en este equipo y se subirán cuando vuelvas a entrar con conexión.</p>` }], 'Cerrar sesión igual'))) return;
+  salir('local');
+};
 $('#olvide').onclick = async e => {
   e.preventDefault();
   const email = $('#lEmail').value.trim();

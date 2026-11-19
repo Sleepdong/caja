@@ -318,6 +318,10 @@
 
   // ---------- 7. Funciones (RPC) ----------
   const RPC = {
+    mis_sesiones() { const h = Date.now(); return [
+      { id: 'ses-1', creada: new Date(h - 864e5 * 3).toISOString(), ultima_actividad: new Date(h).toISOString(), dispositivo: navigator.userAgent, ip: '190.42.10.8', es_esta: true },
+      { id: 'ses-2', creada: new Date(h - 864e5 * 9).toISOString(), ultima_actividad: new Date(h - 864e5).toISOString(), dispositivo: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1', ip: '190.42.11.3', es_esta: false }]; },
+    cerrar_sesion_dispositivo() { return true; },
     registrar_venta({ p }) {
       ventasRaw.push({ ms: Date.parse(p.fecha || new Date().toISOString()), lineas: p.lineas.map(l => ({ ...l })), medio: p.pagos?.[0]?.metodo_pago_id ?? null,
         cliente: p.cliente_id || 'cl0', condicion: p.condicion || 'CONTADO', vence: p.fecha_vencimiento, obs: p.observaciones });

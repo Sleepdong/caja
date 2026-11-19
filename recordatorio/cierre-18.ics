@@ -1,0 +1,21 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Caja//Recordatorio de cierre//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:caja-cierre-diario@sleepdong.github.io
+DTSTAMP:20261119T020000Z
+DTSTART:20261119T180000
+DURATION:PT10M
+RRULE:FREQ=DAILY
+SUMMARY:Cerrar caja y enviarme el resumen
+DESCRIPTION:Abre Caja\, cierra la caja y en Panel toca Enviar por WhatsApp.
+URL:https://sleepdong.github.io/caja/
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Cerrar caja y enviarme el resumen
+TRIGGER:PT0M
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-yZIeWjZAG50KriLiCk0+M6Z7LIdpG1t0ayLkPVT4DmY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-Pfi4MxGNKJ6ouBoo/7UtRMAql51xb4q0hkFqwUFd45Q='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#231942">
 <link rel="manifest" href="manifest.webmanifest">
@@ -82,6 +82,10 @@ tr:last-child td{border-bottom:0}
 .envio-cab{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.envio-cab h2{margin-bottom:2px}
 .envio-btns{display:flex;gap:8px;flex-wrap:wrap}.envio-btns a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .envio-txt{margin:12px 0 0;padding:12px 14px;background:#f6f5fa;border-radius:10px;font-family:inherit;font-size:14px;line-height:1.55;white-space:pre-wrap;color:var(--tinta2);max-height:240px;overflow:auto}
+.meta{margin-top:14px;max-width:520px}.meta-barra{height:10px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}.meta-barra>div{height:100%;background:#7fd8a4;border-radius:999px}
+.meta-txt{font-size:13px;color:#c9c4dc;margin-top:6px}.meta-txt b{color:#fff}
+.lnk{background:none;border:0;padding:0;color:#fff;text-decoration:underline;font:inherit;font-weight:600;cursor:pointer}.claro-lnk{margin-top:12px;font-size:13.5px;color:#e4e0f2}
+.recordar{display:flex;gap:14px;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}.recordar a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .sim-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}.sim-res>div{background:#f6f5fa;border-radius:10px;padding:10px 12px}
 .sim-res small{display:block;color:var(--tinta2);font-size:12px}.sim-res b{font-size:18px}.sim-pasos{display:flex;gap:6px;flex-wrap:wrap}
 .chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#eceaf3;color:var(--tinta2);white-space:nowrap}
@@ -342,6 +346,9 @@ function dialogo(titulo, campos, okTxt = 'Guardar') {
 // Tu margen mínimo deseado (se guarda en este navegador)
 function umbral() { try { const v = Number(localStorage.getItem('margenMinimo')); return v > 0 && v < 100 ? v : 20; } catch { return 20; } }
 function fijarUmbral(v) { try { localStorage.setItem('margenMinimo', String(v)); } catch {} }
+// Meta de ganancia bruta diaria (se guarda en este navegador; 0 = sin meta)
+function metaDiaria() { try { const v = Number(localStorage.getItem('metaDiaria')); return v > 0 ? v : 0; } catch { return 0; } }
+function fijarMeta(v) { try { v > 0 ? localStorage.setItem('metaDiaria', String(v)) : localStorage.removeItem('metaDiaria'); } catch {} }
 // precio y costo de la misma presentación
 function evalMargen(precio, costo) {
   if (!(costo > 0) || !(precio > 0)) return null;
@@ -518,12 +525,13 @@ async function vPanel(el) {
     q(sb.from('ventas').select('id, fecha, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', inicioHoy())),
     q(sb.from('v_lineas_rentabilidad').select('*').eq('fecha', h)),
     q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())),
-    q(sb.from('v_existencias').select('producto, cantidad, stock_minimo, requiere_reposicion').eq('activo', true)),
+    q(sb.from('v_existencias').select('producto_id, producto, cantidad, stock_minimo, requiere_reposicion, costo_promedio').eq('activo', true)),
     q(sb.from('ventas').select('id', { count: 'exact', head: false }).eq('estado', 'EMITIDA').gte('fecha', ayer + 'T00:00:00-05:00').lt('fecha', inicioHoy())),
   ]);
-  const [fiados, sesAbierta] = await Promise.all([
+  const [fiados, sesAbierta, preciosV] = await Promise.all([
     q(sb.from('v_cuentas_por_cobrar').select('saldo, dias_vencido')).catch(() => []),
     sesionCaja().catch(() => null),
+    q(sb.from('v_precios_vigentes').select('*')).catch(() => []),
   ]);
   const dia = f => dias.find(x => x.fecha === f) || {};
   const H0 = dia(h), A = dia(ayer), SP = dia(semana);
@@ -557,6 +565,16 @@ async function vPanel(el) {
   const reponer = stock.filter(s => s.requiere_reposicion);
   const alertas = await alertasMargen().catch(() => []);
   const sin2fa = !(await factorVerificado().catch(() => true));
+  // Meta del día: avance y cuántas ventas del producto que más te deja faltarían
+  const meta = metaDiaria(), avance = meta ? Math.max(0, gb(H0)) / meta * 100 : 0;
+  const faltan = (() => {
+    if (!meta || gb(H0) >= meta) return '';
+    const pv = preciosV.filter(x => x.precio != null);
+    const ex = stock;
+    const mejor = pv.map(x => { const c = num(ex.find(e => e.producto_id === x.producto_id)?.costo_promedio) * num(x.factor); return { x, g: c > 0 ? num(x.precio) - c : 0 }; })
+      .filter(o => o.g > 0 && num(o.x.factor) > 1).sort((a, b) => b.g - a.g)[0];
+    return mejor ? `${Math.ceil((meta - gb(H0)) / mejor.g)} ventas de ${mejor.x.producto} (${mejor.x.presentacion.toLowerCase()})` : '';
+  })();
   const ult7 = Array.from({ length: 7 }, (_, i) => d(6 - i));
   const nomDia = f => new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'short', day: 'numeric' });
 
@@ -566,7 +584,10 @@ async function vPanel(el) {
     <p class="sub">Con el costo promedio de tus compras actuales. El precio mínimo es el más bajo al que ganas tu margen mínimo.</p>${tablaAlertas(alertas)}
     <button class="btn" style="margin-top:12px" data-ir="catalogo">Ajustar precios</button></div>` : ''}
   <section class="heroe" aria-label="Rendimiento de hoy">
-    <div><small>Ganancia de hoy</small><div class="grande">${S(gb(H0))}</div>${variacion(gb(H0), gb(A), 'vs. ayer')}</div>
+    <div><small>Ganancia de hoy</small><div class="grande">${S(gb(H0))}</div>${variacion(gb(H0), gb(A), 'vs. ayer')}
+      ${meta ? `<div class="meta"><div class="meta-barra" role="progressbar" aria-label="Meta del día" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(Math.min(avance, 100))}"><div style="width:${Math.min(avance, 100)}%"></div></div>
+        <div class="meta-txt">${avance >= 100 ? `<b>¡Meta cumplida!</b> Pasaste tu meta de ${S(meta)} por ${S(gb(H0) - meta)}` : `<b>${P(avance)}</b> de tu meta de ${S(meta)}. Te faltan ${S(meta - gb(H0))}${faltan ? `, unas ${faltan}` : ''}`} <button class="lnk" id="metaCambiar">Cambiar</button></div></div>`
+      : `<button class="lnk claro-lnk" id="metaCambiar">Ponerte una meta de ganancia diaria</button>`}</div>
     <div><small>Margen de ganancia</small><div class="med">${margen(H0) === null ? '—' : P(margen(H0))}</div>${puntos(margen(H0), margen(A), 'vs. ayer')}</div>
     <div><small>Ganas sobre el costo</small><div class="med">${markup(H0) === null ? '—' : P(markup(H0))}</div><div class="cmp">Por cada S/ 1 de costo, ganas ${S(markup(H0) === null ? 0 : markup(H0) / 100)}</div></div>
     <div><small>Vendido hoy</small><div class="med">${S(vn(H0))}</div>${variacion(vn(H0), vn(SP), 'vs. el ' + nomDia(semana).replace('.', ''))}</div>
@@ -579,7 +600,10 @@ async function vPanel(el) {
   </div>
   <div class="panel envio"><div class="envio-cab"><div><h2>Resumen del día</h2><p class="sub">Envíatelo por WhatsApp para tenerlo a la mano. Elige tu propio chat ("Tú") o el de quien quieras.</p></div>
     <div class="envio-btns"><a class="btn" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div></div>
-    <pre class="envio-txt" id="resTxt"></pre></div>
+    <pre class="envio-txt" id="resTxt"></pre>
+    <div class="recordar"><div><b>Recordatorio cada noche</b><p class="sub" style="margin:2px 0 0">Se agrega a tu calendario y te avisa a la hora que elijas para cerrar caja y enviarte esto.</p></div>
+      <div class="fila"><div><label for="recHora">Hora</label><select id="recHora">${[17, 18, 19, 20, 21, 22, 23].map(x => `<option value="${x}" ${x === 21 ? 'selected' : ''}>${x - 12}:00 p. m.</option>`).join('')}</select></div>
+      <div class="auto"><a class="btn claro" id="recAgregar" href="recordatorio/cierre-21.ics">Agregar a mi calendario</a></div></div></div></div>
   <div class="cols dos">
     <div class="panel"><h2>Ventas por hora</h2><p class="sub">${mejorHora !== undefined ? `Tu mejor hora hoy: ${mejorHora}:00 a ${mejorHora + 1}:00, con ${S(porHora[mejorHora].v)}.` : 'Todavía no hay ventas hoy.'}</p><div id="gHoras"></div></div>
     <div class="panel"><h2>Últimos 7 días</h2><p class="sub">Venta y ganancia bruta de cada día.</p>
@@ -606,6 +630,7 @@ async function vPanel(el) {
     ...(nVentas ? [`📈 Ganancia bruta *${S(gb(H0))}*${margen(H0) === null ? '' : `, margen ${P(margen(H0))}`}`] : []),
     `🧾 Gastos ${S(gastos(H0))}`,
     `✅ Ganancia neta *${S(gn(H0))}*`,
+    ...(meta ? [avance >= 100 ? `🎯 Meta de ${S(meta)} cumplida (${P(avance)})` : `🎯 Meta de ${S(meta)}: llevas ${P(avance)}`] : []),
     ...(totMedios ? ['Cobraste: ' + Object.entries(porMedio).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${nomMedio[k] || 'Otro'} ${S(v)}`).join(', ')] : []),
     ...(top.length ? [`🏆 Lo que más te dejó: ${nomProd[top[0][0]] || ''} (${S(top[0][1].v - top[0][1].k)})`] : []),
     ...(reponer.length ? [`⚠️ Por reponer: ${reponer.slice(0, 5).map(r => `${r.producto} (quedan ${N(r.cantidad)})`).join(', ')}${reponer.length > 5 ? ` y ${reponer.length - 5} más` : ''}`] : []),
@@ -616,6 +641,14 @@ async function vPanel(el) {
   const txtRes = lineasRes.join('\n');
   $('#resTxt').textContent = txtRes;
   $('#resWa').href = 'https://wa.me/?text=' + encodeURIComponent(txtRes);
+  $('#recHora').onchange = () => { $('#recAgregar').href = `recordatorio/cierre-${$('#recHora').value}.ics`; };
+  $('#metaCambiar').onclick = async () => {
+    const v = await dialogo('Meta de ganancia diaria', [{ type: 'info', html: '<p class="sub" style="margin:0">Cuánto quieres ganar cada día (ganancia bruta: venta menos lo que te costó la mercadería). Déjalo en 0 para quitar la meta.</p>' },
+      { label: 'Meta diaria (S/)', type: 'number', value: meta || '' }], 'Guardar meta');
+    if (!v) return; const m = r2(v[v.length - 1]);
+    if (m < 0) return aviso('Escribe un monto positivo', true);
+    fijarMeta(m); aviso(m > 0 ? `Meta diaria: ${S(m)}` : 'Meta quitada'); ir('panel');
+  };
   $('#resCopiar').onclick = async () => { try { await navigator.clipboard.writeText(txtRes); aviso('Resumen copiado'); } catch { aviso('No se pudo copiar', true); } };
   $('#resCompartir') && ($('#resCompartir').onclick = () => navigator.share({ text: txtRes }).catch(() => {}));
   barras($('#gHoras'), rangoH.map(x => x + 'h'), [{ nombre: 'Venta', color: COL_VENTA, valores: rangoH.map(x => porHora[x]?.v || 0) }],

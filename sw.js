@@ -2,9 +2,9 @@
 // - La página (index.html): primero red, si no hay, la copia guardada (así las actualizaciones llegan solas).
 // - Librerías de jsDelivr y fuentes: versiones fijas, se guardan la primera vez y se reutilizan.
 // - Supabase (tus datos): nunca se guarda aquí; siempre va directo a la red.
-const CACHE_APP = 'caja-app-v3';
+const CACHE_APP = 'caja-app-v4';
 const CACHE_LIBS = 'caja-libs-v1';
-const APP = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon.png'];
+const APP = ['./', './index.html', './recordatorio/cierre-21.ics', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon.png'];
 // Librerías que la app necesita para abrir sin internet (mismas versiones fijas que en index.html)
 const LIBS = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.1/dist/umd/supabase.js',

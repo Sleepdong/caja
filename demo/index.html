@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-Ms3vkl9a99lSvmxOi4xKGb3+KTrAB9Hee+AnUgnMjT8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-PkVvi3kA1xyVl1JZl/2Dc53XT7ncK13Cds1tZpk8fb0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -415,6 +415,10 @@ svg .eje,svg text{fill:var(--gris)}svg .rejilla{stroke:var(--linea)}
 body.soltando #vista::after{content:"Suelta aquí la factura (foto o PDF)";position:fixed;inset:16px;border:2.5px dashed var(--violeta);border-radius:28px;background:#0E0F1Ad9;display:grid;place-items:center;font-size:22px;font-weight:600;color:#fff;z-index:70;pointer-events:none}
 @media(pointer:coarse){.solo-pc{display:none}}
 @media(max-width:600px){.billetes{grid-template-columns:repeat(3,1fr)}.cuadre-caja b{font-size:15px}}
+.barra-pct{height:8px;border-radius:9px;background:var(--tono);overflow:hidden;margin-bottom:3px}.barra-pct>div{height:100%;background:var(--brillo);border-radius:9px}
+.prod.sel{box-shadow:0 0 0 2px var(--violeta)}
+.atajos-tec{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 2px 0;font-size:12.5px;color:var(--gris)}.atajos-tec kbd{font:inherit;font-size:11.5px;font-weight:600;background:var(--tono);color:var(--texto);border-radius:6px;padding:2px 7px;margin-right:4px;box-shadow:inset 0 -2px 0 #0000004d}
+@media(pointer:coarse){.atajos-tec{display:none}}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -822,6 +826,28 @@ function pintarTabs() {
   $('#pagina').innerHTML = `<h1>${esc(t)}</h1><p>${esc(d)}</p>`;
   $('#pagina').classList.toggle('es-panel', vistaActual === 'panel');
 }
+// Atajos de teclado en Vender (laptop): escribir busca, flechas eligen, Enter agrega, F2 cobra
+let selVender = 0;
+document.addEventListener('keydown', e => {
+  if (vistaActual !== 'vender' || document.querySelector('.velo:not(.oculto)')) return;
+  const buscar = $('#buscar'); if (!buscar) return;
+  const enCampo = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) && document.activeElement !== buscar;
+  if (e.key === 'F2') { e.preventDefault(); const b = $('#btnCobrar'); if (b && !b.disabled) b.click(); return; }
+  if (e.altKey && ['1', '2', '3'].includes(e.key)) { e.preventDefault(); document.querySelectorAll('.medio')[Number(e.key) - 1]?.click(); return; }
+  if (enCampo) return;
+  const cards = [...document.querySelectorAll('#estante .prod')];
+  const marcar = () => { cards.forEach((c, i) => c.classList.toggle('sel', i === selVender)); cards[selVender]?.scrollIntoView({ block: 'nearest' }); };
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { if (!cards.length) return; e.preventDefault(); selVender = Math.max(0, Math.min(cards.length - 1, selVender + (e.key === 'ArrowDown' ? 1 : -1))); return marcar(); }
+  if (e.key === 'Enter' && document.activeElement === buscar) {
+    e.preventDefault(); const card = cards[selVender] || cards[0]; if (!card) return;
+    const ops = [...card.querySelectorAll('.opc:not(:disabled)')]; const o = e.shiftKey ? ops[ops.length - 1] : ops[0];
+    if (o) { o.click(); buscar.value = ''; buscar.dispatchEvent(new Event('input')); selVender = 0; buscar.focus(); } return;
+  }
+  if (e.key === 'Escape' && buscar.value) { buscar.value = ''; buscar.dispatchEvent(new Event('input')); selVender = 0; return; }
+  // Cualquier letra o número empieza a buscar
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && document.activeElement !== buscar) { buscar.focus(); }
+});
+document.addEventListener('input', e => { if (e.target?.id === 'buscar') { selVender = 0; setTimeout(() => document.querySelectorAll('#estante .prod').forEach((c, i) => c.classList.toggle('sel', i === 0 && !!e.target.value)), 0); } });
 // Hojas (perfil, más secciones)
 function abrirHoja(sel) { const h = $(sel); h.classList.remove('oculto'); h.querySelector('button,label')?.focus(); }
 function cerrarHojas() { document.querySelectorAll('.hoja-velo').forEach(h => h.classList.add('oculto')); }
@@ -1130,12 +1156,14 @@ async function vVender(el) {
         <input id="buscar" placeholder="Buscar producto o escanear código" autocomplete="off"></div>
       ${catsEnUso.length > 1 ? `<div class="chips-cat" id="chipsCat" role="tablist" aria-label="Filtrar por categoría"><button data-cat="" role="tab">Todo</button>${catsEnUso.map(c => `<button data-cat="${c.id}" role="tab">${esc(c.nombre)}</button>`).join('')}</div>` : ''}
       <div class="estante" id="estante"></div>
+      <div class="atajos-tec" aria-label="Atajos de teclado"><span><kbd>↑</kbd><kbd>↓</kbd>elegir</span><span><kbd>Enter</kbd>agregar suelto</span><span><kbd>Shift</kbd><kbd>Enter</kbd>agregar paquete</span><span><kbd>F2</kbd>cobrar</span><span><kbd>Alt</kbd><kbd>1·2·3</kbd>efectivo · Yape · Plin</span><span><kbd>Esc</kbd>borrar búsqueda</span></div>
       <div class="resumen-dia">${medios(MEDIOS_VENTA).map(m => `<div><small><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)} hoy</small><b>${S(porMedio[m.id])}</b></div>`).join('')}
         <div><small>Total vendido hoy</small><b>${S(Object.values(porMedio).reduce((a, b) => a + b, 0))}</b></div></div>
     </section>
     <aside class="ticket" id="ticket"></aside>
   </div>`;
   document.querySelectorAll('#chipsCat [data-cat]').forEach(b => b.onclick = () => { filtroCat = b.dataset.cat; local.guardar('filtroVender', filtroCat); $('#buscar').value = ''; pintarEstante(); });
+  selVender = 0;
   $('#abrirAqui') && ($('#abrirAqui').onclick = async () => { if (await abrirCajaRapido()) ir('vender'); });
 
   const enTicket = (prodId) => ticket.filter(t => t.producto_id === prodId).reduce((a, t) => a + t.cantidad * t.factor, 0);
@@ -1266,7 +1294,7 @@ async function vVender(el) {
     $('#nueva').onclick = () => ir('vender'); $('#nueva').focus();
   }
   $('#buscar').oninput = pintarEstante;
-  $('#buscar').onkeydown = e => { if (e.key === 'Enter') { const b = $('#estante .opc:not(:disabled)'); b && b.click(); $('#buscar').select(); } };
+  // Enter, flechas y F2: ver los atajos de teclado de Vender (más arriba)
   pintarTodo();
 }
 
@@ -3004,6 +3032,19 @@ async function vReportes(el) {
     <div class="panel"><h2>Qué producto deja más</h2><div class="scroll"><table><tr><th>Producto</th><th class="n">Unidades</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th></tr>
       ${Object.entries(porProd).sort((a, b) => (b[1].v - b[1].k) - (a[1].v - a[1].k)).map(([k, o]) => `<tr><td>${esc(nomProd[k] || '')}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td><td class="n">${S(o.k)}</td><td class="n"><b>${S(o.v - o.k)}</b></td><td class="n">${o.v > 0 ? P((o.v - o.k) / o.v * 100) : '—'}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin ventas en estas fechas.</td></tr>'}
     </table></div></div>
+    ${(() => {
+      // Agrupa la ganancia por marca y por categoría
+      const info = id => C.presentaciones.find(p => p.producto_id === id)?.productos || {};
+      const agrupar = clave => { const g = {}; Object.entries(porProd).forEach(([id, o]) => { const k = clave(info(id)) || 'Sin dato'; const x = g[k] ??= { v: 0, k: 0, n: 0 }; x.v += o.v; x.k += o.k; x.n++; }); return Object.entries(g).sort((a, b) => (b[1].v - b[1].k) - (a[1].v - a[1].k)); };
+      const marcas = agrupar(pr => pr.marca), cats = agrupar(pr => C.categorias.find(c => c.id === pr.categoria_id)?.nombre);
+      const totG = marcas.reduce((a, [, o]) => a + (o.v - o.k), 0);
+      const tabla = (filas, titulo) => `<table class="por-grupo"><tr><th>${titulo}</th><th class="n">Ventas</th><th class="n">Ganancia</th><th class="n">Margen</th><th>De tu ganancia</th></tr>
+        ${filas.map(([k, o]) => { const g = o.v - o.k, pct = totG > 0 ? g / totG * 100 : 0; return `<tr><td><b>${esc(k)}</b><br><small class="sub">${o.n} ${o.n === 1 ? 'producto' : 'productos'}</small></td><td class="n">${S(o.v)}</td><td class="n"><b>${S(g)}</b></td><td class="n">${o.v > 0 ? P(g / o.v * 100) : '—'}</td>
+          <td style="min-width:140px"><div class="barra-pct"><div style="width:${Math.max(0, Math.min(100, pct)).toFixed(1)}%"></div></div><small class="sub">${P(pct)}</small></td></tr>`; }).join('')}</table>`;
+      return marcas.length ? `<div class="panel"><h2>Por marca y por categoría</h2><p class="sub">Qué parte de tu ganancia viene de cada marca y de cada tipo de producto en estas fechas.</p>
+        ${marcas.length && totG > 0 ? `<p class="consejo-claro" style="margin:0 0 14px"><b>${esc(marcas[0][0])}</b> te dejó el ${P((marcas[0][1].v - marcas[0][1].k) / totG * 100)} de tu ganancia (${S(marcas[0][1].v - marcas[0][1].k)}).</p>` : ''}
+        <div class="cols dos" style="gap:18px"><div class="scroll">${tabla(marcas, 'Marca')}</div><div class="scroll">${tabla(cats, 'Categoría')}</div></div></div>` : '';
+    })()}
     <div id="rSuelto"></div>
     <div class="panel"><h2>Día por día</h2><div class="scroll"><table><tr><th>Fecha</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia bruta</th><th class="n">Gastos</th><th class="n">Ganancia neta</th></tr>
       ${dias.map(x => `<tr><td>${fd(x.fecha)}</td><td class="n">${S(x.ventas_netas)}</td><td class="n">${S(x.costo_mercaderia_vendida)}</td><td class="n">${S(x.utilidad_bruta)}</td>

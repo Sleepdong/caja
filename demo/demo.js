@@ -40,21 +40,25 @@
 
   // ---------- 3. Catálogo ----------
   const MARCAS = [
-    // id, nombre, costo por unidad, precio unidad, precio cajetilla, stock mínimo, peso en ventas
-    ['p1', 'Pall Mall SUNS', 0.66, 1.00, 18.00, 60, 30],
-    ['p2', 'Lucky Strike TWIST', 0.95, 1.50, 25.00, 40, 22],
-    ['p3', 'Hamilton Rojo', 0.52, 0.80, 14.00, 60, 18],
-    ['p4', 'Marlboro Rojo', 1.10, 1.20, 26.00, 40, 15],
-    ['p5', 'Golden Beach Menta', 0.48, 0.80, 13.00, 40, 15],
+    // id, nombre, costo por unidad, precio unidad, precio paquete (null = no se vende entero), stock mínimo, peso en ventas, marca, variante, categoría, unidades por paquete, código en factura, nombre en factura
+    ['p1', 'Pall Mall SUNS', 0.66, 1.00, 18.00, 60, 30, 'Pall Mall', 'SUNS', 'k1', 20, '460069', 'CIG PALL MALL SUNS XL UND CAJT 20 P'],
+    ['p2', 'Lucky Strike TWIST', 0.95, 1.50, 25.00, 40, 22, 'Lucky Strike', 'TWIST', 'k1', 20, '460018', 'CIG LUCK STRK TWIST UND CAJT 20 PZA'],
+    ['p3', 'Hamilton Rojo', 0.52, 0.80, 14.00, 60, 18, 'Hamilton', 'Rojo', 'k1', 20, '460031', 'CIG HAMILTON ROJO UND CAJT 20'],
+    ['p4', 'Marlboro Rojo', 1.10, 1.20, 26.00, 40, 15, 'Marlboro', 'Rojo', 'k1', 20, '460044', 'CIG MARLBORO ROJO BOX CAJT 20'],
+    ['p5', 'Golden Beach Menta', 0.48, 0.80, 13.00, 40, 15, 'Golden Beach', 'Menta', 'k1', 20, '460052', 'CIG GOLDEN BEACH MENTA CAJT 20'],
+    ['p6', 'Fini Ositos', 1.84, 2.50, null, 12, 9, 'Fini', 'Ositos', 'k2', 12, '001292', 'GOMAS FINI OSITOS (CJX12UN) UNX80G'],
+    ['p7', 'Fini Gusanos ácidos', 1.84, 2.50, null, 12, 7, 'Fini', 'Gusanos ácidos', 'k2', 12, '001289', 'GOMAS FINI GUSANOS ACIDOS(CJX12UN) UNX90G'],
   ];
-  const productos = MARCAS.map(([id, nombre, , , , stock_minimo]) => ({ id, nombre, sku: id.toUpperCase(), activo: true, stock_minimo, categoria_id: 'k1', unidad_base_id: 1 }));
+  const FAC = Object.fromEntries(MARCAS.map(m => [m[0], m[10]]));
+  const productos = MARCAS.map(([id, nombre, , , , stock_minimo, , marca, variante, cat, , cod, nf]) => ({ id, nombre, sku: id.toUpperCase(), activo: true, stock_minimo, categoria_id: cat,
+    unidad_base_id: cat === 'k2' ? 4 : 1, marca, variante, codigo_factura: cod, nombre_factura: nf }));
   const presentaciones = [];
-  MARCAS.forEach(([id, nombre, costo, pu, pc]) => {
+  MARCAS.forEach(([id, nombre, costo, pu, pc, , , , , cat, fac]) => {
     const prod = productos.find(p => p.id === id);
     presentaciones.push({ id: id + 'u', producto_id: id, nombre: 'Unidad', factor: 1, es_base: true, se_compra: false, se_vende: true, activo: true, codigo_barras: null, productos: prod });
-    presentaciones.push({ id: id + 'c', producto_id: id, nombre: 'Cajetilla x 20', factor: 20, es_base: false, se_compra: true, se_vende: true, activo: true, codigo_barras: '77' + id.slice(1).padStart(11, '0'), productos: prod });
+    presentaciones.push({ id: id + 'c', producto_id: id, nombre: (cat === 'k2' ? 'Caja x ' : 'Cajetilla x ') + fac, factor: fac, es_base: false, se_compra: true, se_vende: pc != null, activo: true, codigo_barras: '77' + id.slice(1).padStart(11, '0'), productos: prod });
   });
-  const precio = {}; MARCAS.forEach(([id, , , pu, pc]) => { precio[id + 'u'] = pu; precio[id + 'c'] = pc; });
+  const precio = {}; MARCAS.forEach(([id, , , pu, pc]) => { precio[id + 'u'] = pu; if (pc != null) precio[id + 'c'] = pc; });
   const costoBase = Object.fromEntries(MARCAS.map(m => [m[0], m[2]]));
 
   const metodos = [
@@ -74,8 +78,9 @@
     { id: 'cl3', nombre: 'Carlos Vela', telefono: '956333444', permite_credito: true, limite_credito: 60, activo: true },
   ];
   const proveedores = [
-    { id: 'pv1', razon_social: 'Distribuidora Amazónica SAC', activo: true },
-    { id: 'pv2', razon_social: 'Mayorista Ucayali EIRL', activo: true },
+    { id: 'pv1', razon_social: 'Distribuidora Amazónica SAC', tipo_documento: 'RUC', numero_documento: '20600000011', telefono: '987000111', activo: true },
+    { id: 'pv2', razon_social: 'Mayorista Ucayali EIRL', tipo_documento: 'RUC', numero_documento: '20600000022', telefono: '987000222', activo: true },
+    { id: 'pv3', razon_social: 'Dulcería Selva SAC', tipo_documento: 'RUC', numero_documento: '20600000033', telefono: '987000333', activo: true },
   ];
   const catGasto = [{ id: 'g1', nombre: 'Transporte', tipo: 'OPERATIVO', activo: true }, { id: 'g2', nombre: 'Bolsas y empaques', tipo: 'OPERATIVO', activo: true }, { id: 'g3', nombre: 'Recargas y teléfono', tipo: 'OPERATIVO', activo: true }];
   const motivos = [
@@ -89,7 +94,7 @@
   const compras = [], ventasRaw = [], gastos = [];
   // Compras: dos proveedores; Distribuidora Amazónica subió Pall Mall SUNS hace poco
   const costoCompra = (pid, prov, dia) => {
-    let c = costoBase[pid] * 20;
+    let c = costoBase[pid] * FAC[pid];
     if (prov === 'pv2') c *= 0.985;
     if (pid === 'p1' && prov === 'pv1' && dia >= diaMenos(6)) c *= 1.045;
     return r2(c);
@@ -103,7 +108,7 @@
     for (let i = 0; i < cuantas; i++) {
       const h = elegir(HORAS), m = Math.floor(azar() * 60), ms = enLima(dia, h, m);
       if (ms > ahora - 60e3) continue;
-      const pid = elegir(marcaPeso), caj = azar() < 0.16;
+      const pid = elegir(marcaPeso), caj = precio[pid + 'c'] != null && azar() < 0.16;
       const lineas = [{ presentacion_id: pid + (caj ? 'c' : 'u'), cantidad: caj ? 1 : elegir([[1, 5], [2, 3], [3, 2], [5, 1]]) }];
       if (azar() < 0.12) { const p2 = elegir(marcaPeso); lineas.push({ presentacion_id: p2 + 'u', cantidad: 1 }); }
       ventasRaw.push({ ms, lineas, medio: elegir([[1, 52], [4, 38], [5, 10]]), cliente: 'cl0', condicion: 'CONTADO' });
@@ -121,17 +126,19 @@
   // y termine con algunas marcas por reponer.
   const vendido = {}; MARCAS.forEach(([id]) => vendido[id] = 0);
   ventasRaw.forEach(v => v.lineas.forEach(l => { const pr = presentaciones.find(p => p.id === l.presentacion_id); vendido[pr.producto_id] += l.cantidad * pr.factor; }));
-  const FINAL = { p1: 130, p2: 95, p3: 150, p4: 28, p5: 70 }; // stock con el que termina la demo
-  const TANDAS = [[20, 'pv1', 0.46], [14, 'pv2', 0.2], [9, 'pv2', 0.14], [6, 'pv1', 0.1], [2, 'pv1', 0.1]];
-  TANDAS.forEach(([n, prov, parte], k) => {
-    const dia = diaMenos(n);
-    const lineas = MARCAS.map(([pid]) => {
-      const total = Math.ceil((vendido[pid] + FINAL[pid]) / 20);
-      const antes = TANDAS.slice(0, k).reduce((s, t) => s + Math.round(total * t[2]), 0);
-      const cant = k === TANDAS.length - 1 ? total - antes : Math.round(total * parte);
-      return { presentacion_id: pid + 'c', producto_id: pid, cantidad: cant, costo_unitario: costoCompra(pid, prov, dia) };
+  const FINAL = { p1: 130, p2: 95, p3: 150, p4: 28, p5: 70, p6: 30, p7: 20 }; // stock con el que termina la demo
+  const TANDAS = [[20, 'pv1', 0.46, 'k1'], [14, 'pv2', 0.2, 'k1'], [9, 'pv2', 0.14, 'k1'], [6, 'pv1', 0.1, 'k1'], [2, 'pv1', 0.1, 'k1'], [19, 'pv3', 0.45, 'k2'], [9, 'pv3', 0.3, 'k2'], [3, 'pv3', 0.25, 'k2']];
+  const VENCE = { 'pv3-19': 2, 'pv3-9': 25, 'pv3-3': 6 }; // días hasta el vencimiento desde hoy (negativo = vence lejos)
+  TANDAS.forEach(([n, prov, parte, cat], k) => {
+    const dia = diaMenos(n), mismas = TANDAS.filter(t => t[3] === cat), j = mismas.findIndex(t => t[0] === n && t[1] === prov);
+    const lineas = MARCAS.filter(m => m[9] === cat).map(([pid]) => {
+      const total = Math.ceil((vendido[pid] + FINAL[pid]) / FAC[pid]);
+      const antes = mismas.slice(0, j).reduce((s, t) => s + Math.round(total * t[2]), 0);
+      const cant = j === mismas.length - 1 ? total - antes : Math.round(total * parte);
+      const ve = VENCE[prov + '-' + n];
+      return { presentacion_id: pid + 'c', producto_id: pid, cantidad: cant, costo_unitario: costoCompra(pid, prov, dia), vence: ve === undefined ? null : diaMenos(ve < 0 ? ve : -ve) };
     }).filter(l => l.cantidad > 0);
-    compras.push({ id: 'cp' + k, proveedor_id: prov, dia, ms: enLima(dia, 9, 30), serie: prov === 'pv1' ? 'F001' : 'F002', numero: String(1200 + k * 37), condicion: k === 4 ? 'CREDITO' : 'CONTADO', lineas });
+    compras.push({ id: 'cp' + k, proveedor_id: prov, dia, ms: enLima(dia, 9, 30), serie: { pv1: 'F001', pv2: 'F002', pv3: 'B001' }[prov], numero: String(1200 + k * 37), condicion: k === 4 ? 'CREDITO' : 'CONTADO', lineas });
   });
 
   // ---------- 5. Vistas derivadas (se recalculan tras cada venta) ----------
@@ -139,7 +146,7 @@
   function derivar() {
     // Costo promedio y stock por producto, en orden cronológico
     const ev = [];
-    compras.forEach(c => c.lineas.forEach(l => ev.push({ ms: c.ms, tipo: 'C', pid: l.producto_id, cant: l.cantidad * 20, costo: l.costo_unitario / 20, c })));
+    compras.forEach(c => c.lineas.forEach(l => ev.push({ ms: c.ms, tipo: 'C', pid: l.producto_id, cant: l.cantidad * FAC[l.producto_id], costo: l.costo_unitario / FAC[l.producto_id], c })));
     ventasRaw.forEach(v => v.lineas.forEach(l => { const pr = presentaciones.find(p => p.id === l.presentacion_id); ev.push({ ms: v.ms, tipo: 'V', pid: pr.producto_id, cant: l.cantidad * pr.factor, v, l }); }));
     ev.push({ ms: enLima(diaMenos(5), 21, 30), tipo: 'A', pid: 'p2', cant: 3 }); // faltante del último conteo
     ev.sort((a, b) => a.ms - b.ms);
@@ -190,8 +197,8 @@
     compras.forEach(c => {
       let tot = 0;
       c.lineas.forEach((l, i) => { const imp = r2(l.cantidad * l.costo_unitario); tot += imp;
-        compDet.push({ id: c.id + 'd' + i, compra_id: c.id, linea: i + 1, presentacion_id: l.presentacion_id, cantidad: l.cantidad, factor_conversion: 20, costo_unitario: l.costo_unitario, importe_neto: imp, igv_monto: 0,
-          costo_total: imp, costo_unitario_base: +(l.costo_unitario / 20).toFixed(6), compras: { proveedor_id: c.proveedor_id, fecha_emision: c.dia, fecha_ingreso: iso(c.ms), estado: 'REGISTRADA' } }); });
+        compDet.push({ id: c.id + 'd' + i, compra_id: c.id, linea: i + 1, presentacion_id: l.presentacion_id, cantidad: l.cantidad, factor_conversion: FAC[l.producto_id], costo_unitario: l.costo_unitario, fecha_vencimiento: l.vence || null, importe_neto: imp, igv_monto: 0,
+          costo_total: imp, cantidad_base: l.cantidad * FAC[l.producto_id], costo_unitario_base: +(l.costo_unitario / FAC[l.producto_id]).toFixed(6), compras: { proveedor_id: c.proveedor_id, fecha_emision: c.dia, fecha_ingreso: iso(c.ms), estado: 'REGISTRADA' } }); });
       tot = r2(tot);
       const prov = proveedores.find(p => p.id === c.proveedor_id);
       compTot.push({ compra_id: c.id, proveedor_id: c.proveedor_id, proveedor: prov.razon_social, fecha_emision: c.dia, fecha_ingreso: iso(c.ms), serie: c.serie, numero: c.numero, condicion: c.condicion,
@@ -232,8 +239,8 @@
     Object.assign(D, {
       perfiles: [{ id: 'demo', nombre: 'Luis Alvan', activo: true, roles: { codigo: 'ADMIN' } }],
       roles: [{ id: 1, codigo: 'ADMIN', nombre: 'Administrador' }],
-      metodos_pago: metodos, cuentas_financieras: cuentas, clientes, proveedores, categorias: [{ id: 'k1', nombre: 'Cigarros', activo: true, unidad_medida_id: 1, paquete_nombre: 'Cajetilla', paquete_unidades: 20, vende_paquete: true }, { id: 'k2', nombre: 'Gomitas', activo: true, unidad_medida_id: 2, paquete_nombre: 'Caja', paquete_unidades: null, vende_paquete: false }],
-      unidades_medida: [{ id: 1, codigo: 'CIGARRO', nombre: 'Cigarro' }, { id: 2, codigo: 'GOMITA', nombre: 'Gomita' }, { id: 3, codigo: 'UNIDAD', nombre: 'Unidad' }], categorias_gasto: catGasto, presentaciones, productos, motivos_movimiento: motivos,
+      metodos_pago: metodos, cuentas_financieras: cuentas, clientes, proveedores, categorias: [{ id: 'k1', nombre: 'Cigarros', activo: true, prefijo_factura: 'CIG', unidad_medida_id: 1, paquete_nombre: 'Cajetilla', paquete_unidades: 20, vende_paquete: true, controla_vencimiento: false }, { id: 'k2', nombre: 'Gomas', activo: true, prefijo_factura: 'GOMAS', unidad_medida_id: 4, paquete_nombre: 'Caja', paquete_unidades: 12, vende_paquete: false, controla_vencimiento: true }],
+      unidades_medida: [{ id: 1, codigo: 'CIGARRO', nombre: 'Cigarro' }, { id: 2, codigo: 'GOMITA', nombre: 'Gomita' }, { id: 3, codigo: 'UNIDAD', nombre: 'Unidad' }, { id: 4, codigo: 'BOLSA', nombre: 'Bolsa' }], categorias_gasto: catGasto, presentaciones, productos, motivos_movimiento: motivos,
       tipos_comprobante: [{ id: 1, codigo_sunat: '00', nombre: 'Sin comprobante' }, { id: 2, codigo_sunat: '01', nombre: 'Factura' }, { id: 3, codigo_sunat: '03', nombre: 'Boleta de venta' }, { id: 4, codigo_sunat: '12', nombre: 'Ticket' }],
       v_precios_vigentes: presentaciones.map(p => ({ presentacion_id: p.id, producto_id: p.producto_id, producto: p.productos.nombre, presentacion: p.nombre, factor: p.factor, precio: precio[p.id], vigente_desde: diaMenos(30) })),
       precios_venta: presentaciones.map(p => ({ id: 'pv-' + p.id, presentacion_id: p.id, precio: precio[p.id], vigente_desde: diaMenos(30) })),
@@ -246,8 +253,8 @@
       compra_detalles: compDet, v_compras_totales: compTot.slice().reverse(),
       v_cuentas_por_pagar: compTot.filter(c => c.saldo > 0).map(c => ({ origen: 'COMPRA', documento_id: c.compra_id, proveedor: c.proveedor, fecha: c.fecha_emision, total: c.total, saldo: c.saldo, fecha_vencimiento: c.fecha_vencimiento, dias_vencido: 0 })),
       v_kardex: kardex, caja_sesiones: [sesion], v_caja_sesiones: sesiones,
-      v_saldos_cuentas: cuentas.map(c => ({ cuenta_id: c.id, nombre: c.nombre, tipo: c.tipo, saldo: saldoDe(c.id) })),
-      v_flujo_caja_diario: [], alias_compra: [], periodos_contables: [], series_documento: [], almacenes: [{ id: 'a1', nombre: 'Principal' }],
+      v_saldos_cuentas: cuentas.map(c => ({ cuenta_id: c.id, nombre: c.nombre, tipo: c.tipo, saldo: c.id === 'cf1' ? r2(sesion.monto_apertura + sesion.entradas + sesion.salidas) : saldoDe(c.id) })),
+      v_flujo_caja_diario: [], alias_compra: MARCAS.map(m => ({ proveedor_id: m[9] === 'k2' ? 'pv3' : 'pv1', texto: '#' + m[11], presentacion_id: m[0] + 'c' })), periodos_contables: [], series_documento: [], almacenes: [{ id: 'a1', nombre: 'Principal' }],
       producto_proveedores: [], compra_costos_adicionales: [], devoluciones_compra: [], devolucion_compra_detalles: [], devoluciones_venta: [], devolucion_venta_detalles: [],
       movimientos_inventario: [{ id: 'mi1', fecha: iso(enLima(diaMenos(5), 21, 30)), observacion: 'Conteo físico ' + diaMenos(5), motivo_id: 6, tipo: 'AJUSTE_NEGATIVO',
         movimiento_detalles: [{ cantidad_base: -3, costo_total: -r2(3 * costoBase.p2) }] }],

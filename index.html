@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'sha256-SG+K+MSboiarZwJ3oNiURUQRy1A9FQhhVb2bK8GebE0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta name="referrer" content="no-referrer">
 <title>Caja · Gestión Comercial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.1/dist/umd/supabase.js" integrity="sha384-2DeuFKyqIlpZfFmj+jl/+IbM3DwDM4vGKsvK0fI32E0ZDt24W33hB6pka4RAdbz2" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
 <style>
 :root{
   --tinta:#231942; --tinta2:#3a2e63; --papel:#eef0f5; --blanco:#fff; --linea:#dcdfe8; --gris:#6b6880;
@@ -391,9 +393,11 @@ async function ir(v) {
   vistaActual = v; pintarTabs(); $('#barraMovil').classList.remove('ver');
   $('#vista').innerHTML = '<p class="vacio">Cargando…</p>';
   try { await VISTAS[v][1]($('#vista')); }
-  catch (e) { $('#vista').innerHTML = `<div class="panel"><h2>No se pudo cargar</h2><p class="sub">${esc(textoError(e))}</p><button class="btn" onclick="ir('${v}')">Reintentar</button></div>`; }
+  catch (e) { $('#vista').innerHTML = `<div class="panel"><h2>No se pudo cargar</h2><p class="sub">${esc(textoError(e))}</p><button class="btn" data-ir="${v}">Reintentar</button></div>`; }
 }
 $('#estadoCaja').onclick = () => ir('caja');
+// Botones que llevan a otra pestaña (sin manejadores en línea, por la CSP)
+document.addEventListener('click', e => { const b = e.target.closest('[data-ir]'); if (b && VISTAS[b.dataset.ir]) ir(b.dataset.ir); });
 
 
 // ============ PANEL (rendimiento del día) ============
@@ -496,7 +500,7 @@ async function vPanel(el) {
   el.innerHTML = `
   ${alertas.length ? `<div class="panel alerta"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
     <p class="sub">Con el costo promedio de tus compras actuales. El precio mínimo es el más bajo al que ganas tu margen mínimo.</p>${tablaAlertas(alertas)}
-    <button class="btn" style="margin-top:12px" onclick="ir('catalogo')">Ajustar precios</button></div>` : ''}
+    <button class="btn" style="margin-top:12px" data-ir="catalogo">Ajustar precios</button></div>` : ''}
   <section class="heroe" aria-label="Rendimiento de hoy">
     <div><small>Ganancia de hoy</small><div class="grande">${S(gb(H0))}</div>${variacion(gb(H0), gb(A), 'vs. ayer')}</div>
     <div><small>Margen de ganancia</small><div class="med">${margen(H0) === null ? '—' : P(margen(H0))}</div>${puntos(margen(H0), margen(A), 'vs. ayer')}</div>
@@ -623,7 +627,7 @@ async function vVender(el) {
       x.cantidad++; pintarTodo();
     });
     tk.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { ticket.splice(b.dataset.q, 1); pintarTodo(); });
-    tk.querySelectorAll('[data-c]').forEach(inp => {
+    tk.querySelectorAll('input[data-c]').forEach(inp => {
       inp.onfocus = () => inp.select();
       inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
       inp.onchange = () => {
@@ -698,15 +702,15 @@ async function vVentas(el) {
   </div>
   ${cxc.length ? `<div class="panel"><h2>Fiados por cobrar</h2><p class="sub">Clientes que se llevaron mercadería y aún deben.</p><div class="scroll"><table>
     <tr><th>Venta</th><th>Cliente</th><th class="n">Total</th><th class="n">Debe</th><th>Paga el</th><th></th></tr>
-    ${cxc.map(c => `<tr><td>${c.documento}</td><td>${esc(c.cliente)}</td><td class="n">${S(c.total)}</td><td class="n"><b>${S(c.saldo)}</b></td>
+    ${cxc.map(c => `<tr><td>${esc(c.documento)}</td><td>${esc(c.cliente)}</td><td class="n">${S(c.total)}</td><td class="n"><b>${S(c.saldo)}</b></td>
       <td>${fd(c.fecha_vencimiento)} ${num(c.dias_vencido) > 0 ? `<span class="chip mal">${c.dias_vencido} días tarde</span>` : ''}</td>
       <td class="n"><button class="btn mini" data-cobrar="${c.venta_id}" data-s="${c.saldo}">Cobrar</button></td></tr>`).join('')}</table></div></div>` : ''}
   <div class="panel"><h2>Ventas</h2><p class="sub">Las últimas 80. Anular devuelve todo el stock y el dinero; Devolver permite devolver solo una parte.</p><div class="scroll"><table>
     <tr><th>Venta</th><th>Fecha</th><th>Cliente</th><th class="n">Total</th><th class="n">Ganancia</th><th>Estado</th><th></th></tr>
-    ${ventas.map(v => `<tr><td>${v.documento}</td><td>${fh(v.fecha)}</td><td>${esc(v.cliente)}${v.condicion === 'CREDITO' ? ' <span class="chip aviso">fiado</span>' : ''}</td>
+    ${ventas.map(v => `<tr><td>${esc(v.documento)}</td><td>${fh(v.fecha)}</td><td>${esc(v.cliente)}${v.condicion === 'CREDITO' ? ' <span class="chip aviso">fiado</span>' : ''}</td>
       <td class="n">${S(v.total)}</td><td class="n">${v.estado === 'EMITIDA' ? S(num(v.total) - num(v.costo_ventas)) : ''}</td>
       <td>${v.estado === 'ANULADA' ? '<span class="chip mal">Anulada</span>' : num(v.importe_devuelto) > 0 ? '<span class="chip aviso">Con devolución</span>' : '<span class="chip ok">Emitida</span>'}</td>
-      <td class="n" style="white-space:nowrap">${v.estado === 'EMITIDA' ? `<button class="btn claro mini" data-dev="${v.venta_id}" data-doc="${v.documento}">Devolver</button> ` : ''}${v.estado === 'EMITIDA' && num(v.importe_devuelto) === 0 ? `<button class="btn claro mini" data-anular="${v.venta_id}">Anular</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="7" class="vacio">Todavía no hay ventas. Registra la primera en Vender.</td></tr>'}
+      <td class="n" style="white-space:nowrap">${v.estado === 'EMITIDA' ? `<button class="btn claro mini" data-dev="${v.venta_id}" data-doc="${esc(v.documento)}">Devolver</button> ` : ''}${v.estado === 'EMITIDA' && num(v.importe_devuelto) === 0 ? `<button class="btn claro mini" data-anular="${v.venta_id}">Anular</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="7" class="vacio">Todavía no hay ventas. Registra la primera en Vender.</td></tr>'}
   </table></div></div>`;
   el.querySelectorAll('[data-cobrar]').forEach(b => b.onclick = async () => {
     const v = await dialogo('Cobrar fiado', [{ label: 'Medio', type: 'select', options: opcMedios(MEDIOS_VENTA) }, { label: 'Monto', type: 'number', value: b.dataset.s, required: true }, { label: 'N.° de operación (opcional)' }], 'Cobrar');
@@ -847,7 +851,7 @@ async function vCompras(el) {
     <tr><th>A quién</th><th>Fecha</th><th class="n">Total</th><th class="n">Debes</th><th>Vence</th><th></th></tr>
     ${porPagar.map(p => `<tr><td>${esc(p.proveedor)} <span class="chip">${{ COMPRA: 'compra', GASTO: 'gasto', COSTO_ADICIONAL: 'flete' }[p.origen]}</span></td><td>${fd(p.fecha)}</td><td class="n">${S(p.total)}</td><td class="n"><b>${S(p.saldo)}</b></td>
       <td>${fd(p.fecha_vencimiento)} ${num(p.dias_vencido) > 0 ? `<span class="chip mal">${p.dias_vencido} días tarde</span>` : ''}</td>
-      <td class="n"><button class="btn mini" data-pagar="${p.documento_id}" data-o="${p.origen}" data-s="${p.saldo}">Pagar</button></td></tr>`).join('')}</table></div></div>` : ''}
+      <td class="n"><button class="btn mini" data-pagar="${p.documento_id}" data-o="${esc(p.origen)}" data-s="${p.saldo}">Pagar</button></td></tr>`).join('')}</table></div></div>` : ''}
   <div class="panel"><h2>Compras recientes</h2><div class="scroll"><table>
     <tr><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th class="n">Total</th><th class="n">Debes</th><th>Estado</th><th></th></tr>
     ${recientes.map(c => `<tr><td>${fh(c.fecha_ingreso)}</td><td>${esc(c.proveedor)}</td><td>${esc([c.serie, c.numero].filter(Boolean).join('-'))}</td><td class="n">${S(c.total)}</td><td class="n">${num(c.saldo) ? S(c.saldo) : ''}</td>
@@ -1295,6 +1299,23 @@ async function exportarExcel(d, h) {
   XLSX.writeFile(libro, `Caja_${d}_a_${h}.xlsx`);
   aviso('Excel descargado');
 }
+
+// ============ Seguridad ============
+// Impide que otra página muestre la app dentro de un marco (clickjacking)
+if (window.top !== window.self) { document.body.innerHTML = ''; window.top.location = window.self.location.href; }
+// Cierra la sesión tras 60 minutos sin actividad
+const MIN_INACTIVIDAD = 60;
+let ultimaActividad = Date.now();
+['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(ev => addEventListener(ev, () => { ultimaActividad = Date.now(); }, { passive: true }));
+setInterval(async () => {
+  if ($('#app').classList.contains('oculto')) return;
+  if (Date.now() - ultimaActividad > MIN_INACTIVIDAD * 60000) {
+    await sb.auth.signOut();
+    try { sessionStorage.setItem('motivoSalida', 'inactividad'); } catch {}
+    location.reload();
+  }
+}, 30000);
+try { if (sessionStorage.getItem('motivoSalida') === 'inactividad') { sessionStorage.removeItem('motivoSalida'); setTimeout(() => aviso('Cerramos tu sesión por 60 minutos sin uso. Vuelve a entrar.'), 300); } } catch {}
 
 // ============ Sesión ============
 async function entrar(session) {

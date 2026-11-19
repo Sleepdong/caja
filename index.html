@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-jh/eezPFDmym5OsWiVKaiLxm99WbvlPKIOkZEUcEfUs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-ijy3Z0svResX/EMLCnIlUGV6GzAb1xrxi1jUNrKt5cA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1619,6 +1619,7 @@ async function vCompras(el) {
     <div class="fila">
       <div style="flex:2 1 220px"><label>Proveedor</label><select id="prov"><option value="">Elige un proveedor</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div>
       <div class="auto"><button class="btn claro" id="nuevoProv">Nuevo proveedor</button></div>
+      <div class="auto"><button class="btn claro" id="btnEscProv">Escanear proveedor</button><input type="file" id="fotoProv" accept="image/*" capture="environment" class="oculto"></div>
       <div><label>Fecha</label><input type="date" id="fComp" value="${hoy()}"></div>
     </div>
     <div class="scroll" style="margin-top:14px"><table id="tLineas"></table></div>
@@ -1721,6 +1722,8 @@ async function vCompras(el) {
   el.querySelectorAll('[data-devc]').forEach(b => b.onclick = () => devolverCompra(b.dataset.devc, tarjeta).catch(e => aviso(textoError(e), true)));
   // Escáner de facturas
   $('#btnEscanear').onclick = () => $('#fotoFactura').click();
+  $('#btnEscProv').onclick = () => $('#fotoProv').click();
+  $('#fotoProv').onchange = () => { const f = $('#fotoProv').files[0]; $('#fotoProv').value = ''; if (f) escanearProveedor(f).catch(e => { aviso('No se pudo leer la factura: ' + textoError(e), true); $('#escaneo').innerHTML = ''; }); };
   $('#fotoFactura').onchange = () => { const f = $('#fotoFactura').files[0]; $('#fotoFactura').value = ''; if (f) escanearFactura(f).catch(e => { aviso('No se pudo leer la factura: ' + textoError(e), true); $('#escaneo').innerHTML = ''; }); };
   // Si venimos del escáner, llenar la cabecera
   if (cabeceraEscaneada) {
@@ -1990,8 +1993,12 @@ function extraerLineas(texto) {
   return out;
 }
 function adivinarProveedor(texto) {
-  const lineas = texto.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 8);
-  return lineas.find(x => /\b(S\.?A\.?C\.?|E\.?I\.?R\.?L\.?|S\.?R\.?L\.?|S\.?A\.?)\b/i.test(x)) || lineas.find(x => x.length > 5 && x === x.toUpperCase() && !/\d{5}/.test(x)) || '';
+  // Las primeras líneas suelen traer al proveedor; se descartan las del cliente, vendedor, chofer y direcciones
+  const NO = /(vendedor|chofer|cliente|despacho|direcc|dir\.|llegada|partida|se[nñ]or|fecha|emisi|boleta|factura|ruc\b|r\.u\.c|tel[eé]f|placa|pedido)/i;
+  const lineas = texto.split('\n').map(x => x.trim()).filter(x => x && !NO.test(x)).slice(0, 8);
+  const limpio = x => x.replace(/\b\d{8,}\b/g, ' ').replace(/[|:;,]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const l = lineas.find(x => /\b(S\.?A\.?C\.?|E\.?I\.?R\.?L\.?|S\.?R\.?L\.?|S\.?A\.?)\b/i.test(x)) || lineas.find(x => x.length > 8 && x === x.toUpperCase() && /[A-Z]{4,}/.test(x) && !/\d{5}/.test(x)) || '';
+  return limpio(l);
 }
 // Empareja una línea de la factura con tus productos: por código, por nombre de factura, por lo aprendido y por parecido
 function presCompraDe(prodId, factor, comprables) {
@@ -2042,6 +2049,63 @@ function leerDescripcion(texto) {
   if (marca) variante = cuerpo.slice(marca.length).trim();
   else { const w = cuerpo.split(' '); marca = titulo(w[0] || ''); variante = w.slice(1).join(' '); }
   return { cat, marca, variante: cat?.prefijo_factura === 'CIG' ? variante : titulo(variante) };
+}
+// ============ ESCANEAR PROVEEDOR ============
+// Lee una factura solo para registrar al proveedor (RUC, nombre, teléfono) y aprender sus códigos. No registra compra.
+async function escanearProveedor(archivo) {
+  const caja = $('#escaneo'), url = URL.createObjectURL(archivo);
+  caja.innerHTML = `<div class="escaner"><div class="cab-esc"><img class="prev" src="${url}" alt="Foto de la factura">
+    <div style="flex:1 1 220px"><b id="escEstado">Buscando el RUC en el código QR…</b><div class="progreso"><div id="escBarra"></div></div><p class="sub" style="margin:0">Solo leo los datos del proveedor: <b>no se registra ninguna compra</b> ni cambia tu stock.</p></div></div></div>`;
+  const avance = (f, t) => { $('#escBarra').style.width = Math.round(f * 100) + '%'; if (t) $('#escEstado').textContent = t; };
+  const img = await new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => mal(new Error('la imagen no se pudo abrir; prueba con otra foto')); i.src = url; });
+  avance(0.05); await cargarLibreria(LIB.jsqr);
+  const qr = interpretarQR(leerQR(img));
+  avance(0.1, 'Leyendo el nombre del proveedor…');
+  const texto = await leerTexto(img, avance);
+  avance(1, 'Listo');
+  const ruc = qr?.ruc || (texto.match(/\b(10|15|17|20)\d{9}\b/) || [])[0] || '';
+  const tel = ((texto.match(/(?:whats?app|wsp|tel[eé]?f?o?n?o?|cel(?:ular)?)\D{0,12}(9\d{2}\s?\d{3}\s?\d{3})/i) || [])[1] || (texto.match(/\b(9\d{2}\s?\d{3}\s?\d{3})\b/) || [])[1] || '').replace(/\s/g, '');
+  const ya = ruc ? C.proveedores.find(p => p.numero_documento === ruc) : null;
+  // Códigos de productos que ya conoces: se aprenden para este proveedor
+  const lineas = extraerLineas(texto), comprables = C.presentaciones.filter(p => p.se_compra);
+  lineas.forEach(l => Object.assign(l, emparejar(l.texto, {}, comprables, l)));
+  const conocidas = lineas.filter(l => l.id && l.codigo);
+  const fin = () => { URL.revokeObjectURL(url); caja.innerHTML = ''; };
+  const aprenderCodigos = async provId => {
+    if (!conocidas.length) return 0;
+    const filas = conocidas.map(l => ({ proveedor_id: provId, texto: '#' + l.codigo, presentacion_id: l.id, actualizado_en: new Date().toISOString() }));
+    await q(sb.from('alias_compra').upsert(filas, { onConflict: 'proveedor_id,texto' })).catch(() => {});
+    for (const l of conocidas) { const pr = C.presentaciones.find(p => p.id === l.id)?.productos; if (pr && !pr.codigo_factura) { await q(sb.from('productos').update({ codigo_factura: l.codigo }).eq('id', pr.id)).catch(() => {}); pr.codigo_factura = l.codigo; } }
+    return conocidas.length;
+  };
+  if (ya) {
+    const n = await aprenderCodigos(ya.id);
+    caja.innerHTML = `<div class="escaner"><div class="cuadre ok">Este proveedor ya está registrado: <b>${esc(ya.razon_social)}</b> (RUC ${esc(ruc)}).${n ? ` Aprendí los códigos de ${n} ${n === 1 ? 'producto' : 'productos'} suyos.` : ''}</div><button class="btn claro" id="escFin" style="margin-top:10px">Listo</button></div>`;
+    return $('#escFin').onclick = fin;
+  }
+  caja.innerHTML = `<div class="escaner"><div class="cab-esc"><img class="prev" id="escImg" src="${url}" alt="Foto de la factura">
+    <div style="flex:1 1 260px"><h3 style="margin-top:0">Nuevo proveedor</h3>
+      <p class="sub">${qr ? 'Leí el RUC del código QR.' : ruc ? 'Encontré el RUC en el texto: revísalo.' : '<b>No encontré el RUC.</b> Escríbelo: está arriba de la factura, son 11 dígitos.'} Revisa el nombre antes de guardar.</p>
+      <div class="fila"><div style="flex:2 1 220px"><label for="pvNom">Nombre o razón social</label><input id="pvNom" value="${esc(ruc ? adivinarProveedor(texto) : '')}" placeholder="${ruc ? '' : 'Arriba de la factura, p. ej. Distribuidora…'}"></div>
+        <div><label for="pvRuc">RUC</label><input id="pvRuc" value="${esc(ruc)}" inputmode="numeric" maxlength="11"></div>
+        <div><label for="pvTel">Teléfono o WhatsApp</label><input id="pvTel" value="${esc(tel)}" inputmode="tel"></div></div>
+      ${conocidas.length ? `<p class="consejo-claro">Además reconocí <b>${conocidas.length} ${conocidas.length === 1 ? 'producto tuyo' : 'productos tuyos'}</b> en esta factura (${conocidas.map(l => esc(C.presentaciones.find(p => p.id === l.id)?.productos?.nombre || '')).join(', ')}). Guardaré sus códigos para reconocerlos por código en las próximas compras.</p>` : ''}
+      <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn rotulo" id="pvGuardar">Guardar proveedor</button></div><div class="auto"><button class="btn claro" id="pvCancelar">Descartar</button></div></div>
+    </div></div></div>`;
+  $('#escImg').onclick = () => $('#escImg').classList.toggle('grande');
+  $('#pvCancelar').onclick = fin;
+  $('#pvGuardar').onclick = async () => {
+    const nom = singular($('#pvNom').value), r = $('#pvRuc').value.trim(), t = $('#pvTel').value.replace(/\D/g, '');
+    if (!nom) return aviso('Escribe el nombre del proveedor', true);
+    if (r && !/^\d{11}$/.test(r)) return aviso('El RUC debe tener 11 dígitos', true);
+    if (r && C.proveedores.some(p => p.numero_documento === r)) return aviso('Ya tienes un proveedor con ese RUC', true);
+    try {
+      const prov = await q(sb.from('proveedores').insert({ razon_social: nom, tipo_documento: r ? 'RUC' : null, numero_documento: r || null, telefono: t || null }).select().single());
+      C.proveedores.push(prov); C.proveedores.sort((a, b) => a.razon_social.localeCompare(b.razon_social));
+      const n = await aprenderCodigos(prov.id);
+      aviso(`Proveedor guardado: ${nom}${n ? `. Aprendí ${n} ${n === 1 ? 'código' : 'códigos'}` : ''}`); fin(); ir('compras');
+    } catch (e) { aviso(textoError(e), true); }
+  };
 }
 async function escanearFactura(archivo) {
   const caja = $('#escaneo');

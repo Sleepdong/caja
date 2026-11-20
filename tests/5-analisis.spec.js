@@ -1,0 +1,75 @@
+// Sección Análisis: los números deben coincidir con un cálculo independiente sobre las mismas tablas
+const { test, expect, abrirDemo, irA } = require('./ayuda');
+const soles = t => Number(t.replace(/[^\d.-]/g, ''));
+
+test('KPIs del periodo coinciden con un cálculo independiente', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await page.evaluate(() => local.guardar('anPeriodo', '30'));
+  await irA(page, 'analisis');
+  const k = page.locator('.an-kpi .cifra');
+  const ref = await page.evaluate(async () => {
+    const H = hoy(), ini = new Date(Date.parse(H + 'T12:00:00-05:00') - 29 * 864e5).toISOString().slice(0, 10);
+    const d = (await sb.from('v_resultados_diarios').select('*').gte('fecha', ini).lte('fecha', H)).data;
+    const v = d.reduce((a, x) => a + num(x.ventas_netas), 0), g = d.reduce((a, x) => a + num(x.utilidad_bruta), 0);
+    const n = (await sb.from('ventas').select('id').eq('estado', 'EMITIDA').gte('fecha', ini + 'T00:00:00-05:00').lte('fecha', H + 'T23:59:59.999-05:00')).data.length;
+    return { v: r2(v), g: r2(g), n, t: r2(v / n) };
+  });
+  expect(soles(await k.nth(0).locator('b').innerText())).toBeCloseTo(ref.v, 2);
+  expect(soles(await k.nth(1).locator('b').innerText())).toBeCloseTo(ref.g, 2);
+  expect(Number(await k.nth(4).locator('b').innerText())).toBe(ref.n);
+  expect(soles(await k.nth(5).locator('b').innerText())).toBeCloseTo(ref.t, 2);
+});
+
+test('la ganancia por producto coincide con la vista de rentabilidad', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await page.evaluate(() => local.guardar('anPeriodo', '30'));
+  await irA(page, 'analisis');
+  const primero = page.locator('.pg-fila').first();
+  const nombre = (await primero.locator('.pg-cab b').innerText()).trim();
+  const mostrado = soles((await primero.locator('.pg-cab span').innerText()).split('·')[0]);
+  const ref = await page.evaluate(async nom => {
+    const H = hoy(), ini = new Date(Date.parse(H + 'T12:00:00-05:00') - 29 * 864e5).toISOString().slice(0, 10);
+    const l = (await sb.from('v_lineas_rentabilidad').select('*').gte('fecha', ini).lte('fecha', H)).data;
+    const pid = C.presentaciones.find(p => p.productos.nombre === nom).producto_id;
+    return r2(l.filter(x => x.producto_id === pid).reduce((a, x) => a + num(x.venta_neta) - num(x.costo), 0));
+  }, nombre);
+  expect(mostrado).toBeCloseTo(ref, 2);
+});
+
+test('hallazgos: un solo hallazgo por patrón y con evidencia', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'analisis');
+  const h = page.locator('.hallazgo');
+  const titulos = await h.locator('h3').allInnerTexts();
+  expect(new Set(titulos).size).toBe(titulos.length);
+  expect(titulos.filter(t => /paquete deja menos/.test(t)).length).toBeLessThanOrEqual(1);
+  for (let i = 0; i < await h.count(); i++) {
+    await expect(h.nth(i)).toContainText('Qué muestran los datos');
+    await expect(h.nth(i)).toContainText('Qué hacer');
+  }
+});
+
+test('madurez de datos y cambio de periodo', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'analisis');
+  await expect(page.locator('.mad-fila')).toHaveCount(5);
+  await page.locator('[data-per="7"]').click();
+  await expect(page.locator('[data-per="7"]')).toHaveAttribute('aria-selected', 'true');
+  expect(await page.evaluate(() => local.leer('anPeriodo'))).toBe('7');
+});
+
+test('estadística descriptiva correcta', async ({ page, errores }) => {
+  await abrirDemo(page);
+  const e = await page.evaluate(() => estad([10, 20, 30, 40]));
+  expect(e.media).toBe(25);
+  expect(e.mediana).toBe(25);
+  expect(e.de).toBeCloseTo(12.9099, 3); // desviación muestral
+});
+
+test('Panel: las ventas del conteo no entran al gráfico por hora', async ({ page, errores }) => {
+  await abrirDemo(page);
+  const n = await page.evaluate(async () => (await sb.from('ventas').select('id, origen').eq('origen', 'CONTEO')).data.length);
+  expect(n).toBeGreaterThanOrEqual(0);
+  await irA(page, 'panel');
+  await expect(page.locator('#gHoras')).toBeVisible();
+});

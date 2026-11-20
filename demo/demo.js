@@ -182,7 +182,7 @@
       const cli = clientes.find(c => c.id === v.cliente);
       const doc = 'T001-' + String(num).padStart(6, '0');
       const cobrado = v.condicion === 'CONTADO' ? total : 0;
-      ventas.push({ id, fecha: iso(v.ms), estado: 'EMITIDA', observaciones: v.obs || null, venta_detalles: dets.map(d => ({ subtotal: d.subtotal, costo_total: d.costo_total })) });
+      ventas.push({ id, fecha: iso(v.ms), estado: 'EMITIDA', observaciones: v.obs || null, origen: v.obs === 'Venta registrada en el conteo físico' ? 'CONTEO' : 'CAJA', venta_detalles: dets.map(d => ({ subtotal: d.subtotal, costo_total: d.costo_total, presentacion_id: d.presentacion_id, cantidad: d.cantidad, cantidad_base: r2(d.cantidad * (presentaciones.find(x => x.id === d.presentacion_id)?.factor || 1)) })) });
       vdet.push(...dets);
       vtot.push({ venta_id: id, documento: doc, fecha: iso(v.ms), cliente_id: cli.id, cliente: cli.nombre, condicion: v.condicion, total, costo_ventas: costo, importe_devuelto: 0, costo_devuelto: 0,
         estado: 'EMITIDA', saldo: r2(total - cobrado), cobros_netos: cobrado, fecha_vencimiento: v.vence || null });

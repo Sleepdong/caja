@@ -37,6 +37,7 @@ Una app instalable en el celular (PWA), pensada para usarse con una mano detrás
 | **Fiados** | Quién debe y desde cuándo, con recordatorio por WhatsApp en un toque |
 | **Reportes** | Estado de resultados por periodo, ganancia **por producto, marca y categoría**, análisis suelto vs. paquete, exportación a Excel y cierre de mes |
 | **Para declarar (SUNAT)** | Resumen mensual para el Declara Fácil 621 de una MYPE Tributaria con ventas exoneradas de IGV (Ley de la Amazonía): ventas no gravadas, Renta al 1 % redondeada, avance frente al tope de 300 UIT y compras del mes con su comprobante. Se copia o se descarga en Excel |
+| **Análisis** | Inteligencia de negocio por periodo (7, 30, 90 días o mes) comparada con el periodo anterior equivalente: tendencia con promedio móvil de 7 días, ganancia por producto y mezcla suelto/paquete, cascada de venta a ganancia, cobertura de inventario en días y hallazgos con evidencia. Cada análisis declara cuántos días de datos necesita para ser confiable |
 | **Control de boletas** | Las ventas de hasta S/ 5 se agrupan en la boleta del día (como pide SUNAT) y las mayores piden su propia boleta. Se anota la serie y el número emitidos en la APP Emprender; las ventas siguen inmutables y las boletas se enlazan aparte, también inmutables y auditadas. "Para declarar" avisa si alguna venta del mes no tiene boleta |
 | **Respaldo** | Copia de seguridad completa en Excel, una hoja por tabla |
 
@@ -81,7 +82,7 @@ Lo más interesante del proyecto fue traducir criterios contables en reglas que 
 
 ![Pruebas](https://github.com/Sleepdong/caja/actions/workflows/pruebas.yml/badge.svg)
 
-Cada cambio publicado pasa por **64 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
+Cada cambio publicado pasa por **78 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
 
 | Grupo | Qué comprueba |
 |---|---|

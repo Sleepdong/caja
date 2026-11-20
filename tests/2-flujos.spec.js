@@ -1,7 +1,7 @@
 // Flujos principales del negocio, usados como lo haría Luis (en laptop y en celular)
 const { test, expect, abrirDemo, irA, aceptarDialogo } = require('./ayuda');
 
-const PAGINAS = ['panel', 'vender', 'ventas', 'caja', 'compras', 'stock', 'gastos', 'catalogo', 'reportes', 'boletas', 'cuenta'];
+const PAGINAS = ['panel', 'analisis', 'vender', 'ventas', 'caja', 'compras', 'stock', 'gastos', 'catalogo', 'reportes', 'boletas', 'cuenta'];
 
 test('todas las pantallas abren sin errores', async ({ page, errores }) => {
   await abrirDemo(page);
@@ -118,8 +118,8 @@ test('Para declarar: ventas exoneradas, IGV cero y Renta MYPE al 1 % redondeada'
 
 test('boletas: registrar la boleta del día quita las ventas pendientes y no acepta números repetidos', async ({ page, errores }) => {
   await abrirDemo(page);
-  await irA(page, 'panel');
-  const card = page.locator('.boletas');
+  await irA(page, 'boletas');
+  const card = page.locator('#boletasPanel .boletas');
   await expect(card).toContainText('sin boleta');
   const antes = Number((await card.locator('p.sub b').first().innerText()).match(/\d+/)[0]);
   // Boleta consolidada del primer día pendiente
@@ -214,4 +214,19 @@ test('contar el dinero: si cuadra, lo confirma', async ({ page, errores }) => {
   await expect(page.locator('.asis')).toContainText('Tu caja cuadra');
   await page.locator('[data-a="ok"]').click();
   await expect(page.locator('.contar-ahora')).toContainText('cuadró');
+});
+
+test('Panel: compara contra ayer a la misma hora, no contra el día completo', async ({ page, errores }) => {
+  await page.clock.setFixedTime(new Date('2026-11-20T11:00:00-05:00'));
+  await abrirDemo(page);
+  await irA(page, 'panel');
+  await expect(page.locator('.heroe')).toContainText('vs. ayer a esta hora');
+  await expect(page.locator('.heroe')).toContainText('Ganancia bruta de hoy');
+  await expect(page.locator('.heroe')).not.toContainText('Ganas sobre el costo');
+  // El dato comparado es el tramo de ayer hasta las 11:00
+  const esperado = await page.evaluate(async () => {
+    const vs = (await sb.from('ventas').select('id, fecha, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', '2026-11-19T00:00:00-05:00').lte('fecha', new Date(Date.now() - 864e5).toISOString())).data;
+    return vs.length;
+  });
+  await expect(page.locator('.heroe')).toContainText(`ayer a esta hora: ${esperado}`);
 });

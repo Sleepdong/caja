@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-U+tp2lO8JmopqOSblfjqQAGYCHFZrdJgzWA1HcBN98Q='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-wpI/1c66jdnbKgVSas5z5b1Ihu+5xCi/ScUCEBBaxyk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -481,6 +481,27 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .motivo b{display:block;font-size:14.5px}.motivo small{color:var(--gris);font-size:12.5px}
 .motivo.on{border-color:var(--violeta);background:#7B5CFF22}.motivo:focus-visible{outline:2px solid var(--violeta);outline-offset:2px}
 .contar-ahora .envio-cab{align-items:center}
+.pendientes h2 .chip{font-size:13px;vertical-align:middle}
+.pend-item{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--tono)}
+.pend-item:first-of-type{border-top:0}.pend-item>div{flex:1;min-width:0}.pend-item b{display:block;font-size:14.5px}.pend-item small{color:var(--gris);font-size:12.5px}
+.pendientes details summary{cursor:pointer;color:var(--gris);font-size:13.5px;padding-top:8px}
+.periodos{display:flex;gap:8px;flex-wrap:wrap}
+.chip-per{background:var(--tono);color:var(--texto);border:1px solid transparent;border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+.chip-per.on{background:var(--texto);color:var(--papel);font-weight:600}.chip-per:focus-visible{outline:2px solid var(--violeta);outline-offset:2px}
+.an-kpi{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.hallazgos{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.hallazgo{background:var(--tono);border-radius:18px;padding:14px 16px;box-shadow:inset 3px 0 0 var(--violeta)}
+.hallazgo.mal{box-shadow:inset 3px 0 0 var(--coral)}.hallazgo.ok{box-shadow:inset 3px 0 0 var(--menta)}
+.hallazgo h3{margin:0 0 8px;font-size:15.5px}.hallazgo dl{margin:0;display:grid;gap:4px}.hallazgo dt{font-size:12px;color:var(--gris)}.hallazgo dd{margin:0 0 6px;font-size:14px;line-height:1.45}
+.pg-fila{padding:10px 0;border-top:1px solid var(--tono)}.pg-fila:first-child{border-top:0}
+.pg-cab{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}.pg-cab span{color:var(--gris);font-size:13.5px;white-space:nowrap}.pg-fila small{color:var(--gris);font-size:12.5px}
+.cascada{display:grid;gap:10px}.cas-fila{display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center;font-size:14px}
+.cas-barra{height:12px;background:var(--tono);border-radius:6px;overflow:hidden}.cas-barra i{display:block;height:100%;border-radius:6px;background:#7B6CFF}
+.cas-fila.c .cas-barra i{background:var(--coral)}.cas-fila.r .cas-barra i{background:#159E7D}.cas-fila.r span,.cas-fila.r b{font-weight:700}
+.madurez{display:grid;gap:10px;margin-top:10px}.mad-fila{display:grid;grid-template-columns:1fr 120px 70px;gap:12px;align-items:center}
+.mad-fila b{display:block;font-size:14px}.mad-fila small{color:var(--gris);font-size:12.5px}.mad-fila span{font-size:13px;color:var(--gris);text-align:right}
+.mad-barra{height:8px;background:var(--tono);border-radius:4px;overflow:hidden}.mad-barra i{display:block;height:100%;background:var(--ambar)}.mad-fila.ok .mad-barra i{background:var(--menta)}.mad-fila.ok span{color:var(--menta)}
+@media(max-width:600px){.cas-fila{grid-template-columns:1fr auto}.cas-barra{grid-column:1/-1;order:3}.mad-fila{grid-template-columns:1fr 64px}.mad-barra{grid-column:1/-1;order:3}}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -877,7 +898,7 @@ async function abrirCajaRapido() {
 
 // ============ Navegación ============
 const VISTAS = {
-  panel: ['Panel', vPanel], vender: ['Vender', vVender], ventas: ['Ventas', vVentas], caja: ['Caja', vCaja], compras: ['Compras', vCompras],
+  panel: ['Panel', vPanel], analisis: ['Análisis', vAnalisis], vender: ['Vender', vVender], ventas: ['Ventas', vVentas], caja: ['Caja', vCaja], compras: ['Compras', vCompras],
   stock: ['Stock', vStock], gastos: ['Gastos', vGastos], catalogo: ['Productos', vCatalogo], reportes: ['Reportes', vReportes], boletas: ['Boletas', vBoletas], cuenta: ['Cuenta', vCuenta],
 };
 let vistaActual = 'vender';
@@ -892,6 +913,7 @@ const ICONOS = {
   catalogo: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.3"/>',
   reportes: '<path d="M6 3h9l4 4v14H6z"/><path d="M9.5 17v-3M12.5 17v-6M15.5 17v-4"/>',
   boletas: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="m9 11 2 2 4-4"/>',
+  analisis: '<path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/>',
   cuenta: '<path d="M12 3l8 3v6c0 4.8-3.4 8-8 9-4.6-1-8-4.2-8-9V6z"/><path d="m9 12 2 2 4-4"/>',
   mas: '<circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/>',
 };
@@ -908,6 +930,7 @@ const PAGINAS = {
   gastos: () => ['Gastos', 'Lo que pagas para operar: bolsas, transporte, recargas y más.'],
   catalogo: () => ['Productos', 'Tus precios, márgenes y el simulador para probar cambios.'],
   reportes: () => ['Reportes', 'Tus resultados por fecha, listos para descargar en Excel.'],
+  analisis: () => ['Análisis', 'Cómo va tu negocio en semanas y meses, con hallazgos explicados y solo cuando hay datos suficientes.'],
   boletas: () => ['Boletas', 'Las boletas que emites en SUNAT: qué falta emitir, cuáles registraste y cómo corregir un error.'],
   cuenta: () => ['Cuenta', 'Tu seguridad, tu contraseña y el resumen diario.'],
 };
@@ -1069,18 +1092,71 @@ function barras(cont, etiquetas, series, opts = {}) {
   });
 }
 
+// Gráfico de líneas para evolución en el tiempo (crosshair + tooltip). series: [{ nombre, color, valores, ancho, opaco, puntos }]
+function lineas(cont, etiquetas, series, opts = {}) {
+  const W = Math.max(280, Math.min(720, Math.round(cont.clientWidth || 640))), H = opts.alto || 220, m = { t: 12, r: 10, b: 26, l: 46 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, n = etiquetas.length;
+  const vals = series.flatMap(s => s.valores.filter(v => v != null));
+  const max = Math.max(1, ...vals);
+  const paso = (() => { const r = max / 4, e = 10 ** Math.floor(Math.log10(r)), f = r / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * e; })();
+  const tope = Math.ceil(max / paso) * paso;
+  const x = i => m.l + (n === 1 ? iw / 2 : iw * i / (n - 1)), y = v => m.t + ih - (v / tope) * ih;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.titulo || '')}">`;
+  for (let v = 0; v <= tope + 1e-9; v += paso) svg += `<line class="rejilla" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="eje" x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v >= 1000 ? N(v / 1000, 1) + 'k' : N(v)}</text>`;
+  const cadaN = Math.ceil(n / Math.max(4, Math.floor(W / 64)));
+  etiquetas.forEach((et, i) => { if ((i % cadaN === 0 && n - 1 - i >= cadaN * 0.6) || i === n - 1) svg += `<text class="eje" x="${x(i)}" y="${H - 8}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${esc(et)}</text>`; });
+  series.forEach(s => {
+    let d = '', abierto = false;
+    s.valores.forEach((v, i) => { if (v == null) { abierto = false; return; } d += (abierto ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(v).toFixed(1); abierto = true; });
+    svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.ancho || 2}" stroke-linejoin="round" stroke-linecap="round" opacity="${s.opaco || 1}"/>`;
+    if (s.puntos) s.valores.forEach((v, i) => { if (v != null) svg += `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${s.color}" stroke="var(--blanco)" stroke-width="2" opacity="${s.opaco || 1}"/>`; });
+  });
+  svg += `<line class="cruz" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--gris)" stroke-dasharray="3 3" opacity="0"/>`;
+  svg += `<rect class="captura" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/></svg>`;
+  cont.innerHTML = `<div class="grafico">${svg}<div class="tip"></div></div>`;
+  const tip = cont.querySelector('.tip'), caja = cont.querySelector('.grafico'), sv = cont.querySelector('svg'), cruz = cont.querySelector('.cruz');
+  const mover = ev => {
+    const r = sv.getBoundingClientRect(), px = ((ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(n - 1, Math.round((px - m.l) / (n === 1 ? 1 : iw / (n - 1)))));
+    cruz.setAttribute('x1', x(i)); cruz.setAttribute('x2', x(i)); cruz.setAttribute('opacity', 1);
+    tip.innerHTML = `${esc(opts.tituloTip ? opts.tituloTip(i) : etiquetas[i])}<br>` + series.map(s => `${esc(s.nombre)}: <b>${s.valores[i] == null ? '—' : S(s.valores[i])}</b>`).join('<br>');
+    const rc = caja.getBoundingClientRect();
+    tip.style.left = (r.left + x(i) * r.width / W - rc.left) + 'px'; tip.style.top = (r.top + m.t * r.height / H - rc.top + 8) + 'px'; tip.classList.add('ver');
+  };
+  const salir = () => { tip.classList.remove('ver'); cruz.setAttribute('opacity', 0); };
+  const cap = cont.querySelector('.captura');
+  cap.addEventListener('mousemove', mover); cap.addEventListener('mouseleave', salir); cap.addEventListener('touchstart', mover, { passive: true }); cap.addEventListener('touchmove', mover, { passive: true });
+}
+
+// Una sola lista de pendientes en el Panel: lo urgente primero, máximo 3 a la vista
+function pintarPendientes2(items) {
+  if (!items.length) return '';
+  const fila = x => `<div class="pend-item"><div><b>${x.t}</b><small>${x.d}</small></div>${x.b}</div>`;
+  return `<section class="panel pendientes" aria-label="Pendientes"><h2>Pendientes <span class="chip">${items.length}</span></h2>
+    ${items.slice(0, 3).map(fila).join('')}
+    ${items.length > 3 ? `<details><summary>Ver ${items.length - 3} más</summary>${items.slice(3).map(fila).join('')}</details>` : ''}</section>`;
+}
 async function vPanel(el) {
   const h = hoy(), d = n => { const x = new Date(h + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
   const ayer = d(1), semana = d(7);
-  const [dias, ventasHoy, lineasHoy, cobros, stock, ventasSemanaPasada] = await Promise.all([
+  const [dias, ventasHoy, lineasHoy, cobros, stock] = await Promise.all([
     q(sb.from('v_resultados_diarios').select('*').gte('fecha', semana).lte('fecha', h)),
-    q(sb.from('ventas').select('id, fecha, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', inicioHoy())),
+    q(sb.from('ventas').select('id, fecha, origen, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', inicioHoy())),
     q(sb.from('v_lineas_rentabilidad').select('*').eq('fecha', h)),
     q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())),
     q(sb.from('v_existencias').select('producto_id, producto, cantidad, stock_minimo, requiere_reposicion, costo_promedio').eq('activo', true)),
-    q(sb.from('ventas').select('id', { count: 'exact', head: false }).eq('estado', 'EMITIDA').gte('fecha', ayer + 'T00:00:00-05:00').lt('fecha', inicioHoy())),
   ]);
   const con2fa = sb.auth.mfa.listFactors().then(r => (r.data?.totp || []).some(f => f.status === 'verified')).catch(() => true);
+  // Comparaciones justas: hoy hasta ahora vs. el mismo tramo de ayer y de hace 7 días (no contra el día completo)
+  const tramo = async n => {
+    const desde = d(n) + 'T00:00:00-05:00', hasta = new Date(Date.now() - n * 864e5).toISOString();
+    const vs = await q(sb.from('ventas').select('id, fecha, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', desde).lte('fecha', hasta)).catch(() => null);
+    if (!vs) return null;
+    const lin = vs.flatMap(v => v.venta_detalles || []), venta = r2(lin.reduce((a, l) => a + num(l.subtotal), 0));
+    return { n: vs.length, venta, ganancia: r2(venta - lin.reduce((a, l) => a + num(l.costo_total), 0)) };
+  };
+  const [ayerHora, semHora, gastosMes] = await Promise.all([tramo(1), tramo(7),
+    q(sb.from('gastos').select('id').gte('fecha', d(30) + 'T00:00:00-05:00').limit(1)).then(x => x.length).catch(() => 1)]);
   const [fiados, sesAbierta, preciosV, lotes] = await Promise.all([
     q(sb.from('v_cuentas_por_cobrar').select('saldo, dias_vencido')).catch(() => []),
     sesionCaja().catch(() => null),
@@ -1093,13 +1169,12 @@ async function vPanel(el) {
   const vn = x => num(x.ventas_netas), gb = x => num(x.utilidad_bruta), gn = x => num(x.utilidad_neta_estimada), cmv = x => num(x.costo_mercaderia_vendida);
   const gastos = x => num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos);
   const margen = x => vn(x) > 0 ? gb(x) / vn(x) * 100 : null;
-  const markup = x => cmv(x) > 0 ? gb(x) / cmv(x) * 100 : null;
   const margenNeto = x => vn(x) > 0 ? gn(x) / vn(x) * 100 : null;
   const nVentas = ventasHoy.length, ticketProm = nVentas ? vn(H0) / nVentas : 0;
-  const nAyer = ventasSemanaPasada.length, ticketAyer = nAyer ? vn(A) / nAyer : 0;
 
   // Por hora
-  const porHora = {}; ventasHoy.forEach(v => {
+  // Las ventas registradas en el conteo ("Lo vendí") no tienen la hora real de la venta: no entran al análisis por hora
+  const porHora = {}; ventasHoy.filter(v => v.origen !== 'CONTEO').forEach(v => {
     const hr = Number(new Date(v.fecha).toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false })) % 24;
     if (!Number.isFinite(hr)) return;
     const o = porHora[hr] ??= { v: 0, g: 0, n: 0 };
@@ -1119,7 +1194,6 @@ async function vPanel(el) {
   const totMedios = Object.values(porMedio).reduce((a, b) => a + b, 0);
   const reponer = stock.filter(s => s.requiere_reposicion);
   const alertas = await alertasMargen().catch(() => []);
-  const sin2fa = !(await factorVerificado().catch(() => true));
   // Meta del día: avance y cuántas ventas del producto que más te deja faltarían
   const meta = metaDiaria(), avance = meta ? Math.max(0, gb(H0)) / meta * 100 : 0;
   const faltan = (() => {
@@ -1133,32 +1207,36 @@ async function vPanel(el) {
   const ult7 = Array.from({ length: 7 }, (_, i) => d(6 - i));
   const nomDia = f => new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'short', day: 'numeric' });
 
+  const horaLima = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false }));
+  const resp = diasDesdeRespaldo(), con2 = await con2fa;
+  const pendientes = [
+    sesAbierta && horaLima >= 17 && { t: '¿Terminaste por hoy?', d: 'Cuenta el efectivo, cierra la caja y envíate el resumen en un solo paso.', b: '<button class="btn rotulo mini" id="btnCerrarDia">Cerrar el día</button>' },
+    urgentes.length && { t: urgentes.some(l => l.dias < 0) ? 'Tienes mercadería vencida' : 'Mercadería por vencer esta semana', d: urgentes.slice(0, 3).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : `en ${l.dias} ${l.dias === 1 ? 'día' : 'días'}`})`).join(', ') + (urgentes.length > 3 ? ` y ${urgentes.length - 3} más` : '') + '.', b: '<button class="btn claro mini" data-ir="stock">Ver</button>' },
+    !gastosMes && dias.some(x => vn(x) > 0) && { t: 'No has registrado gastos en 30 días', d: 'Tu ganancia neta está sobrestimada: sin alquiler, transporte o bolsas, se ve igual a la bruta.', b: '<button class="btn claro mini" data-ir="gastos">Registrar gasto</button>' },
+    alertas.length && { t: `${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo`, d: 'Revisa el detalle más abajo.', b: '<button class="btn claro mini" data-bajar="alertaPrecios">Ver</button>' },
+    !con2 && { t: 'Tu cuenta solo tiene contraseña', d: 'Activa la verificación en dos pasos: sin el código de tu celular nadie entra.', b: '<button class="btn claro mini" data-ir="cuenta">Activar</button>' },
+    (resp === null || resp >= 7) && { t: resp === null ? 'Aún no tienes copia de seguridad' : `Tu última copia fue hace ${resp} días`, d: 'Descárgala en un minuto para no perder tus datos.', b: '<button class="btn claro mini" data-ir="cuenta">Hacer copia</button>' },
+  ].filter(Boolean);
   el.innerHTML = `
   <section class="heroe" aria-label="Rendimiento de hoy">
-    <div class="heroe-top"><div><small>Hoy ganaste</small><div class="grande">${S(gb(H0))}</div>${variacion(gb(H0), gb(A), 'vs. ayer')}</div>
+    <div class="heroe-top"><div><small>Ganancia bruta de hoy</small><div class="grande">${S(gb(H0))}</div>${ayerHora ? variacion(gb(H0), ayerHora.ganancia, 'vs. ayer a esta hora') : ''}</div>
       ${meta ? `<div class="anillo" role="progressbar" aria-label="Meta del día" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(Math.min(avance, 100))}"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" class="pista"/><circle cx="18" cy="18" r="15.5" class="avance" stroke-dasharray="${(Math.min(avance, 100) * 0.974).toFixed(1)} 97.4"/></svg>
         <div><b>${avance >= 100 ? '¡Listo!' : Math.floor(avance) + '%'}</b><small>de tu meta<br>${S(meta)}</small><button id="metaCambiar">Cambiar</button></div></div>`
       : `<button class="lnk claro-lnk" id="metaCambiar">Ponerte una meta diaria</button>`}</div>
     ${meta && avance < 100 ? `<p class="consejo">${icoTip}<span>Te faltan <b>${S(meta - gb(H0))}</b> para tu meta${faltan ? `: unas ${faltan}` : ''}.</span></p>` : meta ? `<p class="consejo">${icoTip}<span><b>¡Cumpliste tu meta!</b> Ganaste ${S(gb(H0) - meta)} más de lo que te propusiste.</span></p>` : `<p class="consejo">${icoTip}<span><b>Ganancia</b> es lo que vendiste menos lo que te costó la mercadería.</span></p>`}
-    <div><small>Vendiste</small><div class="med">${S(vn(H0))}</div>${variacion(vn(H0), vn(SP), 'vs. el ' + nomDia(semana).replace('.', ''))}</div>
+    <div><small>Vendiste</small><div class="med">${S(vn(H0))}</div>${semHora ? variacion(vn(H0), semHora.venta, 'vs. el ' + nomDia(semana).replace('.', '') + ' a esta hora') : ''}</div>
     <div><small>Margen</small><div class="med">${margen(H0) === null ? '—' : P(margen(H0))}</div><div class="explica">${margen(H0) === null ? 'Aparece cuando vendas' : `De cada S/ 10 que vendes, te quedan ${S(margen(H0) / 10)}`}</div></div>
-    <div><small>Ganas sobre el costo</small><div class="med">${markup(H0) === null ? '—' : P(markup(H0))}</div><div class="explica">Por cada S/ 1 que invertiste, ganas ${S(markup(H0) === null ? 0 : markup(H0) / 100)}</div></div>
+    <div><small>Ventas realizadas</small><div class="med">${nVentas}</div><div class="explica">${nVentas ? `Ticket promedio ${S(ticketProm)}` : 'Aún no vendes hoy'}${ayerHora ? ` · ayer a esta hora: ${ayerHora.n}` : ''}</div></div>
   </section>
   <nav class="atajos" aria-label="Accesos rápidos"><button data-ir="vender">${ico('vender', 24)}<span>Vender</span></button><button data-ir="compras">${ico('compras', 24)}<span>Comprar</span></button><button data-ir="stock">${ico('stock', 24)}<span>Contar</span></button><button data-ir="gastos">${ico('gastos', 24)}<span>Gasto</span></button></nav>
-  ${sesAbierta && Number(new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false })) >= 17 ? `<div class="aviso-barra"><p><b>¿Terminaste por hoy?</b> Cuenta el efectivo, cierra la caja y envíate el resumen en un solo paso.</p><button class="btn rotulo" id="btnCerrarDia">Cerrar el día</button></div>` : ''}
-  ${urgentes.length ? `<div class="aviso-barra"><p><b>${urgentes.some(l => l.dias < 0) ? 'Tienes mercadería vencida.' : 'Mercadería por vencer esta semana.'}</b> ${urgentes.slice(0, 3).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : `en ${l.dias} ${l.dias === 1 ? 'día' : 'días'}`})`).join(', ')}${urgentes.length > 3 ? ` y ${urgentes.length - 3} más` : ''}. Véndelo primero o dalo de baja.</p><button class="btn claro" data-ir="stock">Ver vencimientos</button></div>` : ''}
-  ${(await con2fa) ? '' : `<div class="aviso-barra"><p><b>Tu cuenta solo tiene contraseña.</b> Activa la verificación en dos pasos: así nadie entra a tu negocio sin el código de tu celular.</p><button class="btn claro" data-ir="cuenta">Activar</button></div>`}
-  ${(d => d === null || d >= 7 ? `<div class="aviso-barra"><p><b>${d === null ? 'Aún no tienes copia de seguridad.' : `Tu última copia fue hace ${d} días.`}</b> Descárgala en un minuto para no perder tus datos si algo falla.</p><button class="btn claro" data-ir="cuenta">Hacer copia</button></div>` : '')(diasDesdeRespaldo())}
-  ${sin2fa ? `<div class="aviso-barra"><p><b>Protege tu caja:</b> activa la verificación en dos pasos. Sin el código de tu celular, nadie podrá entrar aunque sepa tu contraseña.</p><button class="btn rotulo" data-ir="cuenta">Activar ahora</button></div>` : ''}
-  ${alertas.length ? `<div class="panel alerta"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
+  ${pintarPendientes2(pendientes)}
+  <div class="cifras">
+    <div class="cifra"><small>Gastos de hoy</small><b>${S(gastos(H0))}</b><div class="cmp">Mermas y ajustes: ${S(num(H0.de_ello_mermas_ajustes))}</div></div>
+    <div class="cifra"><small>Ganancia neta (antes de impuestos)</small><b>${S(gn(H0))}</b><div class="cmp">${gastosMes ? `Margen neto: ${margenNeto(H0) === null ? '—' : P(margenNeto(H0))}` : '<span class="chip mal">Sin gastos registrados en 30 días</span>'}</div></div>
+  </div>
+  ${alertas.length ? `<div class="panel alerta" id="alertaPrecios"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
     <p class="sub">Con el costo promedio de tus compras actuales. El precio mínimo es el más bajo al que ganas tu margen mínimo.</p>${tablaAlertas(alertas)}
     <button class="btn" style="margin-top:12px" data-ir="catalogo">Ajustar precios</button></div>` : ''}
-  <div class="cifras">
-    <div class="cifra"><small>Ventas realizadas</small><b>${nVentas}</b>${variacion(nVentas, nAyer, 'vs. ayer')}</div>
-    <div class="cifra"><small>Ticket promedio</small><b>${S(ticketProm)}</b>${variacion(ticketProm, ticketAyer, 'vs. ayer')}</div>
-    <div class="cifra"><small>Gastos de hoy</small><b>${S(gastos(H0))}</b><div class="cmp">Mermas y ajustes: ${S(num(H0.de_ello_mermas_ajustes))}</div></div>
-    <div class="cifra"><small>Ganancia neta (después de gastos)</small><b>${S(gn(H0))}</b><div class="cmp">Margen neto: ${margenNeto(H0) === null ? '—' : P(margenNeto(H0))}</div></div>
-  </div>
   <div id="boletasPanel"></div>
   <div class="panel envio"><div class="envio-cab"><div><h2>Resumen del día</h2><p class="sub">Envíatelo por WhatsApp para tenerlo a la mano. Elige tu propio chat ("Tú") o el de quien quieras.</p></div>
     <div class="envio-btns"><a class="btn" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div></div>
@@ -1183,12 +1261,12 @@ async function vPanel(el) {
   </div>`;
   // Texto del resumen (negritas con *asteriscos*, formato de WhatsApp)
   const nomMedio = Object.fromEntries(medios(MEDIOS_VENTA).map(m => [m.id, m.nombre]));
-  const vVar = pct(vn(H0), vn(A));
+  const vVar = ayerHora ? pct(vn(H0), ayerHora.venta) : null;
   const porCobrar = fiados.reduce((a, f) => a + num(f.saldo), 0), vencido = fiados.filter(f => num(f.dias_vencido) > 0).reduce((a, f) => a + num(f.saldo), 0);
   const fechaLarga = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
   const lineasRes = [
     `*${EMPRESA}*`, `Caja, ${fechaLarga}`,
-    nVentas ? `💰 Vendiste *${S(vn(H0))}* en ${nVentas} ${nVentas === 1 ? 'venta' : 'ventas'}${vVar === null ? '' : ` (${vVar >= 0 ? '▲' : '▼'} ${P(Math.abs(vVar))} vs. ayer)`}` : '💰 Hoy no registraste ventas',
+    nVentas ? `💰 Vendiste *${S(vn(H0))}* en ${nVentas} ${nVentas === 1 ? 'venta' : 'ventas'}${vVar === null ? '' : ` (${vVar >= 0 ? '▲' : '▼'} ${P(Math.abs(vVar))} vs. ayer a esta hora)`}` : '💰 Hoy no registraste ventas',
     ...(nVentas ? [`📈 Ganancia bruta *${S(gb(H0))}*${margen(H0) === null ? '' : `, margen ${P(margen(H0))}`}`] : []),
     `🧾 Gastos ${S(gastos(H0))}`,
     `✅ Ganancia neta *${S(gn(H0))}*`,
@@ -1220,6 +1298,7 @@ async function vPanel(el) {
   barras($('#g7'), ult7.map(nomDia), [
     { nombre: 'Venta', color: COL_VENTA, valores: ult7.map(f => vn(dia(f))) },
     { nombre: 'Ganancia', color: COL_GAN, valores: ult7.map(f => gb(dia(f))) }], { alto: 200, titulo: 'Venta y ganancia de los últimos 7 días' });
+  el.querySelectorAll('[data-bajar]').forEach(b => b.onclick = () => $('#' + b.dataset.bajar)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   pintarBoletas();
 }
 
@@ -3416,13 +3495,13 @@ async function pintarBoletas() {
   const enApartado = vistaActual === 'boletas';
   caja.innerHTML = `<div class="panel boletas"><div class="envio-cab"><div><h2>${enApartado ? 'Por emitir' : 'Boletas'}</h2>
     <p class="sub" style="margin:0">${dias.length ? `Tienes <b>${pend.length} ${pend.length === 1 ? 'venta' : 'ventas'} sin boleta</b> (${S(total)}) en los últimos ${DIAS_BOLETAS} días. Emítelas en la APP Emprender y anota el número aquí.` : `✓ Todas tus ventas de los últimos ${DIAS_BOLETAS} días tienen boleta.`}</p></div>${enApartado ? '' : '<button class="btn claro mini" data-ir="boletas">Ver todas</button>'}</div>
-    ${dias.slice(0, 6).map(d => {
+    ${(enApartado ? dias.slice(0, 6) : []).map(d => {
       const tCh = r2(d.chicas.reduce((a, v) => a + num(v.total), 0));
       return `<div class="bol-dia"><h3>${d.dia === hoy() ? 'Hoy' : d.dia === fechaMenos(1) ? 'Ayer' : fd(d.dia)}</h3>
         ${d.chicas.length ? `<div class="bol-item"><div><b>Boleta del día</b><small>${d.chicas.length} ${d.chicas.length === 1 ? 'venta' : 'ventas'} de hasta S/ 5 · ${S(tCh)}${d.dia === hoy() ? ' · emítela al cerrar' : ''}</small></div><button class="btn ${d.dia === hoy() ? 'claro' : 'rotulo'} mini" data-bol-dia="${d.dia}">Registrar</button></div>` : ''}
         ${d.grandes.map(v => `<div class="bol-item mayor"><div><b>Venta de ${S(v.total)}</b><small>${hora(v.fecha)} · lleva su propia boleta</small></div><button class="btn rotulo mini" data-bol-venta="${esc(v.venta_id)}">Registrar</button></div>`).join('')}
       </div>`; }).join('')}
-    ${dias.length > 6 ? `<p class="sub" style="margin:10px 0 0">Y ${dias.length - 6} días más con ventas sin boleta.</p>` : ''}
+    ${enApartado && dias.length > 6 ? `<p class="sub" style="margin:10px 0 0">Y ${dias.length - 6} días más con ventas sin boleta.</p>` : ''}
   </div>`;
   caja.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => ir(b.dataset.ir));
   caja.querySelectorAll('[data-bol-dia]').forEach(b => b.onclick = async () => {
@@ -3433,6 +3512,139 @@ async function pintarBoletas() {
     const v = pend.find(x => x.venta_id === b.dataset.bolVenta);
     if (await registrarBoleta({ ventas: [v], dia: v.dia, consolidada: false })) (enApartado ? ir('boletas') : pintarBoletas());
   });
+}
+// ---------- ANÁLISIS: inteligencia de negocio con reglas de suficiencia de datos ----------
+// Principios: comparar periodos equivalentes, no mostrar estadística sin datos suficientes, cada hallazgo con evidencia.
+const MADUREZ = [
+  ['Promedio y variación de la venta diaria', 14, '¿Cuánto vendes en un día normal y qué tan estable es?'],
+  ['Tendencia (promedio móvil de 7 días)', 21, '¿Estás creciendo o cayendo, sin el ruido de cada día?'],
+  ['Patrón por día de la semana', 28, '¿Qué día conviene tener más stock?'],
+  ['Relación entre productos', 30, '¿Cuando sube uno, sube el otro?'],
+  ['Proyección de ventas y compras', 60, '¿Cuánto vender y comprar el próximo mes?'],
+];
+const estad = arr => {
+  const v = arr.filter(x => Number.isFinite(x)).slice().sort((a, b) => a - b), n = v.length;
+  if (!n) return null;
+  const media = v.reduce((a, b) => a + b, 0) / n, med = n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2;
+  const de = n > 1 ? Math.sqrt(v.reduce((a, b) => a + (b - media) ** 2, 0) / (n - 1)) : 0;
+  return { n, media, mediana: med, de, cv: media ? de / media * 100 : null, min: v[0], max: v[n - 1] };
+};
+async function vAnalisis(el) {
+  const per = ['7', '30', '90', 'mes'].includes(String(local.leer('anPeriodo'))) ? String(local.leer('anPeriodo')) : '30';
+  const H = hoy(), diaMas = (f, n) => new Date(Date.parse(f + 'T12:00:00-05:00') + n * 864e5).toISOString().slice(0, 10);
+  let ini, fin = H, pIni, pFin;
+  if (per === 'mes') { ini = H.slice(0, 8) + '01'; const nd = Number(H.slice(8)); const ant = diaMas(ini, -1).slice(0, 8) + '01'; pIni = ant; pFin = diaMas(ant, Math.min(nd, Number(diaMas(ini, -1).slice(8))) - 1); }
+  else { const n = Number(per); ini = diaMas(H, -(n - 1)); pFin = diaMas(ini, -1); pIni = diaMas(pFin, -(n - 1)); }
+  const lima = f => f + 'T00:00:00-05:00', limaFin = f => f + 'T23:59:59.999-05:00';
+  const [diasAll, ventas, ventasPrev, ex] = await Promise.all([
+    q(sb.from('v_resultados_diarios').select('fecha, ventas_netas, costo_mercaderia_vendida, utilidad_bruta, gastos_operativos, gastos_administrativos, gastos_financieros, otros_egresos, utilidad_operativa').lte('fecha', H).order('fecha')),
+    q(sb.from('ventas').select('id, fecha, origen, venta_detalles(presentacion_id, cantidad, cantidad_base, subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', lima(ini)).lte('fecha', limaFin(fin))),
+    q(sb.from('ventas').select('id, venta_detalles(subtotal)').eq('estado', 'EMITIDA').gte('fecha', lima(pIni)).lte('fecha', limaFin(pFin))),
+    q(sb.from('v_existencias').select('producto_id, producto, cantidad, costo_promedio, valor_total, stock_minimo').eq('activo', true)),
+  ]);
+  const enRango = (f, a, b) => f >= a && f <= b;
+  const cur = diasAll.filter(x => enRango(x.fecha, ini, fin)), prev = diasAll.filter(x => enRango(x.fecha, pIni, pFin));
+  const suma = (arr, k) => r2(arr.reduce((a, x) => a + num(x[k]), 0));
+  const gastosDe = arr => r2(arr.reduce((a, x) => a + num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos), 0));
+  const K = arr => { const v = suma(arr, 'ventas_netas'), g = suma(arr, 'utilidad_bruta'), ga = gastosDe(arr); return { v, g, ga, op: r2(g - ga), m: v > 0 ? g / v * 100 : null }; };
+  const kc = K(cur), kp = K(prev);
+  const nV = ventas.length, nP = ventasPrev.length, tk = nV ? kc.v / nV : 0, tkP = nP ? kp.v / nP : 0;
+  const diasConVenta = diasAll.filter(x => num(x.ventas_netas) > 0), nDiasHist = diasConVenta.length;
+  const diasPerVenta = cur.filter(x => num(x.ventas_netas) > 0).length, diasPrevVenta = prev.filter(x => num(x.ventas_netas) > 0).length;
+  const compara = diasPrevVenta >= Math.min(3, diasPerVenta) && diasPrevVenta > 0;
+  const hayGastos = diasAll.some(x => gastosDe([x]) > 0);
+  // Productos y mezcla suelto / paquete
+  const presDe = id => C.presentaciones.find(p => p.id === id);
+  const prod = {};
+  ventas.forEach(v => (v.venta_detalles || []).forEach(l => {
+    const pr = presDe(l.presentacion_id); const pid = pr?.producto_id || 'x', nom = pr?.productos?.nombre || 'Otro';
+    const o = prod[pid] ??= { nom, u: 0, v: 0, c: 0, suelto: { u: 0, v: 0, c: 0 }, paquete: { u: 0, v: 0, c: 0 } };
+    const t = num(pr?.factor) > 1 ? o.paquete : o.suelto;
+    o.u += num(l.cantidad_base); o.v += num(l.subtotal); o.c += num(l.costo_total);
+    t.u += num(l.cantidad_base); t.v += num(l.subtotal); t.c += num(l.costo_total);
+  }));
+  const lista = Object.entries(prod).map(([id, o]) => ({ id, ...o, g: o.v - o.c, m: o.v ? (o.v - o.c) / o.v * 100 : null })).sort((a, b) => b.g - a.g);
+  const gTot = lista.reduce((a, x) => a + x.g, 0);
+  // Inventario y cobertura (con los días con venta del periodo; ventas de conteo incluidas: sí bajaron el stock)
+  const diasBase = Math.max(1, diasPerVenta);
+  const inv = ex.map(e => { const pv = prod[e.producto_id]; const diario = pv ? pv.u / diasBase : 0; return { ...e, diario, cob: diario > 0 ? num(e.cantidad) / diario : null, vendio: !!pv }; })
+    .sort((a, b) => (a.cob ?? 1e9) - (b.cob ?? 1e9));
+  const valorInv = r2(ex.reduce((a, e) => a + num(e.valor_total), 0));
+  // Serie diaria + promedio móvil de 7 días (solo con días calendario del periodo)
+  const inicioNegocio = diasConVenta[0]?.fecha || fin, desdeSerie = inicioNegocio > ini ? inicioNegocio : ini;
+  const fechas = []; for (let f = desdeSerie; f <= fin; f = diaMas(f, 1)) fechas.push(f);
+  const porDia = Object.fromEntries(cur.map(x => [x.fecha, num(x.ventas_netas)]));
+  const serie = fechas.map(f => porDia[f] ?? 0);
+  const mm7 = serie.map((_, i) => i >= 6 ? r2(serie.slice(i - 6, i + 1).reduce((a, b) => a + b, 0) / 7) : null);
+  const est = estad(diasConVenta.slice(-30).map(x => num(x.ventas_netas)));
+  // Patrón semanal (solo con 4+ semanas)
+  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  const sem = DS.map(() => []); diasConVenta.forEach(x => sem[new Date(x.fecha + 'T12:00:00-05:00').getDay()].push(num(x.ventas_netas)));
+  const conteoV = ventas.filter(v => v.origen === 'CONTEO'), conteoMonto = r2(conteoV.reduce((a, v) => a + (v.venta_detalles || []).reduce((b, l) => b + num(l.subtotal), 0), 0));
+  // ---- Hallazgos: cada uno exige evidencia mínima
+  const H_ = [];
+  if (!hayGastos && kc.v > 0) H_.push({ t: 'Tu ganancia neta está sobrestimada', d: `No hay ningún gasto registrado en tu historial. Ganancia bruta del periodo: ${S(kc.g)}; sin gastos, la "ganancia neta" muestra lo mismo.`, i: 'Alquiler, transporte, bolsas o luz reducen lo que realmente ganas. Sin ellos no sabes si el negocio es rentable.', a: 'Registra en Gastos lo que pagas cada mes, aunque sea aproximado al inicio.', nivel: 'mal' });
+  if (nV >= 10 && lista.length > 1 && gTot > 0) { const top = lista[0], sh = top.g / gTot * 100; if (sh >= 40) H_.push({ t: `${esc(top.nom)} sostiene tu ganancia`, d: `Genera ${P(sh)} de tu ganancia bruta (${S(top.g)} de ${S(gTot)}) en ${nV} ventas del periodo.`, i: 'Si se agota o tu proveedor sube su precio, tu ganancia cae en esa proporción.', a: 'Cuida que nunca falte en stock y vigila su costo de compra.' }); }
+  // Mezcla suelto vs. paquete: un solo hallazgo que agrupa todos los productos con el mismo patrón
+  const mezcla = lista.filter(o => o.suelto.v > 0 && o.paquete.v > 0).map(o => ({ nom: o.nom, ms: (o.suelto.v - o.suelto.c) / o.suelto.v * 100, mp: (o.paquete.v - o.paquete.c) / o.paquete.v * 100, shp: o.paquete.u / o.u * 100 }))
+    .filter(x => x.ms - x.mp >= 3 && x.shp >= 30);
+  if (nV >= 10 && mezcla.length) {
+    const uP = lista.reduce((a, o) => a + o.paquete.u, 0), uT = lista.reduce((a, o) => a + o.u, 0);
+    H_.push({ t: mezcla.length === 1 ? `${esc(mezcla[0].nom)}: el paquete deja menos que el suelto` : `En ${mezcla.length} productos el paquete deja menos que el suelto`,
+      d: `${mezcla.map(x => `${esc(x.nom)}: ${P(x.mp)} en paquete vs. ${P(x.ms)} suelto (${P(x.shp)} de sus unidades en paquete)`).join('; ')}. En total, ${P(uP / uT * 100)} de las unidades se vendieron en paquete.`,
+      i: 'Cada unidad que se va dentro de un paquete te deja varios puntos menos de margen que vendida suelta.', a: 'Revisa el precio del paquete o exhibe más la venta suelta; no hace falta dejar de vender paquetes.' });
+  }
+  inv.filter(e => e.cob != null && e.cob < 3 && diasPerVenta >= 5).slice(0, 2).forEach(e => H_.push({ t: `${esc(e.producto)} se acabaría en ${Math.max(1, Math.round(e.cob)) === 1 ? 'aproximadamente 1 día' : `unos ${Math.round(e.cob)} días`}`, d: `Quedan ${N(e.cantidad)} unidades y vendes en promedio ${N(e.diario, 1)} por día con venta (${diasPerVenta} días).`, i: 'Un producto agotado es venta perdida, y tus clientes pueden irse a otra tienda.', a: 'Inclúyelo en tu próximo pedido.', nivel: 'mal' }));
+  if (compara && diasPerVenta >= 7 && diasPrevVenta >= 7 && kp.v > 0) { const c = pct(kc.v, kp.v); if (Math.abs(c) >= 10) H_.push({ t: `Tus ventas ${c > 0 ? 'subieron' : 'bajaron'} ${P(Math.abs(c))}`, d: `${S(kc.v)} frente a ${S(kp.v)} en el periodo anterior equivalente (${fd(pIni)}–${fd(pFin)}).`, i: c > 0 ? 'Si se mantiene, necesitarás reponer antes de lo habitual.' : 'Una caída sostenida reduce tu ganancia aunque el margen se mantenga.', a: c > 0 ? 'Revisa la cobertura de stock de tus productos principales.' : 'Mira qué producto explica la caída en la tabla de productos.', nivel: c > 0 ? 'ok' : 'mal' }); }
+  if (conteoV.length && nV && conteoMonto / Math.max(1, kc.v) >= 0.1) H_.push({ t: 'Parte de tus ventas se anotó tarde', d: `${conteoV.length} ${conteoV.length === 1 ? 'venta' : 'ventas'} por ${S(conteoMonto)} (${P(conteoMonto / kc.v * 100)} del periodo) se registraron en el conteo de inventario, no al vender.`, i: 'Esas ventas no tienen su hora ni su día real: los análisis por hora y por día pierden precisión.', a: 'Registra cada venta en el momento, aunque sea con el atajo del teclado.' });
+  if (nDiasHist >= 28) { const pr = sem.map(a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null), val = pr.map((v, i) => [v, i]).filter(x => x[0] != null && sem[x[1]].length >= 3).sort((a, b) => b[0] - a[0]);
+    if (val.length >= 2 && val[0][0] > val[val.length - 1][0] * 1.3) H_.push({ t: `Los ${DS[val[0][1]]} vendes más`, d: `Promedio ${S(val[0][0])} los ${DS[val[0][1]]} frente a ${S(val[val.length - 1][0])} los ${DS[val[val.length - 1][1]]} (al menos 3 semanas de cada día).`, i: 'Saber qué día vendes más te ayuda a reponer y atender a tiempo.', a: `Asegura stock completo antes de cada ${DS[val[0][1]]}.` }); }
+  const varK = (a, b) => compara ? variacion(a, b, 'vs. periodo anterior') : '<div class="cmp">Sin periodo anterior comparable</div>';
+  el.innerHTML = `
+  <div class="periodos" role="tablist" aria-label="Periodo">${[['7', '7 días'], ['30', '30 días'], ['90', '90 días'], ['mes', 'Este mes']].map(([k, t]) => `<button role="tab" aria-selected="${k === per}" class="chip-per ${k === per ? 'on' : ''}" data-per="${k}">${t}</button>`).join('')}</div>
+  <p class="sub" style="margin:8px 0 14px">Del ${fd(ini)} al ${fd(fin)} · ${nV} ${nV === 1 ? 'venta' : 'ventas'} en ${diasPerVenta} ${diasPerVenta === 1 ? 'día' : 'días'} con venta${compara ? ` · se compara con ${fd(pIni)}–${fd(pFin)}` : ''}.</p>
+  ${nDiasHist < 14 ? `<div class="cuadre mal" style="margin-bottom:14px"><b>Aún hay pocos datos (${nDiasHist} ${nDiasHist === 1 ? 'día' : 'días'} con ventas).</b> Las cifras son reales, pero todavía no reflejan un comportamiento estable: no saques conclusiones de tendencia hasta tener al menos 2 semanas.</div>` : ''}
+  <div class="cifras an-kpi">
+    <div class="cifra"><small>Ventas netas</small><b>${S(kc.v)}</b>${varK(kc.v, kp.v)}</div>
+    <div class="cifra"><small>Ganancia bruta</small><b>${S(kc.g)}</b>${varK(kc.g, kp.g)}</div>
+    <div class="cifra"><small>Margen bruto</small><b>${kc.m == null ? '—' : P(kc.m)}</b><div class="cmp">${kc.m == null ? '' : `De cada S/ 10 vendidos te quedan ${S(kc.m / 10)}`}</div></div>
+    <div class="cifra"><small>Ganancia operativa</small><b>${S(kc.op)}</b><div class="cmp">${hayGastos ? `Gastos: ${S(kc.ga)}` : '<span class="chip mal">Sin gastos registrados</span>'}</div></div>
+    <div class="cifra"><small>Ventas</small><b>${nV}</b>${compara ? variacion(nV, nP, 'vs. periodo anterior') : ''}</div>
+    <div class="cifra"><small>Ticket promedio</small><b>${S(tk)}</b>${compara && nP ? variacion(tk, tkP, 'vs. periodo anterior') : ''}</div>
+  </div>
+  <section class="panel"><h2>Hallazgos</h2>
+    ${H_.length ? `<div class="hallazgos">${H_.map(h => `<article class="hallazgo ${h.nivel || ''}"><h3>${h.t}</h3><dl><dt>Qué muestran los datos</dt><dd>${h.d}</dd><dt>Por qué importa</dt><dd>${h.i}</dd><dt>Qué hacer</dt><dd>${h.a}</dd></dl></article>`).join('')}</div>`
+      : '<p class="sub">Todavía no hay hallazgos con evidencia suficiente. Aparecen solos a medida que registras ventas, compras y gastos.</p>'}
+  </section>
+  <section class="panel"><h2>Evolución de las ventas</h2>
+    <p class="sub">Venta neta por día, en soles${fechas.length >= 14 ? ', con el promedio de los últimos 7 días para ver la tendencia sin el ruido diario' : ''}.${est && est.n >= 14 ? ` En tus últimos ${est.n} días con venta: promedio ${S(est.media)}, mediana ${S(est.mediana)}, desviación ${S(est.de)} (variación ${P(est.cv)}).` : ''}</p>
+    ${fechas.length >= 14 ? `<div class="leyenda"><span style="--c:${COL_VENTA}">Venta del día</span><span style="--c:#F3F2FA">Promedio 7 días</span></div>` : ''}
+    <div id="gTend"></div></section>
+  <div class="cols dos">
+    <section class="panel"><h2>Ganancia por producto</h2><p class="sub">Ordenado por la ganancia bruta que te deja en el periodo (no por lo que vendes).</p>
+      ${lista.length ? `<div class="por-grupo">${lista.map(o => `<div class="pg-fila"><div class="pg-cab"><b>${esc(o.nom)}</b><span>${S(o.g)} · margen ${o.m == null ? '—' : P(o.m)}</span></div>
+        <div class="barra-pct"><i style="width:${gTot > 0 ? Math.max(2, o.g / gTot * 100) : 0}%"></i></div>
+        <small>${N(o.u)} unidades · ${o.paquete.u ? `${P(o.paquete.u / o.u * 100)} en paquete` : 'todo suelto'}${o.suelto.v && o.paquete.v ? ` · margen suelto ${P((o.suelto.v - o.suelto.c) / o.suelto.v * 100)}, paquete ${P((o.paquete.v - o.paquete.c) / o.paquete.v * 100)}` : ''}</small></div>`).join('')}</div>` : '<p class="sub">Sin ventas en el periodo.</p>'}
+    </section>
+    <section class="panel"><h2>De la venta a la ganancia</h2><p class="sub">Dónde se va cada sol que vendes en el periodo.</p>
+      <div class="cascada">${[['Ventas netas', kc.v, 'v'], ['Costo de lo vendido', -suma(cur, 'costo_mercaderia_vendida'), 'c'], ['Ganancia bruta', kc.g, 'r'], ['Gastos', -kc.ga, 'c'], ['Ganancia operativa', kc.op, 'r']].map(([t, v, k]) => `<div class="cas-fila ${k}"><span>${t}</span><div class="cas-barra"><i style="width:${kc.v > 0 ? Math.min(100, Math.abs(v) / kc.v * 100) : 0}%"></i></div><b>${S(v)}</b></div>`).join('')}</div>
+      ${hayGastos ? '' : '<p class="sub" style="margin-top:10px">Sin gastos registrados, la ganancia operativa es igual a la bruta y está sobrestimada.</p>'}
+    </section>
+  </div>
+  <section class="panel"><h2>Inventario: cuánto te dura</h2><p class="sub">Valor de tu stock al costo: <b>${S(valorInv)}</b>. Los días de cobertura usan tu venta promedio por día con venta del periodo (${diasPerVenta} ${diasPerVenta === 1 ? 'día' : 'días'})${diasPerVenta < 7 ? ' — con tan pocos días es solo una referencia' : ''}.</p>
+    <div class="scroll"><table><tr><th>Producto</th><th class="n">Le alcanza para</th><th class="n">Stock</th><th class="n">Vende por día</th><th class="n">Valor</th></tr>
+      ${inv.map(e => `<tr><td>${esc(e.producto)}</td><td class="n">${e.cob == null ? '<span class="chip">Sin ventas</span>' : `<span class="chip ${e.cob < 3 ? 'mal' : e.cob < 7 ? '' : 'ok'}">${Math.round(e.cob) <= 1 ? '~1 día' : Math.round(e.cob) + ' días'}</span>`}</td>
+        <td class="n">${N(e.cantidad)}</td><td class="n">${e.vendio ? N(e.diario, 1) : '—'}</td><td class="n">${S(e.valor_total)}</td></tr>`).join('')}</table></div></section>
+  ${nDiasHist >= 28 ? `<section class="panel"><h2>Venta promedio por día de la semana</h2><p class="sub">Promedio de cada día de la semana en todo tu historial con ventas.</p><div id="gSem"></div></section>` : ''}
+  <section class="panel"><h2>Qué tan confiable es el análisis</h2><p class="sub">Cada análisis necesita un mínimo de días con ventas para no confundir el azar con un patrón. Llevas <b>${nDiasHist}</b>.</p>
+    <div class="madurez">${MADUREZ.map(([t, req, qq]) => { const ok = nDiasHist >= req; return `<div class="mad-fila ${ok ? 'ok' : ''}"><div><b>${t}</b><small>${qq}</small></div><div class="mad-barra"><i style="width:${Math.min(100, nDiasHist / req * 100)}%"></i></div><span>${ok ? 'Listo' : `${nDiasHist}/${req} días`}</span></div>`; }).join('')}</div>
+  </section>`;
+  el.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { local.guardar('anPeriodo', b.dataset.per); ir('analisis'); });
+  const nomF = f => new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', day: 'numeric', month: 'short' }).replace('.', '');
+  const largo = f => new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
+  if (fechas.length >= 14) lineas($('#gTend'), fechas.map(nomF), [{ nombre: 'Venta del día', color: COL_VENTA, valores: serie, ancho: 1.5, opaco: .55, puntos: fechas.length <= 31 }, { nombre: 'Promedio 7 días', color: '#F3F2FA', valores: mm7, ancho: 2.5 }], { titulo: 'Venta diaria y promedio de 7 días', tituloTip: i => largo(fechas[i]) });
+  else barras($('#gTend'), fechas.map(nomF), [{ nombre: 'Venta', color: COL_VENTA, valores: serie }], { titulo: 'Venta diaria', tituloTip: i => largo(fechas[i]) });
+  if ($('#gSem')) { const ord = [1, 2, 3, 4, 5, 6, 0]; barras($('#gSem'), ord.map(i => DS[i]), [{ nombre: 'Promedio', color: COL_VENTA, valores: ord.map(i => sem[i].length ? r2(sem[i].reduce((a, b) => a + b, 0) / sem[i].length) : 0) }], { titulo: 'Venta promedio por día de la semana', tituloTip: i => `${DS[ord[i]]} · ${sem[ord[i]].length} días` }); }
 }
 async function vBoletas(el) {
   const [bols, links] = await Promise.all([

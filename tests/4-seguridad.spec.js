@@ -101,8 +101,9 @@ test('si el servicio de filtraciones no responde, igual deja cambiar la contrase
 test('el Panel avisa si la cuenta no tiene verificación en dos pasos', async ({ page, errores }) => {
   await abrirDemo(page);
   await irA(page, 'panel');
-  await expect(page.locator('.aviso-barra', { hasText: 'solo tiene contraseña' })).toHaveCount(0);
+  await expect(page.locator('.pend-item', { hasText: 'solo tiene contraseña' })).toHaveCount(0);
   await page.evaluate(() => { sb.auth.mfa.listFactors = () => Promise.resolve({ data: { all: [], totp: [] }, error: null }); });
   await irA(page, 'panel');
-  await expect(page.locator('.aviso-barra', { hasText: 'solo tiene contraseña' })).toBeVisible();
+  await expect(page.locator('.pendientes')).toContainText('solo tiene contraseña');
+  await expect(page.locator('.pend-item', { hasText: 'solo tiene contraseña' })).toHaveCount(1); // un solo aviso, no duplicado
 });

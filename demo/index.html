@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-wpI/1c66jdnbKgVSas5z5b1Ihu+5xCi/ScUCEBBaxyk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-4nzPW/VsnE6W+7ZIQLn399GryTCo8cNd7zxmm96t2zU='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -502,6 +502,28 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .mad-fila b{display:block;font-size:14px}.mad-fila small{color:var(--gris);font-size:12.5px}.mad-fila span{font-size:13px;color:var(--gris);text-align:right}
 .mad-barra{height:8px;background:var(--tono);border-radius:4px;overflow:hidden}.mad-barra i{display:block;height:100%;background:var(--ambar)}.mad-fila.ok .mad-barra i{background:var(--menta)}.mad-fila.ok span{color:var(--menta)}
 @media(max-width:600px){.cas-fila{grid-template-columns:1fr auto}.cas-barra{grid-column:1/-1;order:3}.mad-fila{grid-template-columns:1fr 64px}.mad-barra{grid-column:1/-1;order:3}}
+.pn-acciones{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.pn-acciones .btn{display:inline-flex;align-items:center;gap:8px}
+.pn-acciones .btn svg{width:20px;height:20px}
+.pn-kpis{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+.pn-kpi{background:var(--blanco);border:1px solid #FFFFFF0F;border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pn-kpi small{color:var(--gris);font-size:13.5px}
+.pn-kpi>b{font-size:30px;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pn-cmp{color:var(--gris);font-size:13px;line-height:1.4}.pn-cmp.sube{color:var(--menta)}.pn-cmp.baja{color:var(--coral)}
+.pn-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr);grid-template-areas:"s1" "m" "s2"}
+.pn-s1{grid-area:s1}.pn-m{grid-area:m}.pn-s2{grid-area:s2}
+.pn-s1,.pn-m,.pn-s2{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-content:start;min-width:0}
+.pn-s1>.panel,.pn-m>.panel,.pn-s2>.panel,.pn-s2>#boletasPanel>.panel{margin:0}
+@media(min-width:1000px){.pn-grid{grid-template-columns:minmax(0,2fr) minmax(300px,1fr);grid-template-rows:auto 1fr;grid-template-areas:"m s1" "m s2";align-items:start}}
+.pn-cab{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}.pn-cab h2{margin:0}
+.pn-meta-cab{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pn-meta-cab small{color:var(--gris);font-size:13.5px;display:block}.pn-meta-cab b{font-size:22px}.pn-meta-cab b span{font-size:15px;color:var(--gris);font-weight:500}
+.pn-meta-vacia{color:var(--gris)}
+.pn-meta-barra{height:10px;background:var(--tono);border-radius:6px;overflow:hidden;margin-top:12px}.pn-meta-barra i{display:block;height:100%;background:var(--brillo);border-radius:6px}
+.pn-det{margin-top:12px}.pn-det summary{cursor:pointer;color:var(--gris);font-size:14px}.pn-det .envio-txt{margin-top:10px}
+.pn-s2 .envio-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+@media(max-width:999px){.pn-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.pn-kpi{padding:14px 16px}.pn-kpi>b{font-size:24px}.pn-acciones .btn{flex:1 1 calc(50% - 10px);justify-content:center}}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -1217,46 +1239,66 @@ async function vPanel(el) {
     !con2 && { t: 'Tu cuenta solo tiene contraseña', d: 'Activa la verificación en dos pasos: sin el código de tu celular nadie entra.', b: '<button class="btn claro mini" data-ir="cuenta">Activar</button>' },
     (resp === null || resp >= 7) && { t: resp === null ? 'Aún no tienes copia de seguridad' : `Tu última copia fue hace ${resp} días`, d: 'Descárgala en un minuto para no perder tus datos.', b: '<button class="btn claro mini" data-ir="cuenta">Hacer copia</button>' },
   ].filter(Boolean);
+  // Comparación en soles (no en %): con pocas ventas, un porcentaje exagera cualquier diferencia
+  const cmpS = (hoyV, ref, txt) => {
+    if (ref == null) return '';
+    const dif = r2(hoyV - ref);
+    if (hoyV === 0 && ref === 0) return `<span class="pn-cmp">${txt[0].toUpperCase() + txt.slice(1)}: sin ventas</span>`;
+    if (hoyV === 0) return `<span class="pn-cmp">${txt[0].toUpperCase() + txt.slice(1)}: ${S(ref)}</span>`;
+    if (Math.abs(dif) < 0.005) return `<span class="pn-cmp">Igual que ${txt}</span>`;
+    return `<span class="pn-cmp ${dif > 0 ? 'sube' : 'baja'}">${dif > 0 ? '▲' : '▼'} ${S(Math.abs(dif))} ${dif > 0 ? 'más' : 'menos'} que ${txt}</span>`;
+  };
+  const fechaHoy = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
   el.innerHTML = `
-  <section class="heroe" aria-label="Rendimiento de hoy">
-    <div class="heroe-top"><div><small>Ganancia bruta de hoy</small><div class="grande">${S(gb(H0))}</div>${ayerHora ? variacion(gb(H0), ayerHora.ganancia, 'vs. ayer a esta hora') : ''}</div>
-      ${meta ? `<div class="anillo" role="progressbar" aria-label="Meta del día" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(Math.min(avance, 100))}"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" class="pista"/><circle cx="18" cy="18" r="15.5" class="avance" stroke-dasharray="${(Math.min(avance, 100) * 0.974).toFixed(1)} 97.4"/></svg>
-        <div><b>${avance >= 100 ? '¡Listo!' : Math.floor(avance) + '%'}</b><small>de tu meta<br>${S(meta)}</small><button id="metaCambiar">Cambiar</button></div></div>`
-      : `<button class="lnk claro-lnk" id="metaCambiar">Ponerte una meta diaria</button>`}</div>
-    ${meta && avance < 100 ? `<p class="consejo">${icoTip}<span>Te faltan <b>${S(meta - gb(H0))}</b> para tu meta${faltan ? `: unas ${faltan}` : ''}.</span></p>` : meta ? `<p class="consejo">${icoTip}<span><b>¡Cumpliste tu meta!</b> Ganaste ${S(gb(H0) - meta)} más de lo que te propusiste.</span></p>` : `<p class="consejo">${icoTip}<span><b>Ganancia</b> es lo que vendiste menos lo que te costó la mercadería.</span></p>`}
-    <div><small>Vendiste</small><div class="med">${S(vn(H0))}</div>${semHora ? variacion(vn(H0), semHora.venta, 'vs. el ' + nomDia(semana).replace('.', '') + ' a esta hora') : ''}</div>
-    <div><small>Margen</small><div class="med">${margen(H0) === null ? '—' : P(margen(H0))}</div><div class="explica">${margen(H0) === null ? 'Aparece cuando vendas' : `De cada S/ 10 que vendes, te quedan ${S(margen(H0) / 10)}`}</div></div>
-    <div><small>Ventas realizadas</small><div class="med">${nVentas}</div><div class="explica">${nVentas ? `Ticket promedio ${S(ticketProm)}` : 'Aún no vendes hoy'}${ayerHora ? ` · ayer a esta hora: ${ayerHora.n}` : ''}</div></div>
+  <div class="pn-acciones" aria-label="Accesos rápidos">
+    <button class="btn rotulo" data-ir="vender">${ico('vender', 20)}<span>Vender</span></button>
+    <button class="btn claro" data-ir="compras">${ico('compras', 20)}<span>Comprar</span></button>
+    <button class="btn claro" data-ir="stock">${ico('stock', 20)}<span>Contar</span></button>
+    <button class="btn claro" data-ir="gastos">${ico('gastos', 20)}<span>Gasto</span></button>
+  </div>
+  <section class="pn-kpis" aria-label="Indicadores de hoy, ${fechaHoy}">
+    <div class="pn-kpi"><small>Ventas de hoy</small><b>${S(vn(H0))}</b>${cmpS(vn(H0), ayerHora?.venta ?? null, 'ayer a esta hora')}</div>
+    <div class="pn-kpi"><small>Ganancia bruta</small><b>${S(gb(H0))}</b><span class="pn-cmp">${margen(H0) === null ? 'Margen: aparece cuando vendas' : `Margen ${P(margen(H0))}: de cada S/ 10, te quedan ${S(margen(H0) / 10)}`}</span></div>
+    <div class="pn-kpi"><small>Número de ventas</small><b>${nVentas}</b><span class="pn-cmp">${nVentas ? `Ticket promedio ${S(ticketProm)}` : 'Aún no vendes hoy'}${ayerHora ? ` · ayer a esta hora: ${ayerHora.n}` : ''}</span></div>
+    <div class="pn-kpi"><small>Ganancia neta</small><b>${S(gn(H0))}</b><span class="pn-cmp">${gastosMes ? `Gastos de hoy ${S(gastos(H0))} · antes de impuestos` : '<span class="chip mal">Sin gastos registrados: sobrestimada</span>'}</span></div>
   </section>
-  <nav class="atajos" aria-label="Accesos rápidos"><button data-ir="vender">${ico('vender', 24)}<span>Vender</span></button><button data-ir="compras">${ico('compras', 24)}<span>Comprar</span></button><button data-ir="stock">${ico('stock', 24)}<span>Contar</span></button><button data-ir="gastos">${ico('gastos', 24)}<span>Gasto</span></button></nav>
-  ${pintarPendientes2(pendientes)}
-  <div class="cifras">
-    <div class="cifra"><small>Gastos de hoy</small><b>${S(gastos(H0))}</b><div class="cmp">Mermas y ajustes: ${S(num(H0.de_ello_mermas_ajustes))}</div></div>
-    <div class="cifra"><small>Ganancia neta (antes de impuestos)</small><b>${S(gn(H0))}</b><div class="cmp">${gastosMes ? `Margen neto: ${margenNeto(H0) === null ? '—' : P(margenNeto(H0))}` : '<span class="chip mal">Sin gastos registrados en 30 días</span>'}</div></div>
-  </div>
-  ${alertas.length ? `<div class="panel alerta" id="alertaPrecios"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
-    <p class="sub">Con el costo promedio de tus compras actuales. El precio mínimo es el más bajo al que ganas tu margen mínimo.</p>${tablaAlertas(alertas)}
-    <button class="btn" style="margin-top:12px" data-ir="catalogo">Ajustar precios</button></div>` : ''}
-  <div id="boletasPanel"></div>
-  <div class="panel envio"><div class="envio-cab"><div><h2>Resumen del día</h2><p class="sub">Envíatelo por WhatsApp para tenerlo a la mano. Elige tu propio chat ("Tú") o el de quien quieras.</p></div>
-    <div class="envio-btns"><a class="btn" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div></div>
-    <pre class="envio-txt" id="resTxt"></pre>
-    <div class="recordar"><div><b>Recordatorio cada noche</b><p class="sub" style="margin:2px 0 0">Se agrega a tu calendario y te avisa a la hora que elijas para cerrar caja y enviarte esto.</p></div>
-      <div class="fila"><div><label for="recHora">Hora</label><select id="recHora">${[17, 18, 19, 20, 21, 22, 23].map(x => `<option value="${x}" ${x === horaCierre() ? 'selected' : ''}>${x - 12}:00 p. m.</option>`).join('')}</select></div>
-      <div class="auto"><a class="btn claro" id="recAgregar" href="recordatorio/cierre-${horaCierre()}.ics">Agregar a mi calendario</a></div></div></div></div>
-  <div class="cols dos">
-    <div class="panel"><h2>Ventas por hora</h2><p class="sub">${mejorHora !== undefined ? `Tu mejor hora hoy: ${mejorHora}:00 a ${mejorHora + 1}:00, con ${S(porHora[mejorHora].v)}.` : 'Todavía no hay ventas hoy.'}</p><div id="gHoras"></div></div>
-    <div class="panel"><h2>Últimos 7 días</h2><p class="sub">Venta y ganancia bruta de cada día.</p>
-      <div class="leyenda"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div><div id="g7"></div></div>
-  </div>
-  <div class="cols dos">
-    <div class="panel"><h2>Qué te dejó más ganancia hoy</h2>${top.length ? `<div class="scroll"><table><tr><th>Producto</th><th class="n">Unidades</th><th class="n">Venta</th><th class="n">Ganancia</th><th class="n">Margen</th></tr>
-      ${top.map(([k, o]) => `<tr><td>${esc(nomProd[k] || '')}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td><td class="n"><b>${S(o.v - o.k)}</b></td><td class="n">${o.v > 0 ? P((o.v - o.k) / o.v * 100) : '—'}</td></tr>`).join('')}</table></div>`
-      : '<p class="vacio">Cuando vendas, aquí verás qué producto rinde más.</p>'}</div>
-    <div class="panel"><h2>Cómo te pagaron hoy</h2>
-      ${totMedios ? `<div class="barra-medio" role="img" aria-label="Reparto por medio de pago">${medios(MEDIOS_VENTA).filter(m => porMedio[m.id] > 0).map(m => `<div style="width:${porMedio[m.id] / totMedios * 100}%;background:${COLOR_MEDIO[m.codigo]}" title="${esc(m.nombre)}"></div>`).join('')}</div>` : '<p class="sub">Aún no hay cobros hoy.</p>'}
-      <table>${medios(MEDIOS_VENTA).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${totMedios ? P(num(porMedio[m.id]) / totMedios * 100) : ''}</td></tr>`).join('')}</table>
-      <h3>Por reponer</h3>${reponer.length ? `<table>${reponer.map(r => `<tr><td>${esc(r.producto)}</td><td class="n"><span class="chip mal">quedan ${N(r.cantidad)}</span></td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Todo con stock suficiente.</p>'}
+  <div class="pn-grid">
+    <div class="pn-s1">
+      <section class="panel pn-meta">
+        ${meta ? `<div class="pn-meta-cab"><div><small>Meta de ganancia de hoy</small><b>${S(gb(H0))} <span>de ${S(meta)}</span></b></div><button class="lnk" id="metaCambiar">Cambiar</button></div>
+          <div class="pn-meta-barra" role="progressbar" aria-label="Avance de la meta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(Math.min(avance, 100))}"><i style="width:${Math.min(100, avance)}%"></i></div>
+          <p class="sub" style="margin:8px 0 0">${avance >= 100 ? `<b>¡Meta cumplida!</b> Ganaste ${S(gb(H0) - meta)} más de lo que te propusiste.` : `Llevas ${Math.floor(avance)}%. Te faltan <b>${S(meta - gb(H0))}</b>${faltan ? `: unas ${faltan}` : ''}.`}</p>`
+        : `<div class="pn-meta-cab"><div><small>Meta del día</small><b class="pn-meta-vacia">Sin meta</b></div><button class="btn claro mini" id="metaCambiar">Ponerte una meta</button></div>
+          <p class="sub" style="margin:8px 0 0">Una meta diaria de ganancia te dice cuántas ventas te faltan cada día.</p>`}
+      </section>
+      ${pintarPendientes2(pendientes)}
+    </div>
+    <div class="pn-m">
+      <section class="panel"><div class="pn-cab"><h2>Hoy, hora por hora</h2><span class="sub">${mejorHora !== undefined ? `Mejor hora: ${mejorHora}:00 (${S(porHora[mejorHora].v)})` : 'Todavía no hay ventas hoy'}</span></div><div id="gHoras"></div></section>
+      <section class="panel"><div class="pn-cab"><h2>Últimos 7 días</h2><div class="leyenda" style="margin:0"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div></div><div id="g7"></div>
+        <button class="lnk" data-ir="analisis" style="margin-top:10px">Ver el análisis completo →</button></section>
+      <section class="panel"><h2>Qué te dejó más ganancia hoy</h2>${top.length ? `<div class="scroll"><table><tr><th>Producto</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">Unidades</th><th class="n">Venta</th></tr>
+        ${top.map(([k, o]) => `<tr><td>${esc(nomProd[k] || '')}</td><td class="n"><b>${S(o.v - o.k)}</b></td><td class="n">${o.v > 0 ? P((o.v - o.k) / o.v * 100) : '—'}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td></tr>`).join('')}</table></div>`
+        : '<p class="vacio">Cuando vendas, aquí verás qué producto rinde más.</p>'}</section>
+      ${alertas.length ? `<section class="panel alerta" id="alertaPrecios"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
+        <p class="sub">Con el costo promedio de tus compras actuales. El precio mínimo es el más bajo al que ganas tu margen mínimo.</p>${tablaAlertas(alertas)}
+        <button class="btn" style="margin-top:12px" data-ir="catalogo">Ajustar precios</button></section>` : ''}
+    </div>
+    <div class="pn-s2">
+      <section class="panel"><h2>Cómo te pagaron hoy</h2>
+        ${totMedios ? `<div class="barra-medio" role="img" aria-label="Reparto por medio de pago">${medios(MEDIOS_VENTA).filter(m => porMedio[m.id] > 0).map(m => `<div style="width:${porMedio[m.id] / totMedios * 100}%;background:${COLOR_MEDIO[m.codigo]}" title="${esc(m.nombre)}"></div>`).join('')}</div>
+        <table>${medios(MEDIOS_VENTA).filter(m => porMedio[m.id] > 0).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${P(num(porMedio[m.id]) / totMedios * 100)}</td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Aún no hay cobros hoy.</p>'}
+      </section>
+      <section class="panel"><h2>Por reponer</h2>${reponer.length ? `<table>${reponer.map(r => `<tr><td>${esc(r.producto)}</td><td class="n"><span class="chip mal">quedan ${N(r.cantidad)}</span></td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Todo con stock suficiente.</p>'}</section>
+      <div id="boletasPanel"></div>
+      <section class="panel envio"><h2>Resumen del día</h2><p class="sub">Envíatelo por WhatsApp para tenerlo a la mano.</p>
+        <div class="envio-btns"><a class="btn wsp" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div>
+        <details class="pn-det"><summary>Ver el texto</summary><pre class="envio-txt" id="resTxt"></pre></details>
+        <details class="pn-det"><summary>Recordatorio cada noche</summary>
+          <p class="sub" style="margin:6px 0 8px">Se agrega a tu calendario y te avisa a la hora que elijas para cerrar caja y enviarte esto.</p>
+          <div class="fila"><div><label for="recHora">Hora</label><select id="recHora">${[17, 18, 19, 20, 21, 22, 23].map(x => `<option value="${x}" ${x === horaCierre() ? 'selected' : ''}>${x - 12}:00 p. m.</option>`).join('')}</select></div>
+          <div class="auto"><a class="btn claro" id="recAgregar" href="recordatorio/cierre-${horaCierre()}.ics">Agregar a mi calendario</a></div></div></details>
+      </section>
     </div>
   </div>`;
   // Texto del resumen (negritas con *asteriscos*, formato de WhatsApp)

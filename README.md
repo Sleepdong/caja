@@ -43,6 +43,7 @@ Una app instalable en el celular (PWA), pensada para usarse con una mano detrás
 
 <p>
   <img src="docs/escritorio-panel.webp" width="720" alt="Panel en la computadora">
+  <img src="docs/escritorio-analisis.webp" width="720" alt="Análisis: tendencia, productos, inventario y hallazgos">
 </p>
 
 <p>
@@ -82,7 +83,7 @@ Lo más interesante del proyecto fue traducir criterios contables en reglas que 
 
 ![Pruebas](https://github.com/Sleepdong/caja/actions/workflows/pruebas.yml/badge.svg)
 
-Cada cambio publicado pasa por **78 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
+Cada cambio publicado pasa por **80 pruebas** en un navegador real (Playwright), en tamaño laptop y celular. Corren contra la demo, así que nunca tocan la base real.
 
 | Grupo | Qué comprueba |
 |---|---|

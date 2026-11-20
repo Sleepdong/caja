@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-QUqLX2kIRydc4ZOH+fLFuKGwRyFmmLokujCnyPMaKy0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-8hxiAYdQto1gW1QZo+g3RHFRJUZAKPUnDOQ3Tc7IWqQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -456,6 +456,20 @@ body.soltando #vista::after{content:"Suelta aquí la factura (foto o PDF)";posit
 .bol-item{display:flex;gap:12px;align-items:center;background:var(--tono);border-radius:16px;padding:11px 14px;margin-top:8px}
 .bol-item>div{flex:1;min-width:0}.bol-item b{display:block;font-size:14.5px}.bol-item small{color:var(--gris);font-size:12.5px}
 .bol-item.mayor{box-shadow:inset 3px 0 0 var(--ambar)}
+.guia-sunat summary{cursor:pointer;list-style:none}.guia-sunat summary::-webkit-details-marker{display:none}.guia-sunat summary h2{display:inline}.guia-sunat summary::after{content:' ▾';color:var(--gris)}.guia-sunat[open] summary::after{content:' ▴'}
+tr.oculto{display:none!important}.solo-movil{display:none}
+@media(max-width:700px){
+  .tabla-bol,.tabla-bol tbody{display:block;min-width:0!important}
+  .tabla-bol tr:first-child{display:none}
+  .tabla-bol tr{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"b b i" "f t e" "v v a";gap:4px 10px;align-items:center;padding:12px 0;border-top:1px solid var(--tono)}
+  .tabla-bol td{display:block;padding:0!important;border:0!important;white-space:normal!important;text-align:left}
+  .tabla-bol .c-b{grid-area:b;font-size:15px}.tabla-bol .c-i{grid-area:i;font-weight:700;text-align:right}
+  .tabla-bol .c-f{grid-area:f;color:var(--gris);font-size:13px}.tabla-bol .c-t{grid-area:t;color:var(--gris);font-size:13px}
+  .tabla-bol .c-e{grid-area:e;text-align:right}.tabla-bol .c-v{grid-area:v;color:var(--gris);font-size:13px}.tabla-bol .c-a{grid-area:a;text-align:right}
+  .tabla-bol .c-a:empty{display:none}.solo-movil{display:inline}
+}
+.pasos-sunat{margin:6px 0 0;padding-left:20px;display:grid;gap:8px;line-height:1.5}
+tr.anulada td{opacity:.55}tr.anulada td:first-child,tr.anulada td:nth-child(2){text-decoration:line-through}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -817,7 +831,7 @@ async function abrirCajaRapido() {
 // ============ Navegación ============
 const VISTAS = {
   panel: ['Panel', vPanel], vender: ['Vender', vVender], ventas: ['Ventas', vVentas], caja: ['Caja', vCaja], compras: ['Compras', vCompras],
-  stock: ['Stock', vStock], gastos: ['Gastos', vGastos], catalogo: ['Productos', vCatalogo], reportes: ['Reportes', vReportes], cuenta: ['Cuenta', vCuenta],
+  stock: ['Stock', vStock], gastos: ['Gastos', vGastos], catalogo: ['Productos', vCatalogo], reportes: ['Reportes', vReportes], boletas: ['Boletas', vBoletas], cuenta: ['Cuenta', vCuenta],
 };
 let vistaActual = 'vender';
 const ICONOS = {
@@ -830,6 +844,7 @@ const ICONOS = {
   gastos: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
   catalogo: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.3"/>',
   reportes: '<path d="M6 3h9l4 4v14H6z"/><path d="M9.5 17v-3M12.5 17v-6M15.5 17v-4"/>',
+  boletas: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="m9 11 2 2 4-4"/>',
   cuenta: '<path d="M12 3l8 3v6c0 4.8-3.4 8-8 9-4.6-1-8-4.2-8-9V6z"/><path d="m9 12 2 2 4-4"/>',
   mas: '<circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/>',
 };
@@ -846,6 +861,7 @@ const PAGINAS = {
   gastos: () => ['Gastos', 'Lo que pagas para operar: bolsas, transporte, recargas y más.'],
   catalogo: () => ['Productos', 'Tus precios, márgenes y el simulador para probar cambios.'],
   reportes: () => ['Reportes', 'Tus resultados por fecha, listos para descargar en Excel.'],
+  boletas: () => ['Boletas', 'Las boletas que emites en SUNAT: qué falta emitir, cuáles registraste y cómo corregir un error.'],
   cuenta: () => ['Cuenta', 'Tu seguridad, tu contraseña y el resumen diario.'],
 };
 const primerNombre = () => (local.leer('perfil')?.nombre || '').trim().split(/\s+/)[0] || 'Luis';
@@ -2022,7 +2038,7 @@ async function cerrarElDia() {
             vencen.length ? `<div class="rv mal"><b>⏳ Vence esta semana</b><span>${vencen.slice(0, 4).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : l.dias + ' d'})`).join(', ')}</span><button class="lnk" data-ir2="stock">Ver vencimientos</button></div>` : '',
             reponer.length ? `<div class="rv aviso"><b>📦 Por reponer</b><span>${reponer.slice(0, 5).map(e => `${esc(e.producto)} (quedan ${N(e.cantidad)})`).join(', ')}</span><button class="lnk" data-ir2="stock">Armar el pedido</button></div>` : '',
             atrasados.length ? `<div class="rv aviso"><b>🤝 Fiados atrasados</b><span>${atrasados.slice(0, 4).map(c => `${esc(c.cliente)} (${S(c.saldo)})`).join(', ')}</span><button class="lnk" data-ir2="ventas">Recordarles</button></div>` : '',
-            sinBol.length ? `<div class="rv aviso"><b>🧾 Boletas de hoy</b><span>${sinBol.length} ${sinBol.length === 1 ? 'venta' : 'ventas'} sin boleta (${S(sinBol.reduce((a, v) => a + num(v.total), 0))}). Emite la boleta del día en la APP Emprender.</span><button class="lnk" data-ir2="panel">Registrarla</button></div>` : '',
+            sinBol.length ? `<div class="rv aviso"><b>🧾 Boletas de hoy</b><span>${sinBol.length} ${sinBol.length === 1 ? 'venta' : 'ventas'} sin boleta (${S(sinBol.reduce((a, v) => a + num(v.total), 0))}). Emite la boleta del día en la APP Emprender.</span><button class="lnk" data-ir2="boletas">Registrarla</button></div>` : '',
             respaldo === null || respaldo >= 7 ? `<div class="rv aviso"><b>💾 Copia de seguridad</b><span>${respaldo === null ? 'Aún no tienes ninguna.' : `La última fue hace ${respaldo} días.`}</span><button class="lnk" data-a="respaldo">Descargarla ahora</button></div>` : '',
           ].filter(Boolean).join('') || '<div class="rv ok"><b>✅ Todo en orden</b><span>Nada por vencer, nada urgente que reponer y ningún fiado atrasado.</span></div>'}
         </div>`
@@ -3158,7 +3174,7 @@ async function pintarDeclarar(ym = mesAnterior()) {
       <tr><td>Pago a cuenta de Renta · ${P(TRIBUTARIO.tasaRenta * 100)}</td><td class="n">${S(renta)}</td></tr>
       <tr><td><b>Renta a declarar (sin céntimos)</b></td><td class="n"><b>S/ ${rentaDeclarar}</b></td></tr>
       <tr><td>IGV a pagar</td><td class="n">S/ 0.00</td></tr></table>
-      ${conBol ? `<div class="cuadre ${sinB.length ? 'mal' : 'ok'}" style="margin-top:12px">${sinB.length ? `<b>${sinB.length} ${sinB.length === 1 ? 'venta' : 'ventas'} del mes sin boleta (${S(totSinB)}).</b> Regístralas en el Panel → Boletas antes de declarar, para que tus ventas cuadren con las boletas que ve SUNAT.` : `✓ Las ${vivas.length} ventas del mes tienen su boleta.`}</div>` : ''}
+      ${conBol ? `<div class="cuadre ${sinB.length ? 'mal' : 'ok'}" style="margin-top:12px">${sinB.length ? `<b>${sinB.length} ${sinB.length === 1 ? 'venta' : 'ventas'} del mes sin boleta (${S(totSinB)}).</b> Regístralas en el apartado Boletas antes de declarar, para que tus ventas cuadren con las boletas que ve SUNAT.` : `✓ Las ${vivas.length} ventas del mes tienen su boleta.`}</div>` : ''}
       <div class="consejo-claro" style="margin-top:12px">${pasaTope ? `<b>Atención:</b> en ${anio} ya vendiste ${S(acumulado)}, más de ${TRIBUTARIO.topeUIT} UIT (${S(tope)}). Desde ahora el pago a cuenta es el coeficiente o 1.5 %, no 1 %. Consúltalo con tu contador.`
         : `En ${anio} llevas ${S(acumulado)} vendidos: ${P(acumulado / tope * 100)} del tope de ${TRIBUTARIO.topeUIT} UIT (${S(tope)}) para pagar el 1 %.`}</div></div>
       <div><h3>Compras del mes</h3>${filasC.length ? `<div class="scroll"><table><tr><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th class="n">Base</th><th class="n">IGV</th><th class="n">Total</th></tr>
@@ -3232,8 +3248,9 @@ async function pintarBoletas() {
   try { pend = await ventasSinBoleta(); } catch { caja.innerHTML = ''; return; }
   const dias = agruparPorDia(pend), total = r2(pend.reduce((a, v) => a + num(v.total), 0));
   const hora = f => new Date(f).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
-  caja.innerHTML = `<div class="panel boletas"><div class="envio-cab"><div><h2>Boletas</h2>
-    <p class="sub" style="margin:0">${dias.length ? `Tienes <b>${pend.length} ${pend.length === 1 ? 'venta' : 'ventas'} sin boleta</b> (${S(total)}) en los últimos ${DIAS_BOLETAS} días. Emítelas en la APP Emprender y anota el número aquí.` : `✓ Todas tus ventas de los últimos ${DIAS_BOLETAS} días tienen boleta.`}</p></div></div>
+  const enApartado = vistaActual === 'boletas';
+  caja.innerHTML = `<div class="panel boletas"><div class="envio-cab"><div><h2>${enApartado ? 'Por emitir' : 'Boletas'}</h2>
+    <p class="sub" style="margin:0">${dias.length ? `Tienes <b>${pend.length} ${pend.length === 1 ? 'venta' : 'ventas'} sin boleta</b> (${S(total)}) en los últimos ${DIAS_BOLETAS} días. Emítelas en la APP Emprender y anota el número aquí.` : `✓ Todas tus ventas de los últimos ${DIAS_BOLETAS} días tienen boleta.`}</p></div>${enApartado ? '' : '<button class="btn claro mini" data-ir="boletas">Ver todas</button>'}</div>
     ${dias.slice(0, 6).map(d => {
       const tCh = r2(d.chicas.reduce((a, v) => a + num(v.total), 0));
       return `<div class="bol-dia"><h3>${d.dia === hoy() ? 'Hoy' : d.dia === fechaMenos(1) ? 'Ayer' : fd(d.dia)}</h3>
@@ -3242,13 +3259,59 @@ async function pintarBoletas() {
       </div>`; }).join('')}
     ${dias.length > 6 ? `<p class="sub" style="margin:10px 0 0">Y ${dias.length - 6} días más con ventas sin boleta.</p>` : ''}
   </div>`;
+  caja.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => ir(b.dataset.ir));
   caja.querySelectorAll('[data-bol-dia]').forEach(b => b.onclick = async () => {
     const d = dias.find(x => x.dia === b.dataset.bolDia);
-    if (await registrarBoleta({ ventas: d.chicas, dia: d.dia, consolidada: true })) pintarBoletas();
+    if (await registrarBoleta({ ventas: d.chicas, dia: d.dia, consolidada: true })) (enApartado ? ir('boletas') : pintarBoletas());
   });
   caja.querySelectorAll('[data-bol-venta]').forEach(b => b.onclick = async () => {
     const v = pend.find(x => x.venta_id === b.dataset.bolVenta);
-    if (await registrarBoleta({ ventas: [v], dia: v.dia, consolidada: false })) pintarBoletas();
+    if (await registrarBoleta({ ventas: [v], dia: v.dia, consolidada: false })) (enApartado ? ir('boletas') : pintarBoletas());
+  });
+}
+async function vBoletas(el) {
+  const [bols, links] = await Promise.all([
+    q(sb.from('boletas_emitidas').select('*').gte('fecha', fechaMenos(120))),
+    q(sb.from('boleta_ventas').select('boleta_id, venta_id')).catch(() => []),
+  ]);
+  const nV = {}; links.forEach(l => { nV[l.boleta_id] = (nV[l.boleta_id] || 0) + 1; });
+  bols.sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)) || String(b.creado_en || '').localeCompare(String(a.creado_en || '')) || Number(b.numero) - Number(a.numero));
+  const vig = bols.filter(b => b.estado === 'EMITIDA');
+  el.innerHTML = `
+  <div id="boletasPanel"></div>
+  <details class="panel guia-sunat" ${bols.length ? '' : 'open'}><summary><h2>Cómo emitir la boleta en SUNAT</h2></summary>
+    <ol class="pasos-sunat">
+      <li><b>Abre la APP Emprender SUNAT</b> (o SUNAT Operaciones en Línea) y entra con tu RUC, usuario y clave SOL.</li>
+      <li>Ve a <b>Comprobantes de pago → Boletas → Emitir</b>.</li>
+      <li><b>Cliente:</b> en la boleta del día no hace falta un cliente (solo es obligatorio si la venta pasa de S/ 700).</li>
+      <li><b>Detalle:</b> cantidad 1, descripción y precio tal como te los indica esta app (por ejemplo "Ventas menores a S/ 5 del ${fd(hoy())}").</li>
+      <li><b>Operación exonerada</b> (Ley de la Amazonía). Confírmalo con tu contador.</li>
+      <li><b>Emite</b> y copia la <b>serie y el número</b> que te da SUNAT. Regístralos aquí con el botón Registrar.</li>
+    </ol>
+    <p class="sub" style="margin:10px 0 0">La primera vez, escribe la serie exactamente como la muestra SUNAT (B001, EB01…). La app la recuerda y te sugiere el número siguiente.</p>
+    <button class="btn claro" id="abrirSol" style="margin-top:12px">Abrir SUNAT Operaciones en Línea</button>
+  </details>
+  <div class="panel"><div class="envio-cab"><div><h2>Boletas registradas</h2><p class="sub" style="margin:0">Últimos 4 meses: ${vig.length} vigentes por ${S(vig.reduce((a, b) => a + num(b.importe), 0))}. Si registraste una por error, anúlala: sus ventas vuelven a quedar pendientes y el número queda libre.</p></div></div>
+    ${bols.length ? `<div class="scroll"><table class="tabla-bol"><tr><th>Fecha</th><th>Boleta</th><th>Tipo</th><th class="n">Ventas</th><th class="n">Importe</th><th>Estado</th><th></th></tr>
+      ${bols.map((b, i) => `<tr class="${b.estado === 'ANULADA' ? 'anulada' : ''}${i >= 15 ? ' extra oculto' : ''}"><td class="c-f">${fd(b.fecha)}</td><td class="c-b"><b>${esc(b.serie)}-${esc(b.numero)}</b></td><td class="c-t">${b.consolidada ? 'Del día' : 'Individual'}</td>
+        <td class="n c-v">${b.estado === 'ANULADA' ? '—' : `${N(nV[b.id] || 0)}<span class="solo-movil"> ${(nV[b.id] || 0) === 1 ? 'venta' : 'ventas'}</span>`}</td><td class="n c-i">${S(b.importe)}</td>
+        <td class="c-e">${b.estado === 'ANULADA' ? `<span class="chip mal" title="${esc(b.motivo_anulacion || '')}">Anulada</span>` : '<span class="chip ok">Vigente</span>'}</td>
+        <td class="c-a">${b.estado === 'EMITIDA' ? `<button class="btn claro mini" data-anular="${esc(b.id)}">Anular</button>` : ''}</td></tr>`).join('')}</table></div>
+      ${bols.length > 15 ? `<button class="btn claro mini" id="verTodasBol" style="margin-top:10px">Ver todas (${bols.length})</button>` : ''}`
+      : '<p class="sub">Aún no registras boletas. Cuando emitas la primera en SUNAT, anótala arriba en "Por emitir".</p>'}
+  </div>
+`;
+  pintarBoletas();
+  $('#verTodasBol') && ($('#verTodasBol').onclick = () => { el.querySelectorAll('tr.extra').forEach(t => t.classList.remove('oculto')); $('#verTodasBol').remove(); });
+  $('#abrirSol').onclick = () => abrirEnlace('https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm');
+  el.querySelectorAll('[data-anular]').forEach(btn => btn.onclick = async () => {
+    const b = bols.find(x => x.id === btn.dataset.anular);
+    const v = await dialogo(`Anular ${b.serie}-${b.numero}`, [
+      { type: 'info', html: `<p class="sub" style="margin:0">Sus ${nV[b.id] || 0} ${(nV[b.id] || 0) === 1 ? 'venta vuelve' : 'ventas vuelven'} a quedar pendientes de boleta y el número ${esc(b.serie)}-${esc(b.numero)} queda libre. <b>Si la boleta sí se emitió en SUNAT</b>, anúlala también allá (comunicación de baja o nota de crédito).</p>` },
+      { label: 'Motivo', value: 'Registrada por error', required: true },
+    ], 'Anular boleta');
+    if (!v) return;
+    if ((await rpc('anular_boleta', { p_boleta: b.id, p_motivo: String(v[1]).trim() }, `Boleta ${b.serie}-${b.numero} anulada`)).ok) ir('boletas');
   });
 }
 async function vReportes(el) {

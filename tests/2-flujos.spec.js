@@ -1,7 +1,7 @@
 // Flujos principales del negocio, usados como lo haría Luis (en laptop y en celular)
 const { test, expect, abrirDemo, irA, aceptarDialogo } = require('./ayuda');
 
-const PAGINAS = ['panel', 'vender', 'ventas', 'caja', 'compras', 'stock', 'gastos', 'catalogo', 'reportes', 'cuenta'];
+const PAGINAS = ['panel', 'vender', 'ventas', 'caja', 'compras', 'stock', 'gastos', 'catalogo', 'reportes', 'boletas', 'cuenta'];
 
 test('todas las pantallas abren sin errores', async ({ page, errores }) => {
   await abrirDemo(page);
@@ -143,4 +143,20 @@ test('boletas: una venta de más de S/ 5 no entra en la boleta consolidada', asy
   const err = await page.evaluate(async () => { const v = (await sb.from('v_ventas_comprobante').select('*')).data.find(x => !x.boleta_id && x.total > 5);
     return (await sb.rpc('registrar_boleta', { p_serie: 'B001', p_numero: '99999', p_fecha: v.dia, p_ventas: [v.venta_id], p_consolidada: true })).error?.message; });
   expect(err).toContain('supera S/ 5');
+});
+
+test('apartado Boletas: anular una boleta devuelve sus ventas a pendientes y libera el número', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'boletas');
+  await expect(page.locator('#boletasPanel .boletas')).toContainText('Por emitir');
+  const fila = page.locator('table tr', { has: page.locator('[data-anular]') }).first();
+  const numero = (await fila.locator('td').nth(1).innerText()).trim();
+  const ventas = Number((await fila.locator('td').nth(3).innerText()).match(/\d+/)[0]);
+  const antes = Number((await page.locator('#boletasPanel p.sub b').first().innerText()).match(/\d+/)[0]);
+  await fila.locator('[data-anular]').click();
+  await page.locator('form.dialogo .acc button:not([data-x])').click();
+  await expect(page.locator('#aviso')).toContainText(`${numero} anulada`);
+  await expect(page.locator('#boletasPanel p.sub b').first()).toContainText(String(antes + ventas));
+  await expect(page.locator('tr.anulada', { hasText: numero })).toHaveCount(1);
+  await expect(page.locator('.pasos-sunat')).toContainText('APP Emprender');
 });

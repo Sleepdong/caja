@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-kmvGrKlJ3SpXewgQzgp+HZ64ywI6fpcntXNh4DhwKJg='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-U+tp2lO8JmopqOSblfjqQAGYCHFZrdJgzWA1HcBN98Q='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -476,6 +476,11 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 @keyframes entraAlerta{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
 @media(prefers-reduced-motion:reduce){#alertaCierreBar{animation:none}}
 @media(max-width:520px){#alertaCierreBar{flex-wrap:wrap}#alertaCierreBar>div{flex-basis:100%}}
+.motivos{display:grid;gap:8px;margin-top:10px}
+.motivo{display:block;text-align:left;width:100%;background:var(--tono);border:1px solid transparent;border-radius:16px;padding:12px 14px;color:inherit;font:inherit;cursor:pointer}
+.motivo b{display:block;font-size:14.5px}.motivo small{color:var(--gris);font-size:12.5px}
+.motivo.on{border-color:var(--violeta);background:#7B5CFF22}.motivo:focus-visible{outline:2px solid var(--violeta);outline-offset:2px}
+.contar-ahora .envio-cab{align-items:center}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -1632,8 +1637,14 @@ async function vCaja(el) {
   const enCaja = num(saldos.find(s => s.cuenta_id === C.caja?.id)?.saldo);
   const actual = ses ? ultimas.find(u => u.sesion_id === ses.id) : null;
   const ctas = C.cuentas.map(c => ({ value: c.id, label: c.nombre }));
+  const pend = pendientesCola(), ultArq = arqueos.leer()[0];
+  const hace = f => { const m = Math.round((Date.now() - Date.parse(f)) / 60000); return m < 60 ? `hace ${Math.max(1, m)} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `el ${fh(f)}`; };
   el.innerHTML = `
+  ${pend.n ? `<div class="aviso-barra"><p><b>${pend.n} ${pend.n === 1 ? 'venta hecha' : 'ventas hechas'} sin internet por ${S(pend.total)} no ${pend.n === 1 ? 'se ha subido' : 'se han subido'}.</b> ${ses ? 'Se suben solas cuando hay conexión.' : 'No se pueden subir con la caja cerrada: ábrela y súbelas.'}</p><button class="btn rotulo" id="btnSubirCola">${ses ? 'Subir ahora' : 'Abrir caja y subirlas'}</button></div>` : ''}
   <div class="cifras">${saldos.map(s => `<div class="cifra"><small>${esc(s.nombre)}</small><b>${S(s.saldo)}</b></div>`).join('')}</div>
+  <div class="panel contar-ahora"><div class="envio-cab"><div><h2>¿Cuánto efectivo tienes de verdad?</h2>
+    <p class="sub" style="margin:0">Cuenta billetes y monedas cuando quieras y compáralo con lo que dice el sistema (${S(enCaja)}). Si no cuadra, la app te ayuda a registrar por qué.${ultArq ? ` Último conteo ${hace(ultArq.fecha)}: ${Math.abs(num(ultArq.dif)) < 0.005 ? 'cuadró' : (ultArq.dif > 0 ? 'sobraban ' : 'faltaban ') + S(Math.abs(ultArq.dif))}.` : ''}</p></div>
+    <button class="btn rotulo" id="btnContarAhora">Contar el dinero ahora</button></div></div>
   <div class="cols dos">
     <div class="panel">${ses ? `
       <h2>Caja abierta</h2><p class="sub">Desde ${fh(ses.abierta_en)} con ${S(ses.monto_apertura)}.</p>
@@ -1668,11 +1679,14 @@ async function vCaja(el) {
   </div>
   <div class="panel"><h2>Cierres anteriores</h2><div class="scroll"><table>
     <tr><th>Abierta</th><th>Cerrada</th><th class="n">Apertura</th><th class="n">Esperado</th><th class="n">Contado</th><th class="n">Diferencia</th><th>Observación</th></tr>
-    ${ultimas.map(u => `<tr><td>${fh(u.abierta_en)}</td><td>${u.cerrada_en ? fh(u.cerrada_en) : '<span class="chip ok">Abierta</span>'}</td><td class="n">${S(u.monto_apertura)}</td>
+    ${ultimas.map(u => `<tr><td>${fh(u.abierta_en)}</td><td>${u.cerrada_en ? fh(u.cerrada_en) : `<span class="chip ok">Abierta</span>${diaLima(u.abierta_en) < hoy() ? ' <button class="btn claro mini" data-cerrar-ant>Cerrarla</button>' : ''}`}</td><td class="n">${S(u.monto_apertura)}</td>
       <td class="n">${u.saldo_esperado != null ? S(u.saldo_esperado) : ''}</td><td class="n">${u.monto_contado != null ? S(u.monto_contado) : ''}</td>
       <td class="n">${u.diferencia != null ? `<span class="chip ${num(u.diferencia) === 0 ? 'ok' : 'mal'}">${S(u.diferencia)}</span>` : ''}</td><td>${esc(u.observaciones)}</td></tr>`).join('') || '<tr><td colspan="7" class="vacio">Aún no hay cierres.</td></tr>'}
   </table></div></div>`;
   if ($('#btnAbrir')) $('#btnAbrir').onclick = async () => { if (await abrirCajaRapido()) ir('caja'); };
+  $('#btnContarAhora').onclick = () => contarDinero().catch(e => aviso(textoError(e), true));
+  $('#btnSubirCola') && ($('#btnSubirCola').onclick = async () => { await subirAtascadas(); ir('caja'); });
+  el.querySelectorAll('[data-cerrar-ant]').forEach(b => b.onclick = () => cerrarElDia().catch(e => aviso(textoError(e), true)));
   $('#horaCierre').onchange = () => { local.guardar('horaCierre', Number($('#horaCierre').value)); local.guardar('alertaVista', ''); $('#calCierre').href = `recordatorio/cierre-${horaCierre()}.ics`; aviso(`Te avisaré a las ${horaCierre() - 12}:00 p. m. si tu caja sigue abierta`); revisarCierre(); };
   $('#alertaOn').onchange = () => { local.guardar('alertaCierre', $('#alertaOn').value === '1'); aviso($('#alertaOn').value === '1' ? 'Alerta de cierre activada' : 'Alerta de cierre desactivada'); };
   $('#permNotif') && ($('#permNotif').onclick = async () => { const r = await Notification.requestPermission().catch(() => 'denied'); aviso(r === 'granted' ? 'Listo: también recibirás la alerta como notificación' : 'No se activaron las notificaciones; verás el aviso dentro de la app', r !== 'granted'); if (r === 'granted') $('#permNotif').remove(); });
@@ -2061,6 +2075,99 @@ async function pedirPorWhatsApp(items) {
 
 // ============ CERRAR EL DÍA ============
 // Un recorrido: contar el efectivo → revisar pendientes → cerrar caja → resumen y copia de seguridad
+// ---------- Contar el dinero ahora (arqueo): en cualquier momento, con la caja abierta o cerrada ----------
+const arqueos = { leer: () => local.leer('arqueos', []), guardar(a) { const l = [a, ...this.leer()].slice(0, 20); local.guardar('arqueos', l); } };
+const pendientesCola = () => { const c = colaVentas.leer(); return { n: c.length, total: r2(c.reduce((a, v) => a + num(v.total), 0)) }; };
+// Abre la caja con lo que dice el sistema (sin diferencia), por ejemplo para subir ventas o registrar las que faltan
+async function abrirCajaSinDiferencia() {
+  if (await sesionCaja()) return true;
+  const libro = num((await q(sb.from('v_saldos_cuentas').select('*'))).find(x => x.cuenta_id === C.caja?.id)?.saldo);
+  const r = await rpc('abrir_caja', { p_monto_contado: libro, p_observaciones: null, p_cuenta_id: C.caja.id }, `Caja abierta con ${S(libro)}`);
+  await pintarEstadoCaja(); return r.ok;
+}
+async function subirAtascadas() {
+  if (!navigator.onLine) return aviso('Necesitas internet para subir las ventas', true);
+  if (!(await abrirCajaSinDiferencia())) return;
+  const c = colaVentas.leer(); c.forEach(x => delete x.error); colaVentas.guardar(c);
+  await subirPendientes(true);
+}
+async function contarDinero() {
+  const [ses, saldos] = await Promise.all([sesionCaja(), q(sb.from('v_saldos_cuentas').select('*'))]);
+  const sistema = num(saldos.find(x => x.cuenta_id === C.caja?.id)?.saldo), pend = pendientesCola();
+  const st = { paso: 1, cuenta: {}, motivo: null };
+  const v = document.createElement('div'); v.className = 'velo hoja-velo asis-velo'; v.innerHTML = '<div class="asis" role="dialog" aria-modal="true" aria-labelledby="arT"></div>';
+  document.body.appendChild(v);
+  const caja = v.firstChild, cerrar = () => v.remove();
+  v.addEventListener('click', e => { if (e.target === v) cerrar(); });
+  const contado = () => r2(DENOM.reduce((a, [d]) => a + d * num(st.cuenta[d]), 0));
+  const guardarArqueo = resuelto => arqueos.guardar({ fecha: new Date().toISOString(), contado: contado(), sistema, dif: r2(contado() - sistema), resuelto, cajaAbierta: !!ses });
+  const pintar = () => {
+    const c = contado(), d = r2(c - sistema), cuadra = Math.abs(d) < 0.005, hay = Object.keys(st.cuenta).length > 0;
+    caja.innerHTML = `<header class="asis-cab"><div><small>Contar el dinero</small><h3 id="arT">${st.paso === 1 ? 'Cuenta el efectivo que tienes ahora' : cuadra ? 'Tu caja cuadra' : d > 0 ? `Sobran ${S(d)}` : `Faltan ${S(-d)}`}</h3></div>
+      <button class="asis-x" data-a="cerrar" aria-label="Cerrar">×</button></header>
+      <div class="asis-cuerpo">${st.paso === 1 ? `
+        <p class="sub">Solo el efectivo de la caja (Yape y Plin no van aquí). No cambia nada en tus cuentas: solo compara con lo que dice el sistema.</p>
+        <div class="billetes">${DENOM.map(([den, t]) => `<label class="den ${t}"><span>${den >= 1 ? 'S/ ' + den : den * 100 + ' cént.'}</span><input type="number" min="0" step="1" inputmode="numeric" data-den="${den}" value="${st.cuenta[den] ?? ''}" placeholder="0"></label>`).join('')}</div>
+        <div class="cuadre-caja ${hay ? (cuadra ? 'ok' : 'mal') : ''}"><div><small>Contaste</small><b>${S(c)}</b></div><div><small>Según el sistema</small><b>${S(sistema)}</b></div>
+          <div><small>Diferencia</small><b>${!hay ? '—' : cuadra ? 'Cuadra ✓' : (d > 0 ? 'Sobran ' : 'Faltan ') + S(Math.abs(d))}</b></div></div>`
+      : cuadra ? `<div class="hecho-dia"><div class="ic">✓</div><p><b>Tienes exactamente ${S(c)}</b>, lo mismo que dice el sistema.</p></div>`
+      : `${pend.n ? `<div class="cuadre mal" style="margin-bottom:12px"><b>Tienes ${pend.n} ${pend.n === 1 ? 'venta hecha' : 'ventas hechas'} sin internet por ${S(pend.total)} que aún no se suben.</b> Súbelas primero: pueden explicar ${d > 0 ? 'el sobrante' : 'parte de la diferencia'}.
+          <div style="margin-top:8px"><button class="btn rotulo mini" data-a="subir">Subirlas ahora</button></div></div>` : ''}
+        <p class="sub">Contaste ${S(c)} y el sistema dice ${S(sistema)}. ¿De dónde ${d > 0 ? 'salió el dinero de más' : 'falta el dinero'}?</p>
+        <div class="motivos">${(d > 0 ? [
+          ['ventas', 'Vendí y no lo registré', 'Registra esas ventas para que también baje tu stock.'],
+          ['aporte', 'Es dinero mío que puse en la caja', `Se registra un aporte de ${S(d)} a la caja.`],
+          ['ajuste', 'No sé de dónde salió', ses ? 'Quedará anotado como sobrante al cerrar el día.' : `Se abre la caja con ${S(c)} y el sobrante queda anotado.`],
+        ] : [
+          ['retiro', 'Lo saqué para mí', `Se registra un retiro de ${S(-d)} de la caja.`],
+          ['gasto', 'Pagué algo del negocio', 'Regístralo como gasto pagado en efectivo.'],
+          ['ajuste', 'No sé dónde está', ses ? 'Quedará anotado como faltante al cerrar el día.' : `Se abre la caja con ${S(c)} y el faltante queda anotado.`],
+        ]).map(([k, t, dsc]) => `<button class="motivo ${st.motivo === k ? 'on' : ''}" data-m="${k}"><b>${t}</b><small>${dsc}</small></button>`).join('')}</div>
+        ${st.motivo === 'ajuste' && !ses ? `<label for="arObs" style="margin-top:12px">Explica brevemente (queda en el registro)</label><input id="arObs" placeholder="Ej.: ${d > 0 ? 'sobrante del conteo de la mañana' : 'faltante del conteo de la mañana'}">` : ''}`}
+      </div>
+      <footer class="asis-pie">${st.paso === 2 ? '<button class="btn claro" data-a="atras">Volver a contar</button>' : '<span></span>'}
+        ${st.paso === 1 ? `<button class="btn rotulo" data-a="sig" ${hay ? '' : 'disabled'}>Ver resultado</button>`
+        : cuadra ? '<button class="btn rotulo" data-a="ok">Listo</button>'
+        : `<button class="btn rotulo" data-a="aplicar" ${st.motivo ? '' : 'disabled'}>${{ ventas: 'Ir a registrar las ventas', aporte: 'Registrar aporte', retiro: 'Registrar retiro', gasto: 'Ir a registrar el gasto', ajuste: ses ? 'Entendido' : 'Abrir caja con lo contado' }[st.motivo] || 'Elige una opción'}</button>`}</footer>`;
+    caja.querySelectorAll('[data-den]').forEach(i => i.oninput = () => {
+      const val = i.value; if (val === '') delete st.cuenta[i.dataset.den]; else st.cuenta[i.dataset.den] = Math.max(0, Math.round(num(val)));
+      const pos = i.selectionStart, den = i.dataset.den; pintar();
+      const f = caja.querySelector(`[data-den="${den}"]`); f.focus(); try { f.setSelectionRange(pos, pos); } catch {}
+    });
+    caja.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { st.motivo = b.dataset.m; pintar(); });
+    caja.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+      const a = b.dataset.a, dd = r2(contado() - sistema);
+      if (a === 'cerrar') return cerrar();
+      if (a === 'sig') { st.paso = 2; return pintar(); }
+      if (a === 'atras') { st.paso = 1; st.motivo = null; return pintar(); }
+      if (a === 'ok') { guardarArqueo('cuadra'); cerrar(); return ir('caja'); }
+      if (a === 'subir') { cerrar(); await subirAtascadas(); return ir('caja'); }
+      if (a !== 'aplicar') return;
+      b.disabled = true;
+      try {
+        const m = st.motivo;
+        if (m === 'ventas') {
+          if (!(await abrirCajaSinDiferencia())) { b.disabled = false; return; }
+          guardarArqueo('ventas sin registrar'); cerrar();
+          await ir('vender'); return aviso(`Registra las ventas que faltan por ${S(dd)}. Si no recuerdas cuáles, haz el conteo en Stock y usa "Lo vendí".`);
+        }
+        if (m === 'aporte' && (await rpc('registrar_aporte', { p_cuenta_id: C.caja.id, p_monto: dd, p_descripcion: 'Aporte en efectivo detectado al contar la caja' }, `Aporte de ${S(dd)} registrado`)).ok) { guardarArqueo('aporte'); cerrar(); return ir('caja'); }
+        if (m === 'retiro' && (await rpc('registrar_retiro', { p_cuenta_id: C.caja.id, p_monto: -dd, p_descripcion: 'Retiro en efectivo detectado al contar la caja' }, `Retiro de ${S(-dd)} registrado`)).ok) { guardarArqueo('retiro'); cerrar(); return ir('caja'); }
+        if (m === 'gasto') { guardarArqueo('gasto'); cerrar(); await ir('gastos'); return aviso(`Registra el gasto de ${S(-dd)} pagado en efectivo`); }
+        if (m === 'ajuste') {
+          if (ses) { guardarArqueo('se anota al cerrar'); cerrar(); return ir('caja'); }
+          const obs = (caja.querySelector('#arObs')?.value || '').trim();
+          if (!obs) { b.disabled = false; return aviso('Escribe una explicación corta', true); }
+          const r = await rpc('abrir_caja', { p_monto_contado: contado(), p_observaciones: obs, p_cuenta_id: C.caja.id }, `Caja abierta con ${S(contado())}; la diferencia quedó registrada`);
+          await pintarEstadoCaja();
+          if (r.ok) { guardarArqueo('ajuste al abrir'); cerrar(); return ir('caja'); }
+        }
+      } catch (e) { aviso(textoError(e), true); }
+      b.disabled = false;
+    });
+  };
+  pintar();
+}
 const DENOM = [[200, 'billete'], [100, 'billete'], [50, 'billete'], [20, 'billete'], [10, 'billete'], [5, 'moneda'], [2, 'moneda'], [1, 'moneda'], [0.5, 'moneda'], [0.2, 'moneda'], [0.1, 'moneda']];
 async function cerrarElDia() {
   const [ses, saldos, ex, lotes, cxc] = await Promise.all([

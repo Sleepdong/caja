@@ -182,3 +182,36 @@ test('alerta de cierre: antes de la hora no molesta y se puede cambiar la hora',
   expect(await page.evaluate(() => horaCierre())).toBe(20);
   await expect(page.locator('#calCierre')).toHaveAttribute('href', 'recordatorio/cierre-20.ics');
 });
+
+test('contar el dinero: detecta un sobrante, avisa de ventas sin subir y guarda el conteo', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await page.evaluate(() => colaVentas.agregar({ id: 'x1', p: { observaciones: 'sinred:x1' }, total: 26, medio: 'Efectivo', creada: new Date().toISOString(), error: 'La caja estaba cerrada' }));
+  await irA(page, 'caja');
+  await expect(page.locator('.aviso-barra', { hasText: 'sin internet por S/ 26.00' })).toBeVisible();
+  const sistema = await page.evaluate(async () => num((await sb.from('v_saldos_cuentas').select('*')).data.find(x => x.cuenta_id === C.caja.id).saldo));
+  await page.locator('#btnContarAhora').click();
+  // Contamos el sistema + S/ 26 en monedas de S/ 1 y céntimos
+  const objetivo = Math.round((sistema + 26) * 10) / 10, soles = Math.floor(objetivo), cent = Math.round((objetivo - soles) * 10);
+  await page.locator('[data-den="1"]').fill(String(soles));
+  if (cent) await page.locator('[data-den="0.1"]').fill(String(cent));
+  await expect(page.locator('.cuadre-caja')).toContainText('Sobran S/ 26.00');
+  await page.locator('[data-a="sig"]').click();
+  await expect(page.locator('.asis')).toContainText('que aún no se suben');
+  await page.locator('[data-m="ajuste"]').click();
+  await page.locator('[data-a="aplicar"]').click();
+  await expect(page.locator('.contar-ahora')).toContainText('sobraban S/ 26.00');
+});
+
+test('contar el dinero: si cuadra, lo confirma', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'caja');
+  const sistema = await page.evaluate(async () => num((await sb.from('v_saldos_cuentas').select('*')).data.find(x => x.cuenta_id === C.caja.id).saldo));
+  await page.locator('#btnContarAhora').click();
+  const soles = Math.floor(sistema), cent = Math.round((sistema - soles) * 10);
+  await page.locator('[data-den="1"]').fill(String(soles));
+  if (cent) await page.locator('[data-den="0.1"]').fill(String(cent));
+  await page.locator('[data-a="sig"]').click();
+  await expect(page.locator('.asis')).toContainText('Tu caja cuadra');
+  await page.locator('[data-a="ok"]').click();
+  await expect(page.locator('.contar-ahora')).toContainText('cuadró');
+});

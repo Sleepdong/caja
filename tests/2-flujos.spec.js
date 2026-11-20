@@ -160,3 +160,25 @@ test('apartado Boletas: anular una boleta devuelve sus ventas a pendientes y lib
   await expect(page.locator('tr.anulada', { hasText: numero })).toHaveCount(1);
   await expect(page.locator('.pasos-sunat')).toContainText('APP Emprender');
 });
+
+for (const [hora, texto] of [['21:50', 'En 10 min es hora de cerrar caja'], ['22:05', 'Ya son las 10:00 p. m.: cierra tu caja']]) {
+  test(`alerta de cierre: a las ${hora} avisa si la caja sigue abierta`, async ({ page, errores }) => {
+    await page.clock.setFixedTime(new Date(`2026-11-20T${hora}:00-05:00`));
+    await abrirDemo(page);
+    const bar = page.locator('#alertaCierreBar');
+    await expect(bar).toContainText(texto);
+    await bar.locator('[data-x="luego"]').click();
+    await expect(bar).toHaveCount(0);
+  });
+}
+
+test('alerta de cierre: antes de la hora no molesta y se puede cambiar la hora', async ({ page, errores }) => {
+  await page.clock.setFixedTime(new Date('2026-11-20T15:00:00-05:00'));
+  await abrirDemo(page);
+  await page.waitForTimeout(1200);
+  await expect(page.locator('#alertaCierreBar')).toHaveCount(0);
+  await irA(page, 'caja');
+  await page.locator('#horaCierre').selectOption('20');
+  expect(await page.evaluate(() => horaCierre())).toBe(20);
+  await expect(page.locator('#calCierre')).toHaveAttribute('href', 'recordatorio/cierre-20.ics');
+});

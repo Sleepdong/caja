@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-qBUF79cc8qKfNmubDkfFhchtOgGeDN41N1KJ3YDEL/U='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-ytQ8ty5oNuKNwCvq7lMG4e9pWObNq6c/Alfu7ESNvKY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -470,6 +470,12 @@ tr.oculto{display:none!important}.solo-movil{display:none}
 }
 .pasos-sunat{margin:6px 0 0;padding-left:20px;display:grid;gap:8px;line-height:1.5}
 tr.anulada td{opacity:.55}tr.anulada td:first-child,tr.anulada td:nth-child(2){text-decoration:line-through}
+#alertaCierreBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 12px);z-index:60;width:min(560px,calc(100% - 24px));display:flex;gap:10px;align-items:center;
+  background:var(--blanco);border:1px solid #FFC85766;box-shadow:0 12px 40px #0008,inset 4px 0 0 var(--ambar);border-radius:18px;padding:12px 14px;animation:entraAlerta .35s ease-out}
+a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierreBar b{display:block;font-size:14.5px}#alertaCierreBar small{color:var(--gris);font-size:12.5px}
+@keyframes entraAlerta{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(prefers-reduced-motion:reduce){#alertaCierreBar{animation:none}}
+@media(max-width:520px){#alertaCierreBar{flex-wrap:wrap}#alertaCierreBar>div{flex-basis:100%}}
 .acciones-pagina{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}.acciones-pagina .btn{gap:8px;padding:13px 20px}
 .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
 .cat-card{background:var(--tono);border:0;border-radius:20px;padding:16px;text-align:left;color:var(--texto);font:inherit;display:flex;flex-direction:column;gap:12px}
@@ -803,11 +809,47 @@ async function sesionCaja() {
   if (!C.caja) return null;
   return q(sb.from('caja_sesiones').select('*').eq('cuenta_financiera_id', C.caja.id).eq('estado', 'ABIERTA').maybeSingle());
 }
+// ---------- Alerta de cierre de caja ----------
+const horaCierre = () => { const h = Number(local.leer('horaCierre')); return h >= 17 && h <= 23 ? h : 22; };
+const alertaCierreOn = () => local.leer('alertaCierre') !== false;
+const diaLima = f => new Date(f).toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+const minutosLima = () => { const [h, m] = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).split(':').map(Number); return h * 60 + m; };
+let posponerHasta = 0;
+async function notificar(titulo, cuerpo) {
+  try { navigator.vibrate?.([200, 100, 200]); } catch {}
+  if (!('Notification' in window) || Notification.permission !== 'granted' || document.visibilityState === 'visible') return;
+  try { const reg = await navigator.serviceWorker?.getRegistration(); if (reg) reg.showNotification(titulo, { body: cuerpo, tag: 'cierre-caja', renotify: true, icon: 'icon-192.png' }); else new Notification(titulo, { body: cuerpo }); } catch {}
+}
+async function revisarCierre() {
+  if ($('#app').classList.contains('oculto') || !alertaCierreOn() || Date.now() < posponerHasta) return;
+  const ses = await sesionCaja().catch(() => null);
+  if (!ses) { $('#alertaCierreBar')?.remove(); return; }
+  const deAyer = diaLima(ses.abierta_en) < hoy();
+  const obj = horaCierre() * 60, ahora = minutosLima();
+  // Etapas: 15 min antes, a la hora y cada 30 min después; una caja de un día anterior avisa siempre
+  const etapa = deAyer ? 'ayer' : ahora >= obj ? 'tarde' + Math.floor((ahora - obj) / 30) : ahora >= obj - 15 ? 'previo' : null;
+  if (!etapa) return;
+  const clave = hoy() + ':' + etapa;
+  const titulo = deAyer ? 'Tu caja sigue abierta desde ayer' : etapa === 'previo' ? `En ${obj - ahora} min es hora de cerrar caja` : `Ya son las ${horaCierre() - 12}:00 p. m.: cierra tu caja`;
+  const cuerpo = deAyer ? 'Ciérrala con lo que tienes ahora para que cada día cuadre por separado.' : 'Cuenta el efectivo y cierra el día para que tus números de hoy queden listos.';
+  if (!$('#alertaCierreBar')) {
+    const d = document.createElement('div'); d.id = 'alertaCierreBar'; d.setAttribute('role', 'alert');
+    d.innerHTML = `<div><b></b><small></small></div><button class="btn rotulo mini" data-x="cerrar">Cerrar el día</button><button class="btn claro mini" data-x="luego">En 15 min</button>`;
+    document.body.appendChild(d);
+    d.querySelector('[data-x="cerrar"]').onclick = () => { d.remove(); cerrarElDia().catch(e => aviso(textoError(e), true)); };
+    d.querySelector('[data-x="luego"]').onclick = () => { posponerHasta = Date.now() + 15 * 60000; d.remove(); };
+  }
+  $('#alertaCierreBar b').textContent = titulo; $('#alertaCierreBar small').textContent = cuerpo;
+  if (local.leer('alertaVista') !== clave) { local.guardar('alertaVista', clave); notificar(titulo, cuerpo); }
+}
+setInterval(revisarCierre, 60000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') revisarCierre(); });
 async function pintarEstadoCaja() {
   const s = await sesionCaja().catch(() => null);
   const b = $('#estadoCaja');
   b.className = 'estado-caja' + (s ? ' abierta' : '');
   b.textContent = s ? 'Caja abierta' : 'Caja cerrada';
+  if (!s) $('#alertaCierreBar')?.remove(); else setTimeout(revisarCierre, 500);
   return s;
 }
 async function abrirCajaRapido() {
@@ -1112,8 +1154,8 @@ async function vPanel(el) {
     <div class="envio-btns"><a class="btn" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div></div>
     <pre class="envio-txt" id="resTxt"></pre>
     <div class="recordar"><div><b>Recordatorio cada noche</b><p class="sub" style="margin:2px 0 0">Se agrega a tu calendario y te avisa a la hora que elijas para cerrar caja y enviarte esto.</p></div>
-      <div class="fila"><div><label for="recHora">Hora</label><select id="recHora">${[17, 18, 19, 20, 21, 22, 23].map(x => `<option value="${x}" ${x === 21 ? 'selected' : ''}>${x - 12}:00 p. m.</option>`).join('')}</select></div>
-      <div class="auto"><a class="btn claro" id="recAgregar" href="recordatorio/cierre-21.ics">Agregar a mi calendario</a></div></div></div></div>
+      <div class="fila"><div><label for="recHora">Hora</label><select id="recHora">${[17, 18, 19, 20, 21, 22, 23].map(x => `<option value="${x}" ${x === horaCierre() ? 'selected' : ''}>${x - 12}:00 p. m.</option>`).join('')}</select></div>
+      <div class="auto"><a class="btn claro" id="recAgregar" href="recordatorio/cierre-${horaCierre()}.ics">Agregar a mi calendario</a></div></div></div></div>
   <div class="cols dos">
     <div class="panel"><h2>Ventas por hora</h2><p class="sub">${mejorHora !== undefined ? `Tu mejor hora hoy: ${mejorHora}:00 a ${mejorHora + 1}:00, con ${S(porHora[mejorHora].v)}.` : 'Todavía no hay ventas hoy.'}</p><div id="gHoras"></div></div>
     <div class="panel"><h2>Últimos 7 días</h2><p class="sub">Venta y ganancia bruta de cada día.</p>
@@ -1590,6 +1632,7 @@ async function vCaja(el) {
   <div class="cols dos">
     <div class="panel">${ses ? `
       <h2>Caja abierta</h2><p class="sub">Desde ${fh(ses.abierta_en)} con ${S(ses.monto_apertura)}.</p>
+      ${diaLima(ses.abierta_en) < hoy() ? `<div class="cuadre mal"><b>Esta caja sigue abierta desde el ${fd(diaLima(ses.abierta_en))}.</b> Ciérrala con lo que tienes ahora y abre una nueva para hoy: así cada día cuadra por separado.</div>` : ''}
       <table><tr><td>Entró en efectivo</td><td class="n">${S(actual?.entradas)}</td></tr><tr><td>Salió en efectivo</td><td class="n">${S(Math.abs(num(actual?.salidas)))}</td></tr>
         <tr><td>Cobrado con Yape y Plin (no entra a la caja)</td><td class="n">${S(actual?.cobros_otros_medios)}</td></tr>
         <tr><td><b>Debe haber en la caja</b></td><td class="n"><b>${S(enCaja)}</b></td></tr></table>
@@ -1606,6 +1649,18 @@ async function vCaja(el) {
       <div class="fila" style="margin-top:8px"><button class="btn claro" id="btnAporte">Poner dinero (aporte)</button><button class="btn claro" id="btnRetiro">Sacar dinero (retiro)</button></div>
     </div>
   </div>
+  <div class="panel alerta-cierre"><div class="envio-cab"><div><h2>Alerta de cierre</h2>
+      <p class="sub" style="margin:0">Si tu caja sigue abierta, la app te avisa 15 minutos antes y a la hora de cierre, y otra vez cada 30 minutos hasta que la cierres.</p></div></div>
+    <div class="fila" style="margin-top:12px;max-width:640px">
+      <div><label for="horaCierre">Hora de cierre</label><select id="horaCierre">${[17, 18, 19, 20, 21, 22, 23].map(h => `<option value="${h}" ${h === horaCierre() ? 'selected' : ''}>${h - 12}:00 p. m.</option>`).join('')}</select></div>
+      <div><label for="alertaOn">Alerta</label><select id="alertaOn"><option value="1" ${alertaCierreOn() ? 'selected' : ''}>Activada</option><option value="0" ${alertaCierreOn() ? '' : 'selected'}>Desactivada</option></select></div>
+    </div>
+    <div class="fila" style="margin-top:10px">
+      ${'Notification' in window && Notification.permission !== 'granted' ? '<button class="btn claro" id="permNotif">Permitir notificaciones</button>' : ''}
+      <a class="btn claro" id="calCierre" href="recordatorio/cierre-${horaCierre()}.ics">Agregar también a mi calendario</a>
+    </div>
+    <p class="sub" style="margin:10px 0 0">La alerta suena mientras la app esté abierta (aunque sea en segundo plano). Para que te avise con el celular bloqueado, agrégala también a tu calendario.</p>
+  </div>
   <div class="panel"><h2>Cierres anteriores</h2><div class="scroll"><table>
     <tr><th>Abierta</th><th>Cerrada</th><th class="n">Apertura</th><th class="n">Esperado</th><th class="n">Contado</th><th class="n">Diferencia</th><th>Observación</th></tr>
     ${ultimas.map(u => `<tr><td>${fh(u.abierta_en)}</td><td>${u.cerrada_en ? fh(u.cerrada_en) : '<span class="chip ok">Abierta</span>'}</td><td class="n">${S(u.monto_apertura)}</td>
@@ -1613,6 +1668,9 @@ async function vCaja(el) {
       <td class="n">${u.diferencia != null ? `<span class="chip ${num(u.diferencia) === 0 ? 'ok' : 'mal'}">${S(u.diferencia)}</span>` : ''}</td><td>${esc(u.observaciones)}</td></tr>`).join('') || '<tr><td colspan="7" class="vacio">Aún no hay cierres.</td></tr>'}
   </table></div></div>`;
   if ($('#btnAbrir')) $('#btnAbrir').onclick = async () => { if (await abrirCajaRapido()) ir('caja'); };
+  $('#horaCierre').onchange = () => { local.guardar('horaCierre', Number($('#horaCierre').value)); local.guardar('alertaVista', ''); $('#calCierre').href = `recordatorio/cierre-${horaCierre()}.ics`; aviso(`Te avisaré a las ${horaCierre() - 12}:00 p. m. si tu caja sigue abierta`); revisarCierre(); };
+  $('#alertaOn').onchange = () => { local.guardar('alertaCierre', $('#alertaOn').value === '1'); aviso($('#alertaOn').value === '1' ? 'Alerta de cierre activada' : 'Alerta de cierre desactivada'); };
+  $('#permNotif') && ($('#permNotif').onclick = async () => { const r = await Notification.requestPermission().catch(() => 'denied'); aviso(r === 'granted' ? 'Listo: también recibirás la alerta como notificación' : 'No se activaron las notificaciones; verás el aviso dentro de la app', r !== 'granted'); if (r === 'granted') $('#permNotif').remove(); });
   $('#btnCerrarDiaCaja') && ($('#btnCerrarDiaCaja').onclick = () => cerrarElDia().catch(e => aviso(textoError(e), true)));
   if ($('#contado')) $('#contado').oninput = () => {
     const d = r2(num($('#contado').value) - enCaja);

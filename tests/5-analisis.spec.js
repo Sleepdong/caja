@@ -107,4 +107,9 @@ test('Panel: la dona reparte las ventas en mercadería, gastos y ganancia neta, 
   expect(partes.reduce((a, b) => a + b, 0)).toBeCloseTo(10, 2);
   await page.locator('[data-dona="sem"]').click();
   await expect(page.locator('[data-dona="sem"]')).toHaveClass(/on/);
+  // Este mes = suma de los días del mes en v_resultados_diarios
+  const mes = await page.evaluate(async () => { const r = (await sb.from('v_resultados_diarios').select('*').gte('fecha', iniMes()).lte('fecha', hoy())).data; return Math.round(r.reduce((a, x) => a + Number(x.ventas_netas || 0), 0) * 100) / 100; });
+  await page.locator('[data-dona="mes"]').click();
+  await expect(page.locator('[data-dona="mes"]')).toHaveClass(/on/);
+  if (mes > 0) await expect.poll(async () => sol(await page.locator('#gDona .dona-c b').innerText())).toBeCloseTo(mes, 2);
 });

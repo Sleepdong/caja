@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-7VLq9byJEkl9qCkHrwgj5NohIpXu3U/gJ3E/TEF7sNs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-LBU6UeQb6o2Ld6y196KZ9bOMspiqML/FCCt6Bo3EjGQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -1302,7 +1302,7 @@ function pintarDona(cont, d) {
     <p class="dona-txt">${perdida
       ? `Vendiste ${S(venta)}, pero la mercadería (${S(merc)}) y los gastos (${S(gasto)}) sumaron más. <b>Perdiste ${S(-gan)}.</b> Revisa tus precios o tus gastos.`
       : `De cada <b>S/ 10</b> que vendiste: <b>${de10(0)}</b> repusieron tu mercadería, <b>${de10(1)}</b> pagaron gastos y <b>${de10(2)}</b> te quedaron a ti.`}</p>
-    <p class="sub dona-form">Ganancia neta = ventas − mercadería − gastos = ${S(venta)} − ${S(merc)} − ${S(gasto)} = <b>${S(gan)}</b></p>`;
+    <p class="sub dona-form">Ganancia neta = ventas − mercadería − gastos = ${S(venta)} − ${S(merc)} − ${S(gasto)} = <b>${S(gan)}</b></p>${d.nota ? `<p class="sub dona-form" style="margin-top:4px">${esc(d.nota)}</p>` : ''}`;
   // Hover / toque: resalta la parte en la dona y en la leyenda
   const marcar = i => { cont.querySelectorAll('[data-i]').forEach(x => x.classList.toggle('apagado', i !== null && x.dataset.i !== String(i))); };
   cont.querySelectorAll('[data-i]').forEach(x => { x.onmouseenter = () => marcar(x.dataset.i); x.onmouseleave = () => marcar(null); x.onclick = () => marcar(x.dataset.i); });
@@ -1425,7 +1425,7 @@ async function vPanel(el) {
     </div>
     <div class="pn-m">
       <section class="panel pn-dona"><div class="pn-cab"><h2>¿A dónde va cada sol que vendes?</h2>
-        <div class="seg-mini" role="tablist" aria-label="Periodo"><button type="button" class="on" data-dona="hoy">Hoy</button><button type="button" data-dona="sem">7 días</button></div></div>
+        <div class="seg-mini" role="tablist" aria-label="Periodo"><button type="button" class="on" data-dona="hoy">Hoy</button><button type="button" data-dona="sem">7 días</button><button type="button" data-dona="mes">Este mes</button></div></div>
         <div id="gDona"></div></section>
       <section class="panel"><div class="pn-cab"><h2>Hoy, hora por hora</h2><span class="sub">${mejorHora !== undefined ? `Mejor hora: ${mejorHora}:00 (${S(porHora[mejorHora].v)})` : ''}</span></div><div id="gHoras"></div></section>
       <section class="panel"><div class="pn-cab"><h2>Últimos 7 días</h2><div class="leyenda" style="margin:0"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div></div><div id="g7"></div>
@@ -1490,7 +1490,15 @@ async function vPanel(el) {
   $('#resCompartir') && ($('#resCompartir').onclick = () => navigator.share({ text: txtRes }).catch(() => {}));
   // Dona: hoy o últimos 7 días (mismos números de los indicadores y de Reportes)
   const sumaDias = fs => fs.map(dia).reduce((a, x) => ({ venta: a.venta + vn(x), merc: a.merc + cmv(x), gasto: a.gasto + gastos(x) }), { venta: 0, merc: 0, gasto: 0 });
-  const dona = per => { el.querySelectorAll('[data-dona]').forEach(b => b.classList.toggle('on', b.dataset.dona === per));
+  let diasMes = null; // se piden solo si eliges "Este mes"
+  const dona = async per => { el.querySelectorAll('[data-dona]').forEach(b => b.classList.toggle('on', b.dataset.dona === per));
+    if (per === 'mes') {
+      try { diasMes ??= await q(sb.from('v_resultados_diarios').select('*').gte('fecha', iniMes()).lte('fecha', h)); }
+      catch (e) { $('#gDona').innerHTML = `<p class="sub">No se pudo cargar el mes: ${esc(textoError(e))}</p>`; return; }
+      const t = diasMes.reduce((a, x) => ({ venta: a.venta + vn(x), merc: a.merc + cmv(x), gasto: a.gasto + gastos(x) }), { venta: 0, merc: 0, gasto: 0 });
+      const nom = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', month: 'long' });
+      return pintarDona($('#gDona'), { ...t, vacio: `No hubo ventas en ${nom}`, nota: `Del 1 al ${Number(h.slice(8))} de ${nom}. Los gastos fijos del mes (como las comisiones del banco) entran el último día.` });
+    }
     pintarDona($('#gDona'), per === 'hoy' ? { venta: vn(H0), merc: cmv(H0), gasto: gastos(H0), vacio: 'Todavía no vendes hoy' } : { ...sumaDias(ult7), vacio: 'No hubo ventas en los últimos 7 días' }); };
   el.querySelectorAll('[data-dona]').forEach(b => b.onclick = () => dona(b.dataset.dona));
   dona(vn(H0) > 0 || !dias.some(x => vn(x) > 0) ? 'hoy' : 'sem');

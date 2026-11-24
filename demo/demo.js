@@ -193,7 +193,7 @@
 
     // Gastos y compras como movimientos de dinero
     const gastosV = gastos.map((g, i) => ({ id: 'gs' + i, fecha: g.dia, descripcion: g.desc, monto: g.monto, estado: 'REGISTRADO', categoria_gasto_id: g.cat, metodo_pago_id: 1,
-      categorias_gasto: { nombre: catGasto.find(c => c.id === g.cat).nombre, tipo: 'OPERATIVO' } }));
+      categorias_gasto: { nombre: (catGasto.find(c => c.id === g.cat) || (D.categorias_gasto || []).find(c => c.id === g.cat))?.nombre || 'Otros', tipo: 'OPERATIVO' } }));
     gastos.forEach(g => movFin.push({ id: uid('mf'), fecha: iso(enLima(g.dia, 10, 0)), tipo: 'PAGO_GASTO', monto: -g.monto, metodo_pago_id: 1, cuenta_financiera_id: 'cf1', descripcion: g.desc }));
     const compDet = [], compTot = [];
     compras.forEach(c => {
@@ -351,6 +351,7 @@
         cliente: p.cliente_id || 'cl0', condicion: p.condicion || 'CONTADO', vence: p.fecha_vencimiento, obs: p.observaciones });
       derivar(); return ventasRaw[ventasRaw.length - 1].id;
     },
+    registrar_gasto({ p }) { gastos.push({ dia: p.fecha || hoy, desc: p.descripcion, monto: Number(p.monto), cat: p.categoria_gasto_id }); derivar(); return uid('gs'); },
     registrar_boleta({ p_serie, p_numero, p_fecha, p_ventas, p_consolidada }) {
       const serie = String(p_serie || '').trim().toUpperCase(), numero = String(Number(p_numero));
       if (!/^[A-Z0-9]{4}$/.test(serie) || !/^\d{1,8}$/.test(numero)) throw new Error('Serie o número no válidos');

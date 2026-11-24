@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-d9+8I9/d9KcdDn4XfiEdBp4AJdhIPxKe62J1o1IiXAg='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-5nAFf5V3WgTGD4w1bKW+yhur0JdwAa+MqmlKUBzQT1o='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -1780,7 +1780,7 @@ async function vCaja(el) {
     const n = String(saldos.find(x => x.cuenta_id === id)?.nombre || ''); return /yape/i.test(n) ? COLOR_MEDIO.YAPE : /plin/i.test(n) ? COLOR_MEDIO.PLIN : COLOR_MEDIO.TARJETA_DEBITO; };
   const hoyCta = {}; cobrosHoy.forEach(c => { const cta = C.metodos.find(m => m.id === c.metodo_pago_id)?.cuenta_financiera_id; if (cta) hoyCta[cta] = r2((hoyCta[cta] || 0) + num(c.monto)); });
   const totalCaja = r2(saldos.reduce((a, x) => a + num(x.saldo), 0)), otras = saldos.filter(x => x.cuenta_id !== C.caja?.id);
-  const totalOtras = r2(otras.reduce((a, x) => a + num(x.saldo), 0)), cobradoHoy = r2(Object.values(hoyCta).reduce((a, b) => a + b, 0));
+  const totalOtras = r2(otras.reduce((a, x) => a + num(x.saldo), 0)), cobradoHoy = r2(cobrosHoy.reduce((a, c) => a + num(c.monto), 0)); // igual que el Panel: todos los cobros de hoy
   const notaHoy = id => hoyCta[id] ? `<small>hoy +${S(hoyCta[id])} en ventas</small>` : '';
   // La barra reparte solo el dinero a favor (una cuenta en negativo no ocupa espacio)
   const barra = saldos.filter(x => num(x.saldo) > 0), basePos = barra.reduce((a, x) => a + num(x.saldo), 0);
@@ -3101,6 +3101,122 @@ async function vStock(el) {
 }
 
 // ============ GASTOS ============
+// ============ GASTOS FIJOS DE CADA MES ============
+// Cobros que se repiten todos los meses (comisiones del banco, alquiler...). Se registran solos el último día del mes
+// (o la próxima vez que abras la app, con la fecha de fin de ese mes). Antes de registrar se revisa la base de datos:
+// si ya hay un gasto con ese detalle en ese mes (aunque esté anulado), no se vuelve a registrar.
+const FIJOS_INICIALES = [
+  { id: 'f-mant', detalle: 'COM.MANTENIM', monto: 35, medio: 'TARJETA_DEBITO', cat: null },
+  { id: 'f-eecc', detalle: 'ENVIO.EST.CTA', monto: 5.5, medio: 'TARJETA_DEBITO', cat: null },
+];
+const mesDe = f => String(f).slice(0, 7);
+const finMes = ym => { const [a, m] = ym.split('-').map(Number); return `${ym}-${String(new Date(Date.UTC(a, m, 0)).getUTCDate()).padStart(2, '0')}`; };
+const mesSig = ym => { const [a, m] = ym.split('-').map(Number); return m === 12 ? `${a + 1}-01` : `${a}-${String(m + 1).padStart(2, '0')}`; };
+const mesAnt = ym => { const [a, m] = ym.split('-').map(Number); return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`; };
+const nombreMes = ym => new Date(ym + '-15T12:00:00-05:00').toLocaleDateString('es-PE', { month: 'long', timeZone: 'America/Lima' });
+const fijos = {
+  leer() { let l = local.leer('gastosFijos'); if (!l) { l = FIJOS_INICIALES.map(f => ({ ...f, desde: mesDe(hoy()) })); local.guardar('gastosFijos', l); } return l; },
+  guardar: l => local.guardar('gastosFijos', l),
+};
+const catFinanciera = () => C.catGasto.find(c => /financ/i.test(c.tipo || '')) || C.catGasto.find(c => /banc|financ|comisi/i.test(c.nombre)) || C.catGasto[0];
+const catFijo = f => C.catGasto.find(c => c.id == f.cat) || catFinanciera();
+// Las comisiones del banco son gasto financiero: si no hay una categoría así, se crea "Comisiones bancarias"
+async function asegurarCatFinanciera() {
+  if (C.catGasto.some(c => /financ/i.test(c.tipo || '') || /banc|comisi/i.test(c.nombre))) return;
+  try { const c = await q(sb.from('categorias_gasto').insert({ nombre: 'Comisiones bancarias', tipo: 'FINANCIERO' }).select('*').single()); if (c) C.catGasto = [...C.catGasto, c]; } catch {}
+}
+const medioFijo = f => C.metodos.find(m => m.codigo === f.medio);
+// Estado de cada gasto fijo en el mes pasado y en este mes
+async function estadoFijos() {
+  const lista = fijos.leer(); if (!lista.length) return [];
+  await asegurarCatFinanciera();
+  const este = mesDe(hoy()), ant = mesAnt(este);
+  const hechos = await q(sb.from('gastos').select('id, fecha, descripcion, estado').in('descripcion', lista.map(f => f.detalle)).gte('fecha', ant + '-01').lt('fecha', mesSig(este) + '-01'));
+  const out = [];
+  lista.forEach(f => [ant, este].forEach(ym => {
+    if (ym < (f.desde || este)) return;
+    const g = hechos.find(h => h.descripcion === f.detalle && mesDe(h.fecha) === ym);
+    out.push({ f, ym, g, vence: finMes(ym), toca: hoy() >= finMes(ym) });
+  }));
+  return out;
+}
+async function registrarFijo(f, ym, fecha) {
+  const cat = catFijo(f), met = medioFijo(f);
+  if (!cat) return aviso('Crea primero una categoría de gasto', true), false;
+  // Último control contra duplicados: ¿ya existe en ese mes?
+  const ya = await q(sb.from('gastos').select('id').eq('descripcion', f.detalle).gte('fecha', ym + '-01').lt('fecha', mesSig(ym) + '-01').limit(1));
+  if (ya.length) return false;
+  const p = { categoria_gasto_id: cat.id, descripcion: f.detalle, monto: r2(f.monto), pagos: met ? [{ metodo_pago_id: met.id, monto: r2(f.monto) }] : [] };
+  if (fecha !== hoy()) p.fecha = fecha;
+  return (await rpc('registrar_gasto', { p })).ok;
+}
+let fijosCorriendo = false;
+// Al entrar: registra los que ya tocan (último día del mes o después). Los pagados en efectivo esperan a que abras la caja.
+async function registrarFijosPendientes() {
+  if (fijosCorriendo) return 0; fijosCorriendo = true;
+  try {
+    let n = 0, total = 0; const ses = await sesionCaja().catch(() => null);
+    for (const x of (await estadoFijos()).filter(x => x.toca && !x.g)) {
+      if (medioFijo(x.f)?.codigo === 'EFECTIVO' && !ses) continue;
+      if (await registrarFijo(x.f, x.ym, x.vence)) { n++; total += num(x.f.monto); }
+    }
+    if (n) aviso(`Se registr${n === 1 ? 'ó 1 gasto fijo' : `aron ${n} gastos fijos`} del mes por ${S(total)}`);
+    return n;
+  } finally { fijosCorriendo = false; }
+}
+async function pintarFijos() {
+  const caja = $('#fijos'); if (!caja) return;
+  const est = await estadoFijos(), lista = fijos.leer(), este = mesDe(hoy());
+  const totalMes = lista.reduce((a, f) => a + num(f.monto), 0);
+  const chip = f => {
+    const atras = est.filter(x => x.f.id === f.id && x.ym < este && !x.g);
+    const x = est.find(y => y.f.id === f.id && y.ym === este);
+    const deAntes = atras.map(a => `<button class="btn mini" data-freg="${f.id}" data-ym="${a.ym}">Registrar ${esc(nombreMes(a.ym))}</button>`).join(' ');
+    if (!x) return deAntes || '<span class="sub">desde el próximo mes</span>';
+    if (x.g) return `${deAntes} <span class="chip ${x.g.estado === 'ANULADO' ? 'mal' : 'ok'}">${x.g.estado === 'ANULADO' ? 'Anulado' : 'Registrado'} ${fd(x.g.fecha)}</span>`;
+    if (x.toca) return `${deAntes} <button class="btn mini" data-freg="${f.id}" data-ym="${este}">Registrar ahora</button>`;
+    return `${deAntes} <span class="chip">Se registra el ${fd(x.vence)}</span> <button class="btn claro mini" data-fya="${f.id}" title="Si el banco ya te lo cobró">Ya me lo cobraron</button>`;
+  };
+  caja.innerHTML = `<div class="panel"><div class="envio-cab"><div><h2>Gastos fijos de cada mes</h2>
+      <p class="sub" style="margin:0">Se registran solos el <b>último día de cada mes</b> (o la próxima vez que abras la app, con la fecha de fin de mes). Nunca se registran dos veces en el mismo mes.</p></div>
+      <div class="envio-btns"><button class="btn claro" id="fijoNuevo">Agregar gasto fijo</button></div></div>
+    <div class="scroll"><table><tr><th>Detalle</th><th>Categoría</th><th>Pagado con</th><th class="n">Monto</th><th class="n">${esc(nombreMes(este))[0].toUpperCase() + esc(nombreMes(este)).slice(1)}</th><th></th></tr>
+      ${lista.map(f => `<tr><td><b>${esc(f.detalle)}</b></td><td>${esc(catFijo(f)?.nombre || '—')}</td><td>${esc(medioFijo(f)?.nombre || 'Aún no lo pago')}</td><td class="n">${S(f.monto)}</td>
+        <td class="n" style="white-space:nowrap">${chip(f)}</td>
+        <td class="n" style="white-space:nowrap"><button class="btn claro mini" data-fed="${f.id}">Editar</button> <button class="btn claro mini" data-fdel="${f.id}">Quitar</button></td></tr>`).join('') || '<tr><td colspan="6" class="vacio">No tienes gastos fijos.</td></tr>'}
+      ${lista.length ? `<tr><td colspan="3"><b>Total cada mes</b></td><td class="n"><b>${S(totalMes)}</b></td><td colspan="2"></td></tr>` : ''}</table></div>
+    <p class="sub" style="margin:10px 0 0">La lista se guarda en este equipo. Si usas la app en otro equipo, agrega allí los mismos gastos: igual no se duplican.</p></div>`;
+  const editar = async f => {
+    const v = await dialogo(f ? 'Editar gasto fijo' : 'Nuevo gasto fijo', [
+      { label: 'Detalle (como sale en tu estado de cuenta)', value: f?.detalle || '', required: true, ph: 'Ej.: COM.MANTENIM' },
+      { label: 'Monto cada mes (S/)', type: 'number', value: f?.monto ?? '', required: true },
+      { label: 'Categoría', type: 'select', value: (f ? catFijo(f) : catFinanciera())?.id, options: C.catGasto.map(c => ({ value: c.id, label: c.nombre })) },
+      { label: 'Pagado con', type: 'select', value: medioFijo(f || { medio: 'TARJETA_DEBITO' })?.codigo, options: medios(MEDIOS_GASTO).map(m => ({ value: m.codigo, label: m.nombre })) },
+    ], 'Guardar');
+    if (!v) return;
+    const detalle = v[0].trim(), monto = r2(v[1]);
+    if (!detalle || !(monto > 0)) return aviso('Escribe el detalle y el monto', true);
+    const l = fijos.leer();
+    if (l.some(x => x.detalle === detalle && x.id !== f?.id)) return aviso('Ya tienes un gasto fijo con ese detalle', true);
+    const nuevo = { id: f?.id || 'f-' + Date.now().toString(36), detalle, monto, cat: v[2], medio: v[3], desde: f?.desde || mesDe(hoy()) };
+    fijos.guardar(f ? l.map(x => x.id === f.id ? nuevo : x) : [...l, nuevo]); aviso('Gasto fijo guardado'); pintarFijos();
+  };
+  $('#fijoNuevo').onclick = () => editar(null);
+  caja.querySelectorAll('[data-fed]').forEach(b => b.onclick = () => editar(lista.find(f => f.id === b.dataset.fed)));
+  caja.querySelectorAll('[data-fdel]').forEach(b => b.onclick = async () => {
+    const f = lista.find(x => x.id === b.dataset.fdel);
+    if (!(await dialogo('¿Quitar gasto fijo?', [{ type: 'info', html: `<p class="sub" style="margin:0"><b>${esc(f.detalle)}</b> ya no se registrará cada mes. Los gastos que ya se registraron se quedan.</p>` }], 'Quitar'))) return;
+    fijos.guardar(fijos.leer().filter(x => x.id !== f.id)); pintarFijos();
+  });
+  const registrarUno = async (f, ym, fecha) => {
+    if (medioFijo(f)?.codigo === 'EFECTIVO' && !(await sesionCaja()) && !(await abrirCajaRapido())) return;
+    if (await registrarFijo(f, ym, fecha)) { aviso(`Gasto registrado: ${f.detalle} ${S(f.monto)}`); ir('gastos'); }
+    else pintarFijos();
+  };
+  caja.querySelectorAll('[data-freg]').forEach(b => b.onclick = () => { const ym = b.dataset.ym; registrarUno(lista.find(f => f.id === b.dataset.freg), ym, ym === este ? (hoy() >= finMes(ym) ? finMes(ym) : hoy()) : finMes(ym)); });
+  caja.querySelectorAll('[data-fya]').forEach(b => b.onclick = () => registrarUno(lista.find(f => f.id === b.dataset.fya), este, hoy()));
+}
+
 async function vGastos(el) {
   const gastos = await q(sb.from('gastos').select('*, categorias_gasto(nombre)').order('fecha', { ascending: false }).order('creado_en', { ascending: false }).limit(50));
   const mes = gastos.filter(g => g.estado === 'REGISTRADO' && g.fecha >= iniMes()).reduce((a, g) => a + num(g.monto), 0);
@@ -3120,6 +3236,9 @@ async function vGastos(el) {
     ${gastos.map(g => `<tr><td>${fd(g.fecha)}</td><td>${esc(g.categorias_gasto?.nombre)}</td><td>${esc(g.descripcion)}</td><td class="n">${S(g.monto)}</td>
       <td>${g.estado === 'ANULADO' ? '<span class="chip mal">Anulado</span>' : '<span class="chip ok">Registrado</span>'}</td>
       <td class="n">${g.estado === 'REGISTRADO' ? `<button class="btn claro mini" data-anular="${g.id}">Anular</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin gastos registrados.</td></tr>'}</table></div></div>`;
+  // Los fijos van entre el formulario y los recientes
+  el.querySelector('.cols.dos').insertAdjacentHTML('afterend', '<div id="fijos"></div>');
+  pintarFijos().catch(e => { $('#fijos').innerHTML = `<div class="panel"><h2>Gastos fijos de cada mes</h2><p class="sub">No se pudo cargar: ${esc(textoError(e))}</p></div>`; });
   $('#btnGasto').onclick = async () => {
     const monto = r2($('#gMonto').value);
     if (!$('#gDesc').value.trim() || monto <= 0) return aviso('Completa el detalle y el monto', true);
@@ -4444,6 +4563,7 @@ async function entrar(session) {
     $('#ingreso').classList.add('oculto'); $('#app').classList.remove('oculto');
     ultimaActividad = Date.now();
     await cargarCatalogos();
+    registrarFijosPendientes().then(n => { if (n && vistaActual === 'gastos') ir('gastos'); }).catch(() => {});
     $('#btnPendientes').onclick = verPendientes;
     actualizarRed(); pintarPendientes();
     ir(vistaActual);

@@ -251,3 +251,21 @@ test('Panel: sin ventas hoy no muestra porcentajes alarmantes', async ({ page, e
   await expect(page.locator('.pn-kpis')).not.toContainText('100%');
   await expect(page.locator('.pn-kpis .pn-kpi').first()).toContainText('S/ 0.00');
 });
+
+test('gastos fijos: se registran solos al pasar fin de mes y nunca dos veces', async ({ page, errores }) => {
+  await abrirDemo(page);
+  // Un gasto fijo que empezó el mes pasado: su fin de mes ya pasó y no está registrado
+  const n = await page.evaluate(async () => {
+    const ant = mesAnt(mesDe(hoy()));
+    fijos.guardar([{ id: 't1', detalle: 'PRUEBA.FIJA', monto: 12.5, medio: 'TARJETA_DEBITO', cat: null, desde: ant }]);
+    const a = await registrarFijosPendientes(), b = await registrarFijosPendientes();
+    const g = (await sb.from('gastos').select('fecha, descripcion').eq('descripcion', 'PRUEBA.FIJA')).data;
+    return { a, b, n: g.length, fecha: g[0]?.fecha, fin: finMes(ant) };
+  });
+  expect(n.a).toBe(1);
+  expect(n.b).toBe(0);
+  expect(n.n).toBe(1);
+  expect(n.fecha).toBe(n.fin);
+  await irA(page, 'gastos');
+  await expect(page.locator('#fijos')).toContainText('PRUEBA.FIJA');
+});

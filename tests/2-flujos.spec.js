@@ -285,3 +285,17 @@ test('mover dinero: elegir cuenta, monto rápido y detalle, y registrar', async 
   await md.locator('.acc .btn:not(.claro)').click();
   await expect(md).toBeHidden();
 });
+
+test('compras: elegir "A crédito" a la vista, con plazo rápido', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'compras');
+  await expect(page.locator('#venceBox')).toBeHidden();
+  await page.locator('[data-cond="CREDITO"]').click();
+  await expect(page.locator('#venceBox')).toBeVisible();
+  await expect(page.locator('#btnComprar')).toHaveText('Registrar compra a crédito');
+  await page.locator('[data-plazo="30"]').click();
+  await expect(page.locator('#venceTxt')).toContainText('30 días');
+  await page.locator('[data-cond="CONTADO"]').click();
+  await expect(page.locator('#venceBox')).toBeHidden();
+  await expect(page.locator('#cond')).toHaveValue('CONTADO');
+});

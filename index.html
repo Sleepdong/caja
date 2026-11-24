@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-tH396QNYRUqEA+m5z1blnlw2VUQcPS1m5QfuFfojLc0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-5v4MHNHqwu61/3Tpijl517LPscqNSLsYu3SM+piCFqc='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -659,6 +659,16 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .md .md-prev .flecha{color:var(--gris);margin:0 6px}
 .md .md-error{color:var(--coral);font-size:13px;margin-top:8px}
 .md .md-info{color:var(--gris);font-size:13px;margin:6px 0 0}
+/* Compras: al contado / a crédito */
+.pago-comp{margin-top:16px}
+.pago-comp .md-lbl,.md-lbl{display:block;color:var(--gris);font-size:12.5px;font-weight:600;margin:12px 0 6px}
+.pago-comp .md-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pago-comp .md-chips button{border:0;background:var(--tono);color:var(--tinta2);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.pago-comp .md-chips button.on{background:var(--tono2);color:var(--texto);box-shadow:0 0 0 1.5px var(--violeta)}
+.seg-pago{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:560px}
+.seg-pago button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:14px;padding:11px 14px;font:inherit;cursor:pointer}
+.seg-pago button small{color:var(--gris);font-size:12px}
+.seg-pago button.on{border-color:var(--violeta);background:var(--tono2)}
 @media(min-width:900px){.velo.hoja-velo{align-items:center}}
 .dialogo,.hoja{background:var(--blanco);color:var(--texto);border-radius:28px;box-shadow:0 0 0 1px var(--linea)}
 .hp-cab small{color:var(--violeta)}
@@ -2109,7 +2119,7 @@ async function vCompras(el) {
     </div>
     <div class="scroll" style="margin-top:14px"><table id="tLineas"></table></div>
     <button class="btn claro mini" id="masLinea" style="margin-top:8px">Agregar producto</button>
-    <details class="extra" style="margin-top:14px"><summary>Comprobante, IGV, flete y crédito</summary>
+    <details class="extra" style="margin-top:14px"><summary>Comprobante, IGV y flete</summary>
       <div class="fila" style="margin-top:10px">
         <div><label>Comprobante</label><select id="tc">${C.tiposComp.filter(t => ['00', '01', '03', '12'].includes(t.codigo_sunat)).map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('')}</select></div>
         <div><label>Serie</label><input id="serie" placeholder="F001"></div><div><label>Número</label><input id="numero"></div></div>
@@ -2117,9 +2127,18 @@ async function vCompras(el) {
         <div><label>Los costos que escribiste</label><select id="igv"><option value="0">Ya incluyen IGV</option><option value="0.18">No incluyen IGV (sumar 18%)</option></select></div>
         <div><label>¿Usas el IGV como crédito fiscal?</label><select id="cf"><option value="false">No, el IGV es parte del costo</option><option value="true">Sí</option></select></div></div>
       <div class="fila" style="margin-top:8px"><div><label>Flete u otro costo del mismo proveedor</label><input type="number" id="adic" min="0" step="0.10" value="0" inputmode="decimal"></div>
-        <div><label>Pago</label><select id="cond"><option value="CONTADO">Pagado hoy con la tarjeta</option><option value="CREDITO">Lo pago después (crédito)</option></select></div>
-        <div class="oculto" id="venceBox"><label>Pagar hasta</label><input type="date" id="venceC" value="${masDias(15)}"></div></div>
+</div>
     </details>
+    <div class="pago-comp"><span class="md-lbl">¿Cómo pagas?</span>
+      <div class="seg-pago" role="radiogroup" aria-label="Cómo pagas">
+        <button type="button" role="radio" aria-checked="true" class="on" data-cond="CONTADO"><b>Al contado</b><small>Hoy, con la tarjeta de la empresa</small></button>
+        <button type="button" role="radio" aria-checked="false" data-cond="CREDITO"><b>A crédito</b><small>El proveedor me fía, pago después</small></button></div>
+      <input type="hidden" id="cond" value="CONTADO">
+      <div class="oculto" id="venceBox"><span class="md-lbl">¿Hasta cuándo tienes para pagar?</span>
+        <div class="fila" style="align-items:center"><div style="flex:0 1 200px"><input type="date" id="venceC" value="${masDias(15)}"></div>
+          <div class="md-chips" style="margin:0">${[7, 15, 30].map(n => `<button type="button" data-plazo="${n}" class="${n === 15 ? 'on' : ''}">${n} días</button>`).join('')}</div></div>
+        <p class="sub" style="margin:8px 0 0" id="venceTxt"></p></div>
+    </div>
     <div class="total" style="margin-top:16px"><span>Total de la compra</span><b id="totC">S/ 0.00</b></div>
     <button class="btn rotulo cobrar" id="btnComprar" style="max-width:340px">Registrar compra</button>
   </div>
@@ -2152,7 +2171,22 @@ async function vCompras(el) {
     $('#totC').textContent = S(totalC());
   };
   $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => setTimeout(pintarLineas));
-  $('#cond').onchange = () => $('#venceBox').classList.toggle('oculto', $('#cond').value !== 'CREDITO');
+  // Al contado / a crédito: a la vista, junto al total
+  const pintarCond = () => {
+    const c = $('#cond').value, cred = c === 'CREDITO';
+    document.querySelectorAll('[data-cond]').forEach(b => { const on = b.dataset.cond === c; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+    $('#venceBox').classList.toggle('oculto', !cred);
+    const v = $('#venceC').value, dias = v ? Math.round((Date.parse(v + 'T12:00:00-05:00') - Date.parse(($('#fComp').value || hoy()) + 'T12:00:00-05:00')) / 864e5) : null;
+    document.querySelectorAll('[data-plazo]').forEach(b => b.classList.toggle('on', Number(b.dataset.plazo) === dias));
+    $('#venceTxt').innerHTML = cred && v ? `La mercadería entra hoy a tu stock. No sale dinero ahora: la deuda queda en <b>Por pagar</b>${dias > 0 ? `, con ${dias} ${dias === 1 ? 'día' : 'días'} de plazo` : ''}.` : '';
+    $('#btnComprar').textContent = cred ? 'Registrar compra a crédito' : 'Registrar compra';
+  };
+  document.querySelectorAll('[data-cond]').forEach(b => b.onclick = () => { $('#cond').value = b.dataset.cond; pintarCond(); });
+  document.querySelectorAll('[data-plazo]').forEach(b => b.onclick = () => {
+    const d = new Date(($('#fComp').value || hoy()) + 'T12:00:00-05:00'); d.setDate(d.getDate() + Number(b.dataset.plazo));
+    $('#venceC').value = d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); pintarCond(); });
+  $('#venceC').oninput = pintarCond; $('#fComp').addEventListener('change', pintarCond);
+  pintarCond();
   $('#masLinea').onclick = () => { lineasCompra.push({ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }); pintarLineas(); };
   $('#nuevoProv').onclick = async () => {
     const v = await dialogo('Nuevo proveedor', [{ label: 'Nombre o razón social', required: true }, { label: 'RUC (opcional)', ph: '11 dígitos' }, { label: 'Teléfono (opcional)' }]);
@@ -2177,9 +2211,13 @@ async function vCompras(el) {
       pagos: cond === 'CONTADO' ? [{ metodo_pago_id: tarjeta.id, monto: total }] : [],
     };
     if ($('#fComp').value !== hoy()) { p.fecha_emision = $('#fComp').value; p.fecha_ingreso = $('#fComp').value + 'T12:00:00-05:00'; }
-    if (cond === 'CREDITO') p.fecha_vencimiento = $('#venceC').value;
+    if (cond === 'CREDITO') {
+      if (!$('#venceC').value) return aviso('Elige hasta cuándo tienes para pagar', true);
+      if ($('#venceC').value < ($('#fComp').value || hoy())) return aviso('La fecha para pagar no puede ser antes de la compra', true);
+      p.fecha_vencimiento = $('#venceC').value;
+    }
     $('#btnComprar').disabled = true;
-    const r = await rpc('registrar_compra', { p }, `Compra registrada por ${S(total)}. El stock ya se actualizó.`);
+    const r = await rpc('registrar_compra', { p }, cond === 'CREDITO' ? `Compra a crédito registrada por ${S(total)}. Pagas hasta el ${fd($('#venceC').value)}; la verás en Por pagar.` : `Compra registrada por ${S(total)}. El stock ya se actualizó.`);
     $('#btnComprar').disabled = false;
     if (r.ok) {
       const fechas = ls.map((l, i) => ({ linea: i + 1, fecha: l.vence || '' })).filter(x => x.fecha);

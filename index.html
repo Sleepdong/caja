@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-ao8R82uO3SeLhZucTHrzpt8nWQp+tT3qEWMwSSUPHLk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-e1zcBZORO2Uq6QyVoWsFBlfMtuGMkkmFgArUgXRXQv4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -532,6 +532,7 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .dona-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
 .dona-c small{color:var(--gris);font-size:12px}
 .dona-c b{font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:2px 0}
+.dona-c b.largo{font-size:19px}
 .dona-c .dona-c2{font-size:11px;max-width:110px}
 .dona-ley{display:grid;gap:4px}
 .dona-fila{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;cursor:default;transition:opacity .15s,background .15s}
@@ -1291,7 +1292,7 @@ function pintarDona(cont, d) {
       <circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--tono)" stroke-width="22"/>
       ${arcos.map(a => `<circle class="dona-arco" data-i="${a.i}" cx="80" cy="80" r="${R}" fill="none" stroke="${COL_DONA[a.k]}" stroke-width="22"
         stroke-dasharray="${Math.max(0.1, a.largo - gap)} ${C2}" stroke-dashoffset="${-a.ini}" transform="rotate(-90 80 80)"><title>${esc(a.n)}: ${S(a.v)}</title></circle>`).join('')}
-    </svg><div class="dona-c" aria-hidden="true"><small>${perdida ? 'Perdiste' : 'Vendiste'}</small><b>${S(perdida ? -gan : venta)}</b><small class="dona-c2">${perdida ? 'gastaste más de lo que ganaste' : 'en total'}</small></div></div>
+    </svg><div class="dona-c" aria-hidden="true"><small>${perdida ? 'Perdiste' : 'Vendiste'}</small><b class="${S(perdida ? -gan : venta).length > 10 ? 'largo' : ''}">${S(perdida ? -gan : venta)}</b><small class="dona-c2">${perdida ? 'gastaste más de lo que ganaste' : 'en total'}</small></div></div>
     <div class="dona-ley">${partes.map((x, i) => `<div class="dona-fila" data-i="${i}"><span class="punto" style="background:${COL_DONA[x.k]}"></span>
       <div><b>${esc(x.n)}</b><small>${esc(x.d)}</small></div><div class="n"><b>${S(x.v)}</b><small>${perdida ? P(x.v / venta * 100) : P(pc[i])}</small></div></div>`).join('')}</div></div>
     <p class="dona-txt">${perdida

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-3VrsNTaYDhMvJD1NiWX8I/1aKtFv8l4W3jV1i1cCet4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-7VLq9byJEkl9qCkHrwgj5NohIpXu3U/gJ3E/TEF7sNs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -521,6 +521,32 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .pn-acciones{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
 .pn-acciones .btn{display:inline-flex;align-items:center;gap:8px}
 .pn-acciones .btn svg{width:20px;height:20px}
+.pn-dona .pn-cab{margin-bottom:6px}
+.seg-mini{display:inline-flex;background:var(--tono);border-radius:999px;padding:3px;gap:2px}
+.seg-mini button{border:0;background:transparent;color:var(--gris);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.seg-mini button.on{background:var(--texto);color:#0E0F1A}
+.dona{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:center;margin-top:8px}
+.dona-g{position:relative;width:200px;height:200px}
+.dona-g svg{width:100%;height:100%;display:block}
+.dona-arco{transition:opacity .15s;cursor:pointer}
+.dona-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+.dona-c small{color:var(--gris);font-size:12px}
+.dona-c b{font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:2px 0}
+.dona-c .dona-c2{font-size:11px;max-width:110px}
+.dona-ley{display:grid;gap:4px}
+.dona-fila{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;cursor:default;transition:opacity .15s,background .15s}
+.dona-fila:hover{background:var(--tono)}
+.dona-fila .punto{width:12px;height:12px;border-radius:4px;margin:0}
+.dona-fila b{display:block;font-size:14.5px;font-weight:600}
+.dona-fila small{display:block;color:var(--gris);font-size:12px}
+.dona-fila .n{text-align:right;font-variant-numeric:tabular-nums}
+.apagado{opacity:.3}
+.dona-txt{margin:16px 0 4px;font-size:15px;line-height:1.5}
+.dona-form{margin:0;font-size:12.5px}
+.dona-vacia{background:var(--tono);border-radius:16px;padding:22px 20px;text-align:center;margin-top:8px}
+.dona-vacia p{margin:0 0 6px}
+.pn-q{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--tono2);color:var(--gris);font-size:10.5px;font-weight:700;cursor:help;margin-left:3px;vertical-align:1px}
+@media(max-width:560px){.dona{grid-template-columns:1fr;justify-items:center}.dona-ley{width:100%}}
 .pn-kpis{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
 .pn-kpi{background:var(--blanco);border:1px solid #FFFFFF0F;border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .pn-kpi small{color:var(--gris);font-size:13.5px}
@@ -1246,6 +1272,42 @@ function pintarPendientes2(items) {
     ${items.slice(0, 3).map(fila).join('')}
     ${items.length > 3 ? `<details><summary>Ver ${items.length - 3} más</summary>${items.slice(3).map(fila).join('')}</details>` : ''}</section>`;
 }
+// ============ DONA: ¿A DÓNDE VA CADA SOL QUE VENDES? ============
+// Parte de un todo con 3 partes: mercadería (costo de lo vendido), gastos y lo que te queda (ganancia neta).
+const COL_DONA = { merc: '#7A73D9', gasto: '#C9822A', gan: '#1E9E7C' };
+function pintarDona(cont, d) {
+  const venta = r2(d.venta), merc = r2(d.merc), gasto = r2(d.gasto), gan = r2(venta - merc - gasto);
+  if (!(venta > 0)) { cont.innerHTML = `<div class="dona-vacia"><p><b>${esc(d.vacio)}</b></p><p class="sub" style="margin:0">Cuando vendas, aquí verás cuánto de cada venta repone tu mercadería, cuánto se va en gastos y cuánto te queda.</p></div>`; return; }
+  const perdida = gan < 0;
+  const partes = [
+    { k: 'merc', n: 'Mercadería', d: 'Lo que te costó lo que vendiste: con esto la vuelves a comprar', v: merc },
+    { k: 'gasto', n: 'Gastos', d: 'Pasajes, bolsas, comisiones del banco y otros', v: gasto },
+    ...(perdida ? [] : [{ k: 'gan', n: 'Te queda', d: 'Tu ganancia neta (antes de impuestos)', v: gan }]),
+  ];
+  const base = perdida ? merc + gasto : venta, R = 62, C2 = 2 * Math.PI * R, gap = partes.filter(x => x.v > 0).length > 1 ? 3 : 0;
+  let acc = 0;
+  const arcos = partes.map((x, i) => { const largo = base > 0 ? x.v / base * C2 : 0; const a = { ...x, i, ini: acc, largo }; acc += largo; return a; }).filter(a => a.largo > 0.5);
+  // Redondeo que siempre suma exacto: la última parte es lo que falta para llegar a S/ 10 y a 100 %
+  const r10 = [r2(merc / venta * 10), r2(gasto / venta * 10)]; r10.push(r2(10 - r10[0] - r10[1]));
+  const r1 = x => Math.round(x * 10) / 10, pc = [r1(merc / venta * 100), r1(gasto / venta * 100)]; pc.push(r1(100 - pc[0] - pc[1]));
+  const de10 = i => S(r10[i]);
+  cont.innerHTML = `<div class="dona">
+    <div class="dona-g"><svg viewBox="0 0 160 160" role="img" aria-label="Reparto de las ventas: ${partes.map(x => `${x.n} ${S(x.v)}`).join(', ')}">
+      <circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--tono)" stroke-width="22"/>
+      ${arcos.map(a => `<circle class="dona-arco" data-i="${a.i}" cx="80" cy="80" r="${R}" fill="none" stroke="${COL_DONA[a.k]}" stroke-width="22"
+        stroke-dasharray="${Math.max(0.1, a.largo - gap)} ${C2}" stroke-dashoffset="${-a.ini}" transform="rotate(-90 80 80)"><title>${esc(a.n)}: ${S(a.v)}</title></circle>`).join('')}
+    </svg><div class="dona-c" aria-hidden="true"><small>${perdida ? 'Perdiste' : 'Vendiste'}</small><b>${S(perdida ? -gan : venta)}</b><small class="dona-c2">${perdida ? 'gastaste más de lo que ganaste' : 'en total'}</small></div></div>
+    <div class="dona-ley">${partes.map((x, i) => `<div class="dona-fila" data-i="${i}"><span class="punto" style="background:${COL_DONA[x.k]}"></span>
+      <div><b>${esc(x.n)}</b><small>${esc(x.d)}</small></div><div class="n"><b>${S(x.v)}</b><small>${perdida ? P(x.v / venta * 100) : P(pc[i])}</small></div></div>`).join('')}</div></div>
+    <p class="dona-txt">${perdida
+      ? `Vendiste ${S(venta)}, pero la mercadería (${S(merc)}) y los gastos (${S(gasto)}) sumaron más. <b>Perdiste ${S(-gan)}.</b> Revisa tus precios o tus gastos.`
+      : `De cada <b>S/ 10</b> que vendiste: <b>${de10(0)}</b> repusieron tu mercadería, <b>${de10(1)}</b> pagaron gastos y <b>${de10(2)}</b> te quedaron a ti.`}</p>
+    <p class="sub dona-form">Ganancia neta = ventas − mercadería − gastos = ${S(venta)} − ${S(merc)} − ${S(gasto)} = <b>${S(gan)}</b></p>`;
+  // Hover / toque: resalta la parte en la dona y en la leyenda
+  const marcar = i => { cont.querySelectorAll('[data-i]').forEach(x => x.classList.toggle('apagado', i !== null && x.dataset.i !== String(i))); };
+  cont.querySelectorAll('[data-i]').forEach(x => { x.onmouseenter = () => marcar(x.dataset.i); x.onmouseleave = () => marcar(null); x.onclick = () => marcar(x.dataset.i); });
+}
+
 async function vPanel(el) {
   const h = hoy(), d = n => { const x = new Date(h + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
   const ayer = d(1), semana = d(7);
@@ -1346,9 +1408,9 @@ async function vPanel(el) {
   </div>
   <section class="pn-kpis" aria-label="Indicadores de hoy, ${fechaHoy}">
     <div class="pn-kpi"><small>Ventas de hoy</small><b>${S(vn(H0))}</b>${cmpS(vn(H0), ayerHora?.venta ?? null, 'ayer a esta hora')}</div>
-    <div class="pn-kpi"><small>Ganancia bruta</small><b>${S(gb(H0))}</b><span class="pn-cmp">${margen(H0) === null ? 'Margen: aparece cuando vendas' : `Margen ${P(margen(H0))}: de cada S/ 10, te quedan ${S(margen(H0) / 10)}`}</span></div>
-    <div class="pn-kpi"><small>Número de ventas</small><b>${nVentas}</b><span class="pn-cmp">${nVentas ? `Ticket promedio ${S(ticketProm)}` : 'Aún no vendes hoy'}${ayerHora ? ` · ayer a esta hora: ${ayerHora.n}` : ''}</span></div>
-    <div class="pn-kpi"><small>Ganancia neta</small><b>${S(gn(H0))}</b><span class="pn-cmp">${gastosMes ? `Gastos de hoy ${S(gastos(H0))} · antes de impuestos` : '<span class="chip mal">Sin gastos registrados: sobrestimada</span>'}</span></div>
+    <div class="pn-kpi"><small>Ganancia bruta <span class="pn-q" title="Ventas menos lo que te costó la mercadería que vendiste">?</span></small><b>${S(gb(H0))}</b><span class="pn-cmp">${margen(H0) === null ? 'Margen: aparece cuando vendas' : `Margen ${P(margen(H0))}: de cada S/ 10, te quedan ${S(margen(H0) / 10)}`}</span></div>
+    <div class="pn-kpi"><small>Número de ventas <span class="pn-q" title="Cuántas veces cobraste hoy. Ticket promedio = ventas ÷ número de ventas">?</span></small><b>${nVentas}</b><span class="pn-cmp">${nVentas ? `Ticket promedio ${S(ticketProm)}` : 'Aún no vendes hoy'}${ayerHora ? ` · ayer a esta hora: ${ayerHora.n}` : ''}</span></div>
+    <div class="pn-kpi"><small>Ganancia neta <span class="pn-q" title="Ganancia bruta menos tus gastos: lo que de verdad te queda">?</span></small><b>${S(gn(H0))}</b><span class="pn-cmp">${gastosMes ? `Gastos de hoy ${S(gastos(H0))} · antes de impuestos` : '<span class="chip mal">Sin gastos registrados: sobrestimada</span>'}</span></div>
   </section>
   <div class="pn-grid">
     <div class="pn-s1">
@@ -1362,7 +1424,10 @@ async function vPanel(el) {
       ${pintarPendientes2(pendientes)}
     </div>
     <div class="pn-m">
-      <section class="panel"><div class="pn-cab"><h2>Hoy, hora por hora</h2><span class="sub">${mejorHora !== undefined ? `Mejor hora: ${mejorHora}:00 (${S(porHora[mejorHora].v)})` : 'Todavía no hay ventas hoy'}</span></div><div id="gHoras"></div></section>
+      <section class="panel pn-dona"><div class="pn-cab"><h2>¿A dónde va cada sol que vendes?</h2>
+        <div class="seg-mini" role="tablist" aria-label="Periodo"><button type="button" class="on" data-dona="hoy">Hoy</button><button type="button" data-dona="sem">7 días</button></div></div>
+        <div id="gDona"></div></section>
+      <section class="panel"><div class="pn-cab"><h2>Hoy, hora por hora</h2><span class="sub">${mejorHora !== undefined ? `Mejor hora: ${mejorHora}:00 (${S(porHora[mejorHora].v)})` : ''}</span></div><div id="gHoras"></div></section>
       <section class="panel"><div class="pn-cab"><h2>Últimos 7 días</h2><div class="leyenda" style="margin:0"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div></div><div id="g7"></div>
         <button class="lnk" data-ir="analisis" style="margin-top:10px">Ver el análisis completo →</button></section>
       <section class="panel"><h2>Qué te dejó más ganancia hoy</h2>${top.length ? `<div class="scroll"><table><tr><th>Producto</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">Unidades</th><th class="n">Venta</th></tr>
@@ -1423,7 +1488,17 @@ async function vPanel(el) {
   };
   $('#resCopiar').onclick = async () => { try { await navigator.clipboard.writeText(txtRes); aviso('Resumen copiado'); } catch { aviso('No se pudo copiar', true); } };
   $('#resCompartir') && ($('#resCompartir').onclick = () => navigator.share({ text: txtRes }).catch(() => {}));
-  barras($('#gHoras'), rangoH.map(x => x + 'h'), [{ nombre: 'Venta', color: COL_VENTA, valores: rangoH.map(x => porHora[x]?.v || 0) }],
+  // Dona: hoy o últimos 7 días (mismos números de los indicadores y de Reportes)
+  const sumaDias = fs => fs.map(dia).reduce((a, x) => ({ venta: a.venta + vn(x), merc: a.merc + cmv(x), gasto: a.gasto + gastos(x) }), { venta: 0, merc: 0, gasto: 0 });
+  const dona = per => { el.querySelectorAll('[data-dona]').forEach(b => b.classList.toggle('on', b.dataset.dona === per));
+    pintarDona($('#gDona'), per === 'hoy' ? { venta: vn(H0), merc: cmv(H0), gasto: gastos(H0), vacio: 'Todavía no vendes hoy' } : { ...sumaDias(ult7), vacio: 'No hubo ventas en los últimos 7 días' }); };
+  el.querySelectorAll('[data-dona]').forEach(b => b.onclick = () => dona(b.dataset.dona));
+  dona(vn(H0) > 0 || !dias.some(x => vn(x) > 0) ? 'hoy' : 'sem');
+  const ventasConteo = ventasHoy.filter(v => v.origen === 'CONTEO'), montoConteo = r2(ventasConteo.reduce((a, v) => a + v.venta_detalles.reduce((b, l) => b + num(l.subtotal), 0), 0));
+  if (mejorHora === undefined) $('#gHoras').innerHTML = `<div class="dona-vacia"><p><b>${montoConteo ? 'Tus ventas de hoy no tienen hora' : 'Todavía no hay ventas hoy'}</b></p><p class="sub" style="margin:0">${montoConteo
+      ? `Vendiste ${S(montoConteo)}, pero se ${ventasConteo.length === 1 ? 'registró' : 'registraron'} en el conteo de inventario, sin la hora real. Cuando registres ventas en <b>Vender</b>, aquí verás a qué hora vendes más.`
+      : 'Aquí verás a qué hora vendes más, para saber cuándo tener el mostrador listo.'}</p></div>`;
+  else barras($('#gHoras'), rangoH.map(x => x + 'h'), [{ nombre: 'Venta', color: COL_VENTA, valores: rangoH.map(x => porHora[x]?.v || 0) }],
     { alto: 200, titulo: 'Ventas por hora de hoy', tituloTip: i => `${rangoH[i]}:00 a ${rangoH[i] + 1}:00 · ${porHora[rangoH[i]]?.n || 0} ventas` });
   barras($('#g7'), ult7.map(nomDia), [
     { nombre: 'Venta', color: COL_VENTA, valores: ult7.map(f => vn(dia(f))) },

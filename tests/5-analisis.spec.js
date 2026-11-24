@@ -91,3 +91,20 @@ test('Caja: total = efectivo + otros medios, igual que Reportes y que lo cobrado
   expect(filas.reduce((a, t) => a + sol(t), 0)).toBeCloseTo(sol(partes[1]), 2);
   if (esperado.hoy) await expect(page.locator('.tot-caja')).toContainText(new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2 }).format(esperado.hoy));
 });
+
+test('Panel: la dona reparte las ventas en mercadería, gastos y ganancia neta, igual que los indicadores', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'panel');
+  const sol = t => Number(t.replace(/[^\d.\-−]/g, '').replace('−', '-'));
+  const fila = i => page.locator(`#gDona .dona-fila[data-i="${i}"] .n b`).innerText().then(sol);
+  const centro = sol(await page.locator('#gDona .dona-c b').innerText());
+  const [m, g, q] = [await fila(0), await fila(1), await fila(2)];
+  expect(m + g + q).toBeCloseTo(centro, 2);
+  const neta = sol(await page.locator('.pn-kpi').nth(3).locator('b').first().innerText());
+  expect(q).toBeCloseTo(neta, 2);
+  const txt = await page.locator('#gDona .dona-txt').innerText();
+  const partes = [...txt.matchAll(/S\/\s?([\d.]+)/g)].slice(1).map(x => Number(x[1]));
+  expect(partes.reduce((a, b) => a + b, 0)).toBeCloseTo(10, 2);
+  await page.locator('[data-dona="sem"]').click();
+  await expect(page.locator('[data-dona="sem"]')).toHaveClass(/on/);
+});

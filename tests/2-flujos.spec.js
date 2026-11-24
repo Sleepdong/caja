@@ -115,6 +115,7 @@ test('el ticket para el cliente es opcional y lleva el nombre de la empresa', as
 test('Para declarar: ventas exoneradas, IGV cero y Renta MYPE al 1 % redondeada', async ({ page, errores }) => {
   await abrirDemo(page);
   await irA(page, 'reportes');
+  await page.locator('[data-tab="sunat"]').click();
   const d = page.locator('.declarar');
   await expect(d).toContainText('Para declarar');
   await expect(d).toContainText('Oni Cobin S.A.C.');
@@ -356,4 +357,25 @@ test('modo socio: Mis ventas resume lo vendido en sus turnos por hoy, 7 días y 
     const suma = (await page.locator('.mv-p1 b').allInnerTexts()).reduce((a, t) => a + Number(t.replace(/[^\d.]/g, '')), 0);
     expect(suma).toBeCloseTo(total, 2);
   }
+});
+
+test('reportes: pestañas, rangos rápidos y estado de resultados que cuadra', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'reportes');
+  await page.locator('.rep-rap [data-p="mes"]').click();
+  await expect(page.locator('.rep-rango')).toContainText('Este mes');
+  const sol = t => Number(t.replace(/[^\d.\-−]/g, '').replace('−', '-'));
+  const ventas = sol(await page.locator('.rep-kpi').first().locator('> b').innerText());
+  await page.locator('[data-tab="eerr"]').click();
+  await expect(page.locator('table.eerr')).toBeVisible();
+  // Ventas netas − costo − gastos = utilidad neta
+  const filas = await page.locator('table.eerr tr').evaluateAll(trs => trs.slice(1).map(tr => [tr.children[0].childNodes[0].textContent.trim(), tr.children[1].innerText]));
+  const v = t => sol(filas.find(f => f[0] === t)[1]);
+  expect(v('Ventas netas')).toBeCloseTo(ventas, 2);
+  const gastos = ['(−) Gastos operativos', '(−) Gastos administrativos', '(−) Gastos financieros', '(−) Otros egresos'].reduce((a, t) => a + v(t), 0);
+  expect(v('Ventas netas') + v('(−) Costo de ventas') + gastos).toBeCloseTo(v('Utilidad neta (antes de impuestos)'), 2);
+  await page.locator('[data-tab="productos"]').click();
+  await expect(page.locator('.rep-prod')).toBeVisible();
+  await page.locator('.rep-rap [data-p="otro"]').click();
+  await expect(page.locator('#rFechas')).toBeVisible();
 });

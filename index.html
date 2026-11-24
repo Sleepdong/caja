@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-J6Hq+x0CpdpwwEve74y3S1mfGZpeTJuP8agQTbJN51s='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-3CouLfC0mqC/CXAj0RsD85GjbBt3QxitxNIrD+JSEvk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -503,6 +503,29 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .pend-item:first-of-type{border-top:0}.pend-item>div{flex:1;min-width:0}.pend-item b{display:block;font-size:14.5px}.pend-item small{color:var(--gris);font-size:12.5px}
 .pendientes details summary{cursor:pointer;color:var(--gris);font-size:13.5px;padding-top:8px}
 .periodos{display:flex;gap:8px;flex-wrap:wrap}
+.rep-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.rep-rap{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto}
+.rep-rap button{border:0;background:var(--blanco);color:var(--gris);border-radius:999px;padding:9px 15px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.rep-rap button.on{background:var(--texto);color:#0E0F1A}
+.rep-fechas{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rep-fechas input{width:auto}.rep-fechas span{color:var(--gris)}
+.rep-xls{display:flex;align-items:center;gap:8px;margin-left:auto}
+.rep-tabs{display:flex;gap:4px;border-bottom:1px solid var(--linea);margin:4px 0 14px;overflow-x:auto;scrollbar-width:none}
+.rep-tabs button{border:0;background:none;color:var(--gris);padding:11px 14px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.rep-tabs button.on{color:var(--texto);border-bottom-color:var(--violeta)}
+.rep-rango{color:var(--gris);font-size:13.5px;margin:0 0 12px}
+.rep-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.rep-kpi{background:var(--blanco);border-radius:20px;padding:16px 18px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rep-kpi small{color:var(--gris);font-size:13px}.rep-kpi>b{font-size:26px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rep-cmp{font-size:12.5px;color:var(--gris)}.rep-cmp.sube{color:var(--menta)}.rep-cmp.baja{color:var(--coral)}
+.rep-barra{height:14px;margin:6px 0 12px}
+.rep-medios>div{display:grid;grid-template-columns:14px minmax(0,1fr) auto 54px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--linea);font-size:14px}
+.rep-medios>div:last-child{border-bottom:0}.rep-medios small{color:var(--gris);text-align:right}.rep-medios b{font-variant-numeric:tabular-nums}
+.rep-medios .tot{font-weight:700}.rep-medios .punto{margin:0}
+.eerr{width:100%}.eerr td small{display:block;color:var(--gris);font-size:12px}
+.eerr tr.menos td:first-child{padding-left:22px;color:var(--tinta2)}
+.eerr tr.sub-t td{font-weight:700;border-top:1px solid var(--tono2)}
+.eerr tr.fila-total td,.rep-prod tr.fila-total td,.rep-dias tr.fila-total td{font-weight:700;border-top:2px solid var(--texto);font-size:15px}
+@media(max-width:700px){.rep-xls{margin-left:0;width:100%;justify-content:center}.rep-kpis{grid-template-columns:1fr 1fr}.rep-kpi:last-child:nth-child(odd){grid-column:1/-1}.rep-kpi>b{font-size:20px}.rep-rap button{padding:8px 12px;font-size:13px}}
 .an-top{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .an-aviso{background:#FFC8571a;box-shadow:inset 0 0 0 1px #FFC85744;border-radius:16px;padding:12px 16px;margin-bottom:14px;font-size:14px;color:var(--tinta2)}.an-aviso b{color:var(--ambar)}
 .an-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
@@ -4753,78 +4776,134 @@ async function vBoletas(el) {
   });
 }
 async function vReportes(el) {
-  el.innerHTML = `<div class="panel"><div class="fila"><div><label>Desde</label><input type="date" id="rD" value="${iniMes()}"></div><div><label>Hasta</label><input type="date" id="rH" value="${hoy()}"></div>
-    <div class="auto"><button class="btn" id="rVer">Actualizar</button></div><div class="auto"><button class="btn rotulo" id="rExcel">Descargar Excel</button></div></div>
-    <div class="rapidos" id="rRapidos" style="margin:12px 0 0"><button data-p="hoy">Hoy</button><button data-p="ayer">Ayer</button><button data-p="semana">Últimos 7 días</button><button data-p="mes">Este mes</button><button data-p="mesPasado">Mes pasado</button><button data-p="anio">Este año</button></div></div><div id="rOut"></div><div id="rDecl"></div><div id="rCierre"></div>`;
+  // Rango elegido (se recuerda) y pestaña activa
+  const R = local.leer('repRango') || { p: 'mes' }, TABS = [['resumen', 'Resumen'], ['eerr', 'Estado de resultados'], ['productos', 'Productos'], ['dias', 'Día por día'], ['sunat', 'SUNAT y cierre']];
+  let tab = TABS.some(t => t[0] === local.leer('repTab')) ? local.leer('repTab') : 'resumen';
+  const fechaMenos = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
+  const masDiasF = (f, n) => { const x = new Date(f + 'T12:00:00-05:00'); x.setDate(x.getDate() + n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
+  const rango = k => { const h = hoy(), [y, m] = h.split('-').map(Number), fin = (yy, mm) => new Date(Date.UTC(yy, mm, 0)).toISOString().slice(0, 10);
+    return { hoy: [h, h], ayer: [fechaMenos(1), fechaMenos(1)], semana: [fechaMenos(6), h], mes: [iniMes(), h],
+      mesPasado: m === 1 ? [`${y - 1}-12-01`, `${y - 1}-12-31`] : [`${y}-${String(m - 1).padStart(2, '0')}-01`, fin(y, m - 1)], anio: [`${y}-01-01`, h] }[k]; };
+  const RAP = [['hoy', 'Hoy'], ['ayer', 'Ayer'], ['semana', '7 días'], ['mes', 'Este mes'], ['mesPasado', 'Mes pasado'], ['anio', 'Este año'], ['otro', 'Otras fechas']];
+  const [d0, h0] = R.p === 'otro' && R.d && R.h ? [R.d, R.h] : rango(R.p === 'otro' ? 'mes' : R.p);
+  el.innerHTML = `<div class="rep-bar">
+      <div class="rep-rap" role="tablist" aria-label="Fechas">${RAP.map(([k, t]) => `<button type="button" data-p="${k}" class="${k === R.p ? 'on' : ''}">${t}</button>`).join('')}</div>
+      <div class="rep-fechas ${R.p === 'otro' ? '' : 'oculto'}" id="rFechas"><input type="date" id="rD" value="${d0}" aria-label="Desde"><span>a</span><input type="date" id="rH" value="${h0}" aria-label="Hasta"><button class="btn mini" id="rVer">Ver</button></div>
+      <button class="btn rotulo rep-xls" id="rExcel">${ico('reportes', 18)}<span>Descargar Excel</span></button>
+    </div>
+    <div class="rep-tabs" role="tablist">${TABS.map(([k, t]) => `<button type="button" role="tab" data-tab="${k}" class="${k === tab ? 'on' : ''}" aria-selected="${k === tab}">${t}</button>`).join('')}</div>
+    <div id="rOut"><p class="vacio">Cargando…</p></div>
+    <div class="rep-pane ${tab === 'sunat' ? '' : 'oculto'}" data-pane="sunat"><div id="rDecl"></div><div id="rCierre"></div></div>`;
+  const mostrarTab = () => { el.querySelectorAll('[data-tab]').forEach(b => { b.classList.toggle('on', b.dataset.tab === tab); b.setAttribute('aria-selected', b.dataset.tab === tab); });
+    el.querySelectorAll('[data-pane]').forEach(x => x.classList.toggle('oculto', x.dataset.pane !== tab)); };
+  el.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; local.guardar('repTab', tab); mostrarTab(); });
   const correr = async () => {
     const d = $('#rD').value, h = $('#rH').value;
-    const [dias, rent, saldos, flujo] = await Promise.all([
+    if (!d || !h || d > h) return aviso('Revisa las fechas: "desde" debe ser antes de "hasta"', true);
+    const nDias = Math.round((Date.parse(h + 'T12:00:00Z') - Date.parse(d + 'T12:00:00Z')) / 864e5) + 1, pd = masDiasF(d, -nDias), ph = masDiasF(d, -1);
+    const [dias, rent, saldos, flujo, diasAnt, nV, nVAnt] = await Promise.all([
       q(sb.from('v_resultados_diarios').select('*').gte('fecha', d).lte('fecha', h).order('fecha')),
       q(sb.from('v_lineas_rentabilidad').select('*').gte('fecha', d).lte('fecha', h)),
       q(sb.from('v_saldos_cuentas').select('*')),
       q(sb.from('movimientos_financieros').select('monto, metodo_pago_id, tipo, fecha').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', d + 'T00:00:00-05:00').lte('fecha', h + 'T23:59:59-05:00')),
+      q(sb.from('v_resultados_diarios').select('*').gte('fecha', pd).lte('fecha', ph)).catch(() => []),
+      q(sb.from('ventas').select('id').eq('estado', 'EMITIDA').gte('fecha', d + 'T00:00:00-05:00').lte('fecha', h + 'T23:59:59-05:00')).then(x => x.length).catch(() => null),
+      q(sb.from('ventas').select('id').eq('estado', 'EMITIDA').gte('fecha', pd + 'T00:00:00-05:00').lte('fecha', ph + 'T23:59:59-05:00')).then(x => x.length).catch(() => null),
     ]);
-    const s = k => dias.reduce((a, x) => a + num(x[k]), 0);
+    const sm = (arr, k) => r2(arr.reduce((a, x) => a + num(x[k]), 0)), s = k => sm(dias, k), sa = k => sm(diasAnt, k);
+    const gastosDe = f => f('gastos_operativos') + f('gastos_administrativos') + f('gastos_financieros') + f('otros_egresos');
+    const hayAnt = diasAnt.some(x => num(x.ventas_netas) > 0);
     const nomProd = Object.fromEntries(C.presentaciones.map(p => [p.producto_id, p.productos.nombre]));
     const porProd = {}; rent.forEach(l => { const o = porProd[l.producto_id] ??= { c: 0, v: 0, k: 0 }; o.c += num(l.cantidad_base); o.v += num(l.venta_neta); o.k += num(l.costo); });
+    const prods = Object.entries(porProd).map(([k, o]) => ({ id: k, nom: nomProd[k] || '', ...o, g: o.v - o.k, m: o.v > 0 ? (o.v - o.k) / o.v * 100 : null })).sort((a, b) => b.g - a.g);
+    const totG = prods.reduce((a, o) => a + o.g, 0), maxG = Math.max(1, ...prods.map(o => o.g));
     const porMedio = {}; flujo.forEach(f => porMedio[f.metodo_pago_id] = (porMedio[f.metodo_pago_id] || 0) + num(f.monto));
-    const totMedios = Object.values(porMedio).reduce((a, b) => a + b, 0);
-    const fila = (l, v, fuerte) => `<tr><td>${fuerte ? `<b>${l}</b>` : l}</td><td class="n">${fuerte ? `<b>${S(v)}</b>` : S(v)}</td></tr>`;
-    $('#rOut').innerHTML = `
-    <div class="cifras">
-      <div class="cifra"><small>Ventas</small><b>${S(s('ventas_netas'))}</b></div>
-      <div class="cifra"><small>Ganancia bruta</small><b>${S(s('utilidad_bruta'))}</b></div>
-      <div class="cifra"><small>Margen</small><b>${s('ventas_netas') > 0 ? P(s('utilidad_bruta') / s('ventas_netas') * 100) : '—'}</b></div>
-      <div class="cifra"><small>Ganancia neta</small><b>${S(s('utilidad_neta_estimada'))}</b></div>
+    const totMedios = Object.values(porMedio).reduce((a, b) => a + b, 0), medVis = medios(MEDIOS_VER).filter(m => porMedio[m.id]);
+    const vn = s('ventas_netas'), ub = s('utilidad_bruta'), un = s('utilidad_neta_estimada'), ga = gastosDe(s);
+    // inverso: en gastos, subir es malo (rojo)
+    const cmp = (a, b, inverso) => { if (!hayAnt) return ''; const dd = r2(a - b); if (Math.abs(dd) < 0.005) return '<span class="rep-cmp">Igual que el periodo anterior</span>';
+      return `<span class="rep-cmp ${(dd > 0) !== !!inverso ? 'sube' : 'baja'}">${dd > 0 ? '▲' : '▼'} ${S(Math.abs(dd))}${b ? ` (${P(Math.abs(dd / Math.abs(b) * 100))})` : ''} vs. periodo anterior</span>`; };
+    const sp = sparkline(dias.map(x => num(x.ventas_netas)), AN_COL.venta), spG = sparkline(dias.map(x => num(x.utilidad_neta_estimada)), AN_COL.gan);
+    const etiqueta = R.p === 'otro' ? `Del ${fd(d)} al ${fd(h)}` : `${RAP.find(r => r[0] === R.p)?.[1]} · ${d === h ? fd(d) : `${fd(d)} al ${fd(h)}`}`;
+    // Estado de resultados con análisis vertical (% de ventas) y horizontal (vs. periodo anterior)
+    const pctV = v => vn ? P(v / vn * 100) : '—';
+    const filaE = (t, v, va, cls = '', nota = '') => `<tr class="${cls}"><td>${t}${nota ? `<small>${nota}</small>` : ''}</td><td class="n">${S(v)}</td><td class="n sub">${pctV(v)}</td>${hayAnt ? `<td class="n sub">${S(va)}</td><td class="n ${v - va > 0.005 ? 'txt-ok' : v - va < -0.005 ? 'txt-mal' : 'sub'}">${Math.abs(v - va) < 0.005 ? '—' : `${v - va > 0 ? '+' : '−'}${S(Math.abs(v - va))}`}</td>` : ''}</tr>`;
+    const eerr = `<div class="scroll"><table class="eerr"><tr><th>Concepto</th><th class="n">Periodo</th><th class="n">% de ventas</th>${hayAnt ? `<th class="n">Anterior</th><th class="n">Variación</th>` : ''}</tr>
+      ${filaE('Ventas', s('ventas_brutas'), sa('ventas_brutas'))}${filaE('(−) Devoluciones', -s('devoluciones'), -sa('devoluciones'), 'menos')}
+      ${filaE('Ventas netas', vn, sa('ventas_netas'), 'sub-t')}
+      ${filaE('(−) Costo de ventas', -s('costo_mercaderia_vendida'), -sa('costo_mercaderia_vendida'), 'menos', `incluye mermas y ajustes: ${S(s('de_ello_mermas_ajustes'))}`)}
+      ${filaE('Utilidad bruta', ub, sa('utilidad_bruta'), 'sub-t')}
+      ${filaE('(−) Gastos operativos', -s('gastos_operativos'), -sa('gastos_operativos'), 'menos')}${filaE('(−) Gastos administrativos', -s('gastos_administrativos'), -sa('gastos_administrativos'), 'menos')}
+      ${filaE('(−) Gastos financieros', -s('gastos_financieros'), -sa('gastos_financieros'), 'menos')}${filaE('(−) Otros egresos', -s('otros_egresos'), -sa('otros_egresos'), 'menos')}
+      ${filaE('Utilidad neta (antes de impuestos)', un, sa('utilidad_neta_estimada'), 'fila-total')}</table></div>
+      <p class="sub" style="margin:10px 0 0">Consumo del dueño (no es gasto del negocio): ${S(s('retiro_en_especie'))}.${hayAnt ? ` Periodo anterior: ${fd(pd)} al ${fd(ph)}.` : ' No hay ventas en el periodo anterior para comparar.'}</p>`;
+    const kpi = (t, v, c, spk) => `<div class="rep-kpi"><small>${t}</small><b>${v}</b>${c}${spk ? `<div class="an-spark">${spk}</div>` : ''}</div>`;
+    $('#rOut').innerHTML = `<p class="rep-rango">${esc(etiqueta)}</p>
+    <div class="rep-pane ${tab === 'resumen' ? '' : 'oculto'}" data-pane="resumen">
+      <div class="rep-kpis">
+        ${kpi('Ventas netas', S(vn), cmp(vn, sa('ventas_netas')), sp)}
+        ${kpi('Utilidad bruta', S(ub), `<span class="rep-cmp">Margen ${vn ? P(ub / vn * 100) : '—'}</span>`, '')}
+        ${kpi('Gastos', S(ga), cmp(ga, gastosDe(sa), true), '')}
+        ${kpi('Utilidad neta', S(un), cmp(un, sa('utilidad_neta_estimada')), spG)}
+        ${kpi('Ventas registradas', nV == null ? '—' : N(nV), nV ? `<span class="rep-cmp">Ticket promedio ${S(vn / nV)}${hayAnt && nVAnt != null ? ` · antes ${nVAnt}` : ''}</span>` : '', '')}
+      </div>
+      <div class="cols dos">
+        <section class="panel"><h2>${nDias > 62 ? 'Mes por mes' : 'Día por día'}</h2><p class="sub">Venta y utilidad neta.</p><div class="leyenda" style="margin:0 0 6px"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Utilidad neta</span></div><div id="rGraf"></div></section>
+        <section class="panel"><h2>Cómo te pagaron</h2>${totMedios ? `<div class="barra-medio rep-barra">${medVis.map(m => `<div style="width:${porMedio[m.id] / totMedios * 100}%;background:${COLOR_MEDIO[m.codigo]}" title="${esc(m.nombre)}"></div>`).join('')}</div>
+          <div class="rep-medios">${medVis.map(m => `<div><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span><span>${esc(m.nombre)}</span><b>${S(porMedio[m.id])}</b><small>${P(porMedio[m.id] / totMedios * 100)}</small></div>`).join('')}</div>` : '<p class="sub">Sin cobros en estas fechas.</p>'}
+          <h3 style="margin-top:18px">Dinero disponible hoy</h3><div class="rep-medios">${saldos.map(x => `<div><span class="punto" style="background:${colorCuenta(x.cuenta_id, x.nombre)}"></span><span>${esc(x.nombre)}</span><b style="${num(x.saldo) < 0 ? 'color:var(--coral)' : ''}">${S(x.saldo)}</b><small></small></div>`).join('')}
+            <div class="tot"><span></span><span>Total</span><b>${S(saldos.reduce((a, x) => a + num(x.saldo), 0))}</b><small></small></div></div></section>
+      </div>
+      <section class="panel"><div class="pn-cab"><h2>Lo que más te dejó</h2><button class="lnk" data-tabir="productos">Ver todos →</button></div>
+        ${prods.length ? `<div class="mv-prods">${prods.slice(0, 5).map((o, i) => `<div class="mv-prod"><div class="mv-p1"><span class="tm-n">${i + 1}</span><span class="mv-nom">${esc(o.nom)}</span><b>${S(o.g)}</b></div><div class="mv-barra"><i style="width:${Math.max(0, o.g) / maxG * 100}%"></i></div><small class="sub">${N(o.c)} und. · vendiste ${S(o.v)} · margen ${o.m == null ? '—' : P(o.m)}</small></div>`).join('')}</div>` : '<p class="sub">Sin ventas en estas fechas.</p>'}</section>
     </div>
-    <div class="cols dos">
-      <div class="panel"><h2>Estado de resultados</h2><p class="sub">Del ${fd(d)} al ${fd(h)}.</p><table>
-        ${fila('Ventas', s('ventas_brutas'))}${fila('Devoluciones', -s('devoluciones'))}${fila('Ventas netas', s('ventas_netas'), 1)}
-        ${fila('Costo de lo vendido', -s('costo_mercaderia_vendida'))}<tr><td class="sub">incluye mermas y ajustes</td><td class="n sub">${S(-s('de_ello_mermas_ajustes'))}</td></tr>
-        ${fila('Ganancia bruta', s('utilidad_bruta'), 1)}${fila('Gastos operativos', -s('gastos_operativos'))}${fila('Gastos administrativos', -s('gastos_administrativos'))}
-        ${fila('Gastos financieros', -s('gastos_financieros'))}${fila('Otros egresos', -s('otros_egresos'))}
-        ${fila('Ganancia neta', s('utilidad_neta_estimada'), 1)}<tr><td class="sub">Consumo del dueño (no es gasto)</td><td class="n sub">${S(s('retiro_en_especie'))}</td></tr></table></div>
-      <div class="panel"><h2>Cómo te pagaron</h2><p class="sub">Cobros de ventas en el periodo.</p><table>
-        ${medios(MEDIOS_VER).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${totMedios ? P(num(porMedio[m.id]) / totMedios * 100) : ''}</td></tr>`).join('')}</table>
-        <h3>Dinero disponible hoy</h3><table>${saldos.map(x => fila(esc(x.nombre), x.saldo)).join('')}${fila('Total', saldos.reduce((a, x) => a + num(x.saldo), 0), 1)}</table></div>
-    </div>
-    <div class="panel"><h2>Qué producto deja más</h2><div class="scroll"><table><tr><th>Producto</th><th class="n">Unidades</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th></tr>
-      ${Object.entries(porProd).sort((a, b) => (b[1].v - b[1].k) - (a[1].v - a[1].k)).map(([k, o]) => `<tr><td>${esc(nomProd[k] || '')}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td><td class="n">${S(o.k)}</td><td class="n"><b>${S(o.v - o.k)}</b></td><td class="n">${o.v > 0 ? P((o.v - o.k) / o.v * 100) : '—'}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin ventas en estas fechas.</td></tr>'}
-    </table></div></div>
-    ${(() => {
-      // Agrupa la ganancia por marca y por categoría
-      const info = id => C.presentaciones.find(p => p.producto_id === id)?.productos || {};
-      const agrupar = clave => { const g = {}; Object.entries(porProd).forEach(([id, o]) => { const k = clave(info(id)) || 'Sin dato'; const x = g[k] ??= { v: 0, k: 0, n: 0 }; x.v += o.v; x.k += o.k; x.n++; }); return Object.entries(g).sort((a, b) => (b[1].v - b[1].k) - (a[1].v - a[1].k)); };
-      const marcas = agrupar(pr => pr.marca), cats = agrupar(pr => C.categorias.find(c => c.id === pr.categoria_id)?.nombre);
-      const totG = marcas.reduce((a, [, o]) => a + (o.v - o.k), 0);
-      const tabla = (filas, titulo) => `<table class="por-grupo"><tr><th>${titulo}</th><th class="n">Ventas</th><th class="n">Ganancia</th><th class="n">Margen</th><th>De tu ganancia</th></tr>
-        ${filas.map(([k, o]) => { const g = o.v - o.k, pct = totG > 0 ? g / totG * 100 : 0; return `<tr><td><b>${esc(k)}</b><br><small class="sub">${o.n} ${o.n === 1 ? 'producto' : 'productos'}</small></td><td class="n">${S(o.v)}</td><td class="n"><b>${S(g)}</b></td><td class="n">${o.v > 0 ? P(g / o.v * 100) : '—'}</td>
-          <td style="min-width:140px"><div class="barra-pct"><div style="width:${Math.max(0, Math.min(100, pct)).toFixed(1)}%"></div></div><small class="sub">${P(pct)}</small></td></tr>`; }).join('')}</table>`;
-      return marcas.length ? `<div class="panel"><h2>Por marca y por categoría</h2><p class="sub">Qué parte de tu ganancia viene de cada marca y de cada tipo de producto en estas fechas.</p>
-        ${marcas.length && totG > 0 ? `<p class="consejo-claro" style="margin:0 0 14px"><b>${esc(marcas[0][0])}</b> te dejó el ${P((marcas[0][1].v - marcas[0][1].k) / totG * 100)} de tu ganancia (${S(marcas[0][1].v - marcas[0][1].k)}).</p>` : ''}
-        <div class="cols dos" style="gap:18px"><div class="scroll">${tabla(marcas, 'Marca')}</div><div class="scroll">${tabla(cats, 'Categoría')}</div></div></div>` : '';
-    })()}
-    <div id="rSuelto"></div>
-    <div class="panel"><h2>Día por día</h2><div class="scroll"><table><tr><th>Fecha</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia bruta</th><th class="n">Gastos</th><th class="n">Ganancia neta</th></tr>
-      ${dias.map(x => `<tr><td>${fd(x.fecha)}</td><td class="n">${S(x.ventas_netas)}</td><td class="n">${S(x.costo_mercaderia_vendida)}</td><td class="n">${S(x.utilidad_bruta)}</td>
-        <td class="n">${S(num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos))}</td><td class="n"><b>${S(x.utilidad_neta_estimada)}</b></td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin movimientos en estas fechas.</td></tr>'}
-    </table></div></div>`;
+    <div class="rep-pane ${tab === 'eerr' ? '' : 'oculto'}" data-pane="eerr"><section class="panel"><div class="pn-cab"><h2>Estado de resultados</h2><button class="btn claro mini" id="rCopiarEerr">Copiar</button></div>
+      <p class="sub">${fd(d)} al ${fd(h)}. Con análisis vertical (cada concepto como % de las ventas netas)${hayAnt ? ' y horizontal (frente al periodo anterior de igual duración)' : ''}.</p>${eerr}</section></div>
+    <div class="rep-pane ${tab === 'productos' ? '' : 'oculto'}" data-pane="productos">
+      <section class="panel"><h2>Ganancia por producto</h2><div class="scroll"><table class="rep-prod"><tr><th>Producto</th><th class="n">Unidades</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th><th>De tu ganancia</th></tr>
+        ${prods.map(o => `<tr><td>${esc(o.nom)}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td><td class="n">${S(o.k)}</td><td class="n"><b>${S(o.g)}</b></td><td class="n">${o.m == null ? '—' : P(o.m)}</td>
+          <td style="min-width:130px"><div class="barra-pct"><div style="width:${totG > 0 ? Math.max(0, o.g / totG * 100) : 0}%"></div></div></td></tr>`).join('') || '<tr><td colspan="7" class="vacio">Sin ventas en estas fechas.</td></tr>'}
+        ${prods.length ? `<tr class="fila-total"><td>Total</td><td class="n">${N(prods.reduce((a, o) => a + o.c, 0))}</td><td class="n">${S(prods.reduce((a, o) => a + o.v, 0))}</td><td class="n">${S(prods.reduce((a, o) => a + o.k, 0))}</td><td class="n">${S(totG)}</td><td class="n">${vn ? P(totG / prods.reduce((a, o) => a + o.v, 0) * 100) : '—'}</td><td></td></tr>` : ''}</table></div></section>
+      <div id="rGrupos"></div><div id="rSuelto"></div></div>
+    <div class="rep-pane ${tab === 'dias' ? '' : 'oculto'}" data-pane="dias"><section class="panel"><h2>Día por día</h2><div class="scroll"><table class="rep-dias"><tr><th>Fecha</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Utilidad bruta</th><th class="n">Gastos</th><th class="n">Utilidad neta</th></tr>
+      ${dias.slice().reverse().map(x => { const g = num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos), n = num(x.utilidad_neta_estimada);
+        return `<tr><td>${new Date(x.fecha + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'short', day: '2-digit', month: '2-digit' })}</td><td class="n">${S(x.ventas_netas)}</td><td class="n sub">${S(x.costo_mercaderia_vendida)}</td><td class="n">${S(x.utilidad_bruta)}</td><td class="n sub">${S(g)}</td><td class="n"><b class="${n < 0 ? 'txt-mal' : ''}">${S(n)}</b></td></tr>`; }).join('') || '<tr><td colspan="6" class="vacio">Sin movimientos en estas fechas.</td></tr>'}
+      ${dias.length ? `<tr class="fila-total"><td>Total</td><td class="n">${S(vn)}</td><td class="n">${S(s('costo_mercaderia_vendida'))}</td><td class="n">${S(ub)}</td><td class="n">${S(ga)}</td><td class="n">${S(un)}</td></tr>` : ''}</table></div></section></div>`;
+    $('#rOut').querySelectorAll('[data-tabir]').forEach(b => b.onclick = () => { tab = b.dataset.tabir; local.guardar('repTab', tab); mostrarTab(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    mostrarTab();
+    // Gráfico: por día, o por mes si el rango es largo
+    if (dias.length) {
+      if (nDias > 62) { const mm = {}; dias.forEach(x => { const k = x.fecha.slice(0, 7), o = mm[k] ??= { v: 0, n: 0 }; o.v += num(x.ventas_netas); o.n += num(x.utilidad_neta_estimada); });
+        const ks = Object.keys(mm).sort(); barras($('#rGraf'), ks.map(k => nombreMes(k).slice(0, 3)), [{ nombre: 'Venta', color: COL_VENTA, valores: ks.map(k => r2(mm[k].v)) }, { nombre: 'Utilidad neta', color: COL_GAN, valores: ks.map(k => r2(mm[k].n)) }], { alto: 220, titulo: 'Venta y utilidad por mes' }); }
+      else barras($('#rGraf'), dias.map(x => String(Number(x.fecha.slice(8)))), [{ nombre: 'Venta', color: COL_VENTA, valores: dias.map(x => num(x.ventas_netas)) }, { nombre: 'Utilidad neta', color: COL_GAN, valores: dias.map(x => num(x.utilidad_neta_estimada)) }], { alto: 220, titulo: 'Venta y utilidad por día', tituloTip: i => fd(dias[i].fecha) });
+    } else anVacio($('#rGraf'), 'Sin ventas en estas fechas', 'Elige otro rango arriba.');
+    $('#rCopiarEerr').onclick = async () => {
+      const t = [...$('#rOut').querySelectorAll('table.eerr tr')].map(tr => [...tr.children].map(c => c.innerText.replace(/\n/g, ' ').trim()).join('\t')).join('\n');
+      try { await navigator.clipboard.writeText(`Estado de resultados ${EMPRESA}\n${fd(d)} al ${fd(h)}\n\n${t}`); aviso('Copiado: pégalo en Excel o Word'); } catch { aviso('No se pudo copiar', true); }
+    };
+    // Por marca y por categoría
+    const info = id => C.presentaciones.find(p => p.producto_id === id)?.productos || {};
+    const agrupar = clave => { const g = {}; prods.forEach(o => { const k = clave(info(o.id)) || 'Sin dato'; const x = g[k] ??= { v: 0, k: 0, n: 0 }; x.v += o.v; x.k += o.k; x.n++; }); return Object.entries(g).sort((a, b) => (b[1].v - b[1].k) - (a[1].v - a[1].k)); };
+    const marcas = agrupar(pr => pr.marca), cats = agrupar(pr => C.categorias.find(c => c.id === pr.categoria_id)?.nombre);
+    const grupo = (filas, titulo) => `<div><h3>${titulo}</h3>${filas.map(([k, o]) => { const g = o.v - o.k, pc = totG > 0 ? g / totG * 100 : 0;
+      return `<div class="mv-prod"><div class="mv-p1" style="grid-template-columns:minmax(0,1fr) auto"><span class="mv-nom"><b>${esc(k)}</b> <small class="sub">${o.n} ${o.n === 1 ? 'producto' : 'productos'}</small></span><b>${S(g)}</b></div>
+        <div class="mv-barra" style="margin-left:0"><i style="width:${Math.max(0, Math.min(100, pc))}%"></i></div><small class="sub" style="margin-left:0">${P(pc)} de tu ganancia · vendiste ${S(o.v)} · margen ${o.v > 0 ? P(g / o.v * 100) : '—'}</small></div>`; }).join('')}</div>`;
+    $('#rGrupos').innerHTML = prods.length ? `<section class="panel"><h2>Por marca y por categoría</h2>${totG > 0 && marcas.length ? `<p class="consejo-claro" style="margin:0 0 14px"><b>${esc(marcas[0][0])}</b> te dejó el ${P((marcas[0][1].v - marcas[0][1].k) / totG * 100)} de tu ganancia (${S(marcas[0][1].v - marcas[0][1].k)}).</p>` : ''}
+      <div class="cols dos" style="gap:24px">${grupo(marcas, 'Marca')}${grupo(cats, 'Categoría')}</div></section>` : '';
     await pintarSueltoCajetilla(d, h).catch(e => { $('#rSuelto').innerHTML = ''; console.warn(e); });
   };
-  $('#rVer').onclick = () => correr().catch(e => aviso(textoError(e), true));
-  const fechaMenos = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
-  $('#rRapidos').querySelectorAll('button').forEach(b => b.onclick = () => {
-    const h = hoy(), [y, m] = h.split('-').map(Number);
-    const fin = (yy, mm) => new Date(Date.UTC(yy, mm, 0)).toISOString().slice(0, 10);
-    const r = { hoy: [h, h], ayer: [fechaMenos(1), fechaMenos(1)], semana: [fechaMenos(6), h], mes: [iniMes(), h],
-      mesPasado: m === 1 ? [`${y - 1}-12-01`, `${y - 1}-12-31`] : [`${y}-${String(m - 1).padStart(2, '0')}-01`, fin(y, m - 1)], anio: [`${y}-01-01`, h] }[b.dataset.p];
-    $('#rD').value = r[0]; $('#rH').value = r[1];
+  el.querySelectorAll('.rep-rap [data-p]').forEach(b => b.onclick = () => {
+    el.querySelectorAll('.rep-rap [data-p]').forEach(x => x.classList.toggle('on', x === b));
+    if (b.dataset.p === 'otro') { $('#rFechas').classList.remove('oculto'); local.guardar('repRango', { p: 'otro', d: $('#rD').value, h: $('#rH').value }); return; }
+    $('#rFechas').classList.add('oculto');
+    const [a, z] = rango(b.dataset.p); $('#rD').value = a; $('#rH').value = z; local.guardar('repRango', { p: b.dataset.p });
     correr().catch(e => aviso(textoError(e), true));
   });
+  $('#rVer').onclick = () => { local.guardar('repRango', { p: 'otro', d: $('#rD').value, h: $('#rH').value }); correr().catch(e => aviso(textoError(e), true)); };
   $('#rExcel').onclick = async () => {
-    const b = $('#rExcel'); b.disabled = true; b.textContent = 'Preparando…';
+    const b = $('#rExcel'), t = b.querySelector('span'); b.disabled = true; t.textContent = 'Preparando…';
     try { await exportarExcel($('#rD').value, $('#rH').value); } catch (e) { aviso('No se pudo exportar: ' + textoError(e), true); }
-    b.disabled = false; b.textContent = 'Descargar Excel';
+    b.disabled = false; t.textContent = 'Descargar Excel';
   };
   await correr();
 

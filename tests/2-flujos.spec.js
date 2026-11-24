@@ -336,11 +336,24 @@ test('modo socio: solo ve su turno, vender, sus ventas y stock; sin costos; turn
   await page.locator('#btnCobrar').click();
   await expect(page.locator('#ticket')).toContainText('Cobrado con Efectivo');
   await page.evaluate(() => ir('turno')); await page.waitForLoadState('networkidle');
-  const entregar = await page.locator('.tk-main b').innerText();
+  const entregar = await page.locator('.tm-monto').innerText();
   expect(entregar).not.toBe('S/ 0.00');
   await page.locator('#tCerrar').click();
   const form = page.locator('.velo form.dialogo').last();
   await form.locator('input[type="number"]').fill(entregar.replace(/[^\d.]/g, ''));
   await form.locator('.acc button:not([data-x])').click();
   await expect(page.locator('.velo form.dialogo').last()).toContainText('Turno cerrado');
+});
+
+test('modo socio: Mis ventas resume lo vendido en sus turnos por hoy, 7 días y el mes', async ({ page, errores }) => {
+  await page.goto('demo/?socio');
+  await page.waitForFunction(() => typeof ir === 'function' && !document.querySelector('#app')?.classList.contains('oculto'));
+  await page.evaluate(() => ir('misventas')); await page.waitForLoadState('networkidle');
+  for (const k of ['sem', 'mes']) {
+    await page.locator(`[data-per="${k}"]`).click();
+    await expect(page.locator(`[data-per="${k}"]`)).toHaveClass(/on/);
+    const total = Number((await page.locator('.mv-main b').innerText()).replace(/[^\d.]/g, ''));
+    const suma = (await page.locator('.mv-p1 b').allInnerTexts()).reduce((a, t) => a + Number(t.replace(/[^\d.]/g, '')), 0);
+    expect(suma).toBeCloseTo(total, 2);
+  }
 });

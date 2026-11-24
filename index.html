@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-P7+47dGLWt3JdaCNzveb0edUUTraLB20jkrPxV2YiyQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-9FJcxGVWEWmQ6Iyg1YvnKd68EWPoq2l+M+4BhUBmt04='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -715,6 +715,33 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .ex-fila{display:grid;grid-template-columns:minmax(0,1fr) auto 86px;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--linea)}
 .ex-fila small{display:block;font-size:12px}.ex-fila .n{text-align:right}.ex-fila .chip{justify-self:end}
 @media(max-width:760px){.turno-grid,.pasos-turno{grid-template-columns:1fr}.turno-kpis{grid-template-columns:1fr 1fr}.turno-kpis .tk-main{grid-column:1/-1}.turno-kpis .pn-kpi>b{font-size:24px}}
+/* Mi turno en el celular */
+.tm-hero{background:linear-gradient(160deg,#1E9E7C33,#7B5CFF22);border-radius:26px;padding:20px 20px 16px;text-align:center;margin-bottom:12px;box-shadow:inset 0 0 0 1px #ffffff10}
+.tm-hero>small{display:block;color:var(--tinta2);font-size:13px;margin-top:10px}
+.tm-monto{display:block;font-size:46px;font-weight:700;letter-spacing:-.04em;line-height:1.1;font-variant-numeric:tabular-nums}
+.tm-estado{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--menta);background:#4FE3C11a;padding:5px 11px;border-radius:999px}
+.punto-vivo{width:8px;height:8px;border-radius:50%;background:var(--menta);box-shadow:0 0 0 3px #4FE3C133}
+.tm-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px}
+.tm-mini div{background:#0E0F1A55;border-radius:14px;padding:8px 4px}
+.tm-mini small{display:block;color:var(--gris);font-size:11.5px}.tm-mini b{font-size:16px;font-variant-numeric:tabular-nums}
+.tm-vender{width:100%;display:flex;justify-content:center;align-items:center;gap:10px;font-size:19px;padding:17px;border-radius:20px;margin-bottom:12px}
+.tm-acc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.tm-acc button{display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:var(--blanco);color:var(--texto);border-radius:18px;padding:13px 4px;font:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
+.tm-acc button:active{transform:scale(.97)}
+.tm-prod{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--linea)}
+.tm-prod:last-child{border-bottom:0}.tm-prod small{display:block;color:var(--gris);font-size:12px}
+.tm-n{width:24px;height:24px;border-radius:50%;background:var(--tono2);display:grid;place-items:center;font-size:12px;font-weight:700}
+.tm-cerrar{width:100%;display:flex;justify-content:center;align-items:center;gap:8px;padding:15px;margin:4px 0 8px}
+.seg-full{display:flex;width:100%;margin-bottom:14px}.seg-full button{flex:1;padding:10px}
+.mv-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mv-main{grid-column:1/-1;background:#7B5CFF22;box-shadow:inset 0 0 0 1px #7B5CFF44}.mv-main>b{font-size:38px}
+.mv-prod{padding:10px 0;border-bottom:1px solid var(--linea)}.mv-prod:last-child{border-bottom:0}
+.mv-p1{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center}
+.mv-nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mv-barra{height:8px;background:var(--tono);border-radius:99px;margin:7px 0 5px 38px;overflow:hidden}
+.mv-barra i{display:block;height:100%;background:var(--brillo);border-radius:99px}
+.mv-prod small{margin-left:38px;font-size:12px}
+@media(min-width:900px){.modo-socio main{max-width:760px;margin:0 auto}}
 /* Compras: diseño en dos columnas con resumen fijo */
 .compra-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start;margin-bottom:18px}
 .compra-grid>.panel{margin-bottom:0}
@@ -1118,7 +1145,7 @@ const PAGINAS = {
   boletas: () => ['Boletas', 'Las boletas que emites en SUNAT: qué falta emitir, cuáles registraste y cómo corregir un error.'],
   cuenta: () => ['Cuenta', 'Tu seguridad, tu contraseña y el resumen diario.'],
   turno: () => [`Hola, ${primerNombre()}`, 'Tu turno en la tienda: empieza, vende y entrega al cerrar.'],
-  misventas: () => ['Mis ventas', 'Lo que vendiste hoy.'],
+  misventas: () => ['Mis ventas', 'Lo que vendiste en tus turnos: hoy, en 7 días y en el mes.'],
   existencias: () => ['Stock', 'Cuánto queda de cada producto.'],
 };
 const primerNombre = () => (local.leer('perfil')?.nombre || '').trim().split(/\s+/)[0] || 'Luis';
@@ -2030,23 +2057,24 @@ async function vTurno(el) {
     $('#tAvisarEntrega') && ($('#tAvisarEntrega').onclick = () => mandarWsp(`Hola ${nombreDueno()}, tengo ${S(t.saldo)} de mi turno para entregarte. ¿Lo recibes en la app para empezar el siguiente?`));
     return;
   }
-  const ult = t.ventas.slice(0, 6);
-  el.innerHTML = `<div class="turno-cab"><span class="chip ok">Turno abierto desde las ${hora(t.ses.abierta_en)}</span></div>
-    <div class="turno-kpis">
-      <div class="pn-kpi tk-main"><small>Efectivo para entregar</small><b>${S(t.saldo)}</b><span class="pn-cmp">Junta este efectivo aparte: es lo que entregas al cerrar</span></div>
-      <div class="pn-kpi"><small>Vendiste en tu turno</small><b>${S(t.total)}</b><span class="pn-cmp">${t.ventas.length} ${t.ventas.length === 1 ? 'venta' : 'ventas'}</span></div>
-      <div class="pn-kpi"><small>Yape y Plin</small><b>${S(t.digital)}</b><span class="pn-cmp">Entra directo a la cuenta de ${nombreDueno()}</span></div>
+  const ult = t.ventas.slice(0, 3);
+  const top = await ventasDelSocio(t.ses.abierta_en).then(r => r.prods.slice(0, 3)).catch(() => []);
+  el.innerHTML = `<section class="tm-hero">
+      <div class="tm-estado"><span class="punto-vivo"></span>Turno abierto desde las ${hora(t.ses.abierta_en)}</div>
+      <small>Efectivo para entregar</small><b class="tm-monto">${S(t.saldo)}</b>
+      <div class="tm-mini"><div><small>Vendiste</small><b>${S(t.total)}</b></div><div><small>Ventas</small><b>${t.ventas.length}</b></div><div><small>Yape y Plin</small><b>${S(t.digital)}</b></div></div>
+    </section>
+    <button class="btn rotulo tm-vender" data-ir="vender">${ico('vender', 24)}<span>Vender</span></button>
+    <div class="tm-acc">
+      <button data-ir="misventas">${ico('misventas', 22)}<span>Mis ventas</span></button>
+      <button data-ir="existencias">${ico('existencias', 22)}<span>Stock</span></button>
+      <button id="tFalta">${ico('turno', 22)}<span>Algo se acabó</span></button>
+      <button id="tError">${ico('ventas', 22)}<span>Me equivoqué</span></button>
     </div>
-    <button class="btn rotulo turno-vender" data-ir="vender">${ico('vender', 22)}<span>Vender</span></button>
-    <div class="turno-grid">
-      <section class="panel"><div class="pn-cab"><h2>Tus últimas ventas</h2><button class="lnk" data-ir="misventas">Ver todas →</button></div>
-        ${ult.length ? `<div class="lista-v">${ult.map(v => `<div><span>${hora(v.fecha)}</span><span class="sub">${esc(v.documento || '')}${v.condicion === 'CREDITO' ? ' · fiado' : ''}</span><b>${S(v.total)}</b></div>`).join('')}</div>` : '<p class="sub" style="margin:0">Todavía no vendes en este turno.</p>'}</section>
-      <section class="panel"><h2>¿Algo pasó?</h2>
-        <div class="acc-turno"><button class="btn claro" id="tFalta">${ico('existencias', 18)}<span>Avisar que algo se acabó</span></button>
-        <button class="btn claro" id="tError">${ico('misventas', 18)}<span>Me equivoqué en una venta</span></button></div></section>
-    </div>
-    <div class="panel turno-cierre"><div><h2>¿Terminaste?</h2><p class="sub" style="margin:0">Cuenta el efectivo que juntaste y ciérralo. Luego se lo entregas a ${nombreDueno()}.</p></div>
-      <button class="btn" id="tCerrar">Cerrar mi turno</button></div>`;
+    ${top.length ? `<section class="panel tm-top"><h2>Lo que más vendes hoy</h2>${top.map((x, i) => `<div class="tm-prod"><span class="tm-n">${i + 1}</span><span>${esc(x.nombre)}<small>${N(x.und)} und.</small></span><b>${S(x.venta)}</b></div>`).join('')}</section>` : ''}
+    <section class="panel tm-ult"><div class="pn-cab"><h2>Últimas ventas</h2><button class="lnk" data-ir="misventas">Ver todo →</button></div>
+      ${ult.length ? `<div class="lista-v">${ult.map(v => `<div><span>${hora(v.fecha)}</span><span class="sub">${esc(v.documento || '')}${v.condicion === 'CREDITO' ? ' · fiado' : ''}</span><b>${S(v.total)}</b></div>`).join('')}</div>` : '<p class="sub" style="margin:0">Todavía no vendes en este turno. ¡A darle!</p>'}</section>
+    <button class="btn claro tm-cerrar" id="tCerrar">${ico('turno', 20)}<span>Cerrar mi turno</span></button>`;
   $('#tFalta').onclick = async () => {
     const ex = await q(sb.from('v_existencias').select('producto, cantidad, requiere_reposicion').eq('activo', true)).catch(() => []);
     const v = await dialogo('¿Qué se acabó?', [{ label: 'Producto', type: 'select', options: [{ value: '', label: 'Elige uno' }, ...ex.sort((a, b) => num(a.cantidad) - num(b.cantidad)).map(e => ({ value: e.producto, label: `${e.producto} (quedan ${N(e.cantidad)})` }))] },
@@ -2079,13 +2107,46 @@ async function cerrarTurno(t) {
   await ir('turno');
   if (await dialogo('Turno cerrado', [{ type: 'info', html: `<p style="margin:0 0 6px">Entrégale a ${nombreDueno()} <b>${S(c)}</b> en efectivo.</p><p class="sub" style="margin:0">${Math.abs(dif) < 0.005 ? '¡Cuadró exacto!' : `${dif > 0 ? 'Sobraron' : 'Faltaron'} ${S(Math.abs(dif))}.`} ¿Le mandas el resumen?</p>` }], 'Enviar resumen por WhatsApp')) mandarWsp(txt);
 }
+// Ventas hechas dentro de los turnos del socio (de la apertura al cierre de cada turno)
+async function ventasDelSocio(desde) {
+  const desdeTs = desde.length === 10 ? desde + 'T00:00:00-05:00' : desde;
+  const [ses, ventas] = await Promise.all([
+    q(sb.from('caja_sesiones').select('id, abierta_en, cerrada_en, estado').eq('cuenta_financiera_id', C.cajaTurno?.id).gte('abierta_en', new Date(Date.parse(desdeTs) - 864e5).toISOString())),
+    q(sb.from('ventas').select('id, fecha, estado, venta_detalles(presentacion_id, cantidad_base, subtotal)').eq('estado', 'EMITIDA').gte('fecha', desdeTs)),
+  ]);
+  const ahora = Date.now(), rangos = ses.map(x => [Date.parse(x.abierta_en), x.cerrada_en ? Date.parse(x.cerrada_en) : ahora]);
+  const mias = ventas.filter(v => { const t = Date.parse(v.fecha); return rangos.some(([a, b]) => t >= a && t <= b); });
+  const prods = {}, dias = {};
+  mias.forEach(v => { const dia = new Date(v.fecha).toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+    (v.venta_detalles || []).forEach(l => { const pr = C.presentaciones.find(x => x.id === l.presentacion_id), k = pr?.producto_id || l.presentacion_id;
+      const o = prods[k] ??= { nombre: pr?.productos?.nombre || 'Producto', und: 0, venta: 0 }; o.und += num(l.cantidad_base); o.venta = r2(o.venta + num(l.subtotal));
+      dias[dia] = r2((dias[dia] || 0) + num(l.subtotal)); }); });
+  const turnos = ses.filter(x => Date.parse(x.cerrada_en || new Date().toISOString()) >= Date.parse(desdeTs)).length;
+  return { ventas: mias, total: r2(Object.values(prods).reduce((a, x) => a + x.venta, 0)), prods: Object.values(prods).sort((a, b) => b.venta - a.venta), dias, turnos };
+}
 async function vMisVentas(el) {
-  const ventas = await q(sb.from('v_ventas_totales').select('venta_id, documento, fecha, total, estado, condicion, cliente').gte('fecha', inicioHoy()).order('fecha', { ascending: false }));
-  const hora = f => new Date(f).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: 'numeric', minute: '2-digit' });
-  const vig = ventas.filter(v => v.estado === 'EMITIDA');
-  el.innerHTML = `<div class="turno-kpis"><div class="pn-kpi"><small>Vendido hoy</small><b>${S(vig.reduce((a, v) => a + num(v.total), 0))}</b><span class="pn-cmp">${vig.length} ${vig.length === 1 ? 'venta' : 'ventas'}</span></div></div>
-    <div class="panel">${ventas.length ? `<div class="lista-v">${ventas.map(v => `<div><span>${hora(v.fecha)}</span><span class="sub">${esc(v.documento || '')}${v.condicion === 'CREDITO' ? ` · fiado a ${esc(v.cliente || '')}` : ''}${v.estado !== 'EMITIDA' ? ' · <span class="chip mal">anulada</span>' : ''}</span><b>${S(v.total)}</b></div>`).join('')}</div>`
-      : '<p class="sub" style="margin:0">Todavía no hay ventas hoy.</p>'}</div>`;
+  const per = { hoy: ['Hoy', hoy()], sem: ['7 días', diasAtras(6)], mes: ['Este mes', iniMes()] };
+  el.innerHTML = `<div class="seg-mini seg-full" role="tablist" aria-label="Periodo">${Object.entries(per).map(([k, [n]]) => `<button type="button" data-per="${k}" class="${k === 'hoy' ? 'on' : ''}">${n}</button>`).join('')}</div><div id="mvCuerpo"><p class="vacio">Cargando…</p></div>`;
+  const pintar = async k => {
+    el.querySelectorAll('[data-per]').forEach(b => b.classList.toggle('on', b.dataset.per === k));
+    const desde = per[k][1], r = await ventasDelSocio(desde);
+    const max = Math.max(1, ...r.prods.map(x => x.venta)), nV = r.ventas.length;
+    const fechas = []; for (let d = new Date(desde + 'T12:00:00-05:00'); d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }) <= hoy(); d.setDate(d.getDate() + 1)) fechas.push(d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }));
+    $('#mvCuerpo').innerHTML = `<div class="mv-kpis">
+        <div class="pn-kpi mv-main"><small>Vendiste ${k === 'hoy' ? 'hoy' : k === 'sem' ? 'en 7 días' : 'este mes'}</small><b>${S(r.total)}</b></div>
+        <div class="pn-kpi"><small>Ventas</small><b>${nV}</b><span class="pn-cmp">${nV ? `promedio ${S(r.total / nV)}` : '—'}</span></div>
+        <div class="pn-kpi"><small>Turnos</small><b>${r.turnos}</b><span class="pn-cmp">${r.turnos ? `${S(r.total / r.turnos)} por turno` : '—'}</span></div></div>
+      ${k !== 'hoy' && r.total > 0 ? `<section class="panel"><h2>Día por día</h2><div id="mvDias"></div></section>` : ''}
+      <section class="panel"><h2>Lo que vendiste</h2>${r.prods.length ? `<div class="mv-prods">${r.prods.map((x, i) => `<div class="mv-prod">
+          <div class="mv-p1"><span class="tm-n">${i + 1}</span><span class="mv-nom">${esc(x.nombre)}</span><b>${S(x.venta)}</b></div>
+          <div class="mv-barra"><i style="width:${x.venta / max * 100}%"></i></div><small class="sub">${N(x.und)} und. · ${r.total > 0 ? P(x.venta / r.total * 100) : ''} de lo que vendiste</small></div>`).join('')}</div>`
+        : `<p class="sub" style="margin:0">${k === 'hoy' ? 'Todavía no vendes hoy.' : 'No hay ventas en tus turnos de este periodo.'}</p>`}</section>
+      ${k === 'hoy' && nV ? `<section class="panel"><h2>Ventas de hoy</h2><div class="lista-v">${r.ventas.sort((a, b) => b.fecha.localeCompare(a.fecha)).map(v => `<div><span>${new Date(v.fecha).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: 'numeric', minute: '2-digit' })}</span><span class="sub">${(v.venta_detalles || []).map(l => C.presentaciones.find(x => x.id === l.presentacion_id)?.productos?.nombre).filter(Boolean).slice(0, 2).map(esc).join(', ')}</span><b>${S((v.venta_detalles || []).reduce((a, l) => a + num(l.subtotal), 0))}</b></div>`).join('')}</div></section>` : ''}`;
+    if ($('#mvDias')) barras($('#mvDias'), fechas.map(f => k === 'sem' ? new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'short' }) : String(Number(f.slice(8)))),
+      [{ nombre: 'Vendiste', color: COL_VENTA, valores: fechas.map(f => r.dias[f] || 0) }], { alto: 180, titulo: 'Lo que vendiste por día' });
+  };
+  el.querySelectorAll('[data-per]').forEach(b => b.onclick = () => pintar(b.dataset.per).catch(e => aviso(textoError(e), true)));
+  await pintar('hoy');
 }
 async function vExistencias(el) {
   const ex = await q(sb.from('v_existencias').select('producto_id, producto, cantidad, stock_minimo, requiere_reposicion').eq('activo', true));

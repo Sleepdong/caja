@@ -70,7 +70,7 @@
   Object.assign(metodos[3], { cuenta_financiera_id: 'cf3' }); Object.assign(metodos[4], { cuenta_financiera_id: 'cf4' }); Object.assign(metodos[5], { cuenta_financiera_id: 'cf5' });
   // ?socio en la dirección: la demo se abre como tu socio
   const COMO_SOCIO = /[?&]socio\b/.test(location.search);
-  let turnoSocio = null; const movExtra = [];
+  let turnoSocio = null; const movExtra = [], turnosHist = [];
   const cuentas = [
     { id: 'cf1', nombre: 'Caja principal', tipo: 'EFECTIVO', usa_sesiones: true, activo: true, creado_en: '2026-10-01' },
     { id: 'cf2', nombre: 'Cuenta de la empresa', tipo: 'BANCO', usa_sesiones: false, activo: true, creado_en: '2026-10-01' },
@@ -278,7 +278,9 @@
       compras: compras.map(c => ({ id: c.id, proveedor_id: c.proveedor_id, fecha_emision: c.dia, serie: c.serie, numero: c.numero, estado: 'REGISTRADA' })),
       compra_detalles: compDet, v_compras_totales: compTot.slice().reverse(),
       v_cuentas_por_pagar: compTot.filter(c => c.saldo > 0).map(c => ({ origen: 'COMPRA', documento_id: c.compra_id, proveedor: c.proveedor, fecha: c.fecha_emision, total: c.total, saldo: c.saldo, fecha_vencimiento: c.fecha_vencimiento, dias_vencido: 0 })),
-      v_kardex: kardex, caja_sesiones: [sesion, ...(turnoSocio ? [turnoSocio] : [])], v_caja_sesiones: sesiones,
+      v_kardex: kardex, caja_sesiones: [sesion, ...(turnoSocio ? [turnoSocio] : []), ...turnosHist,
+        // Turnos pasados del socio (tardes de los últimos días) para ver su panel de ventas
+        ...[1, 2, 3, 4, 5, 6, 8, 9, 11, 13].map(n => ({ id: 'ct' + n, cuenta_financiera_id: 'cf5', estado: 'CERRADA', abierta_en: iso(enLima(diaMenos(n), 8, 0)), cerrada_en: iso(enLima(diaMenos(n), 14, 0)), monto_apertura: 0 }))], v_caja_sesiones: sesiones,
       v_saldos_cuentas: cuentas.map(c => ({ cuenta_id: c.id, nombre: c.nombre, tipo: c.tipo, saldo: c.id === 'cf1' ? r2(sesion.monto_apertura + sesion.entradas + sesion.salidas) : saldoDe(c.id) })),
       v_flujo_caja_diario: [], alias_compra: MARCAS.map(m => ({ proveedor_id: m[9] === 'k2' ? 'pv3' : 'pv1', texto: '#' + m[11], presentacion_id: m[0] + 'c' })), periodos_contables: [], series_documento: [], almacenes: [{ id: 'a1', nombre: 'Principal' }],
       producto_proveedores: [], compra_costos_adicionales: [], devoluciones_compra: [], devolucion_compra_detalles: [], devoluciones_venta: [], devolucion_venta_detalles: [],
@@ -356,7 +358,7 @@
       { id: 'ses-2', creada: new Date(h - 864e5 * 9).toISOString(), ultima_actividad: new Date(h - 864e5).toISOString(), dispositivo: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1', ip: '190.42.11.3', es_esta: false }]; },
     cerrar_sesion_dispositivo() { return true; },
     abrir_caja({ p_cuenta_id }) { if (p_cuenta_id === 'cf5') { turnoSocio = { id: 'cs-turno', sesion_id: 'cs-turno', cuenta_financiera_id: 'cf5', estado: 'ABIERTA', abierta_en: new Date(Date.now() - 1000).toISOString(), monto_apertura: 0 }; derivar(); } return { id: 'cs-turno' }; },
-    cerrar_caja({ p_sesion_id }) { if (p_sesion_id === 'cs-turno') { turnoSocio = null; derivar(); } return { diferencia: 0 }; },
+    cerrar_caja({ p_sesion_id }) { if (p_sesion_id === 'cs-turno') { turnosHist.push({ ...turnoSocio, id: 'ch' + turnosHist.length, estado: 'CERRADA', cerrada_en: new Date().toISOString() }); turnoSocio = null; derivar(); } return { diferencia: 0 }; },
     transferir_entre_cuentas({ p_origen_id, p_destino_id, p_monto, p_descripcion }) {
       const f = new Date().toISOString(); movExtra.push({ id: uid('mf'), fecha: f, tipo: 'TRANSFERENCIA', monto: -p_monto, cuenta_financiera_id: p_origen_id, descripcion: p_descripcion },
         { id: uid('mf'), fecha: f, tipo: 'TRANSFERENCIA', monto: p_monto, cuenta_financiera_id: p_destino_id, descripcion: p_descripcion }); derivar(); return true; },

@@ -317,3 +317,30 @@ test('compras: repetir la última compra del proveedor, botones +/− y resumen 
   await expect(page.locator('#resFilas')).toContainText(`${n} ${n === 1 ? 'línea' : 'líneas'}`);
   await expect(page.locator('#totC')).not.toHaveText('S/ 0.00');
 });
+
+test('modo socio: solo ve su turno, vender, sus ventas y stock; sin costos; turno empieza en S/ 0 y el dueño lo recibe', async ({ page, errores }) => {
+  page.on('popup', p => p.close().catch(() => {}));
+  await page.goto('demo/?socio');
+  await page.waitForFunction(() => typeof ir === 'function' && !document.querySelector('#app')?.classList.contains('oculto'));
+  expect(await page.evaluate(() => esSocio())).toBe(true);
+  await expect(page.locator('.cargo-txt').first()).toHaveText('Socio');
+  // Las vistas del dueño no existen para el socio
+  await page.evaluate(() => ir('panel')); await page.waitForLoadState('networkidle');
+  expect(await page.evaluate(() => vistaActual)).toBe('turno');
+  await page.locator('#tEmpezar').click();
+  await expect(page.locator('#estante')).toBeVisible();
+  await expect(page.locator('#estante .mg')).toHaveCount(0);
+  const prod = page.locator('#estante .prod').first();
+  await prod.locator('.opc').first().click();
+  await expect(page.locator('.ganancia-est')).toHaveCount(0);
+  await page.locator('#btnCobrar').click();
+  await expect(page.locator('#ticket')).toContainText('Cobrado con Efectivo');
+  await page.evaluate(() => ir('turno')); await page.waitForLoadState('networkidle');
+  const entregar = await page.locator('.tk-main b').innerText();
+  expect(entregar).not.toBe('S/ 0.00');
+  await page.locator('#tCerrar').click();
+  const form = page.locator('.velo form.dialogo').last();
+  await form.locator('input[type="number"]').fill(entregar.replace(/[^\d.]/g, ''));
+  await form.locator('.acc button:not([data-x])').click();
+  await expect(page.locator('.velo form.dialogo').last()).toContainText('Turno cerrado');
+});

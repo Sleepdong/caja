@@ -25,10 +25,11 @@ cambiar('href="apple-touch-icon.png"', 'href="../apple-touch-icon.png"')
 cambiar("if ('serviceWorker' in navigator && location.protocol === 'https:') {", "if (false) {")
 cambiar('<title>Caja · Gestión Comercial</title>', '<title>Caja · Demostración</title>\n<meta name="robots" content="noindex">')
 # 4. Aviso visible de demostración
-banner = '''<div id="demoBanner" role="note"><span><b>Demostración</b> con datos de ejemplo<span class="dm-largo">. Prueba vender, cobrar o simular precios: nada se guarda y se reinicia al recargar</span>.</span><a href="https://github.com/Sleepdong/caja" target="_blank" rel="noopener">Ver el proyecto</a></div>
+banner = '''<div id="demoBanner" role="note"><span><b>Demostración</b> con datos de ejemplo<span class="dm-largo">. Prueba vender, cobrar o simular precios: nada se guarda y se reinicia al recargar</span>.</span><span class="dm-vistas"><a href="./">Ver como dueño</a><a href="./?socio">Ver como socio</a></span><a href="https://github.com/Sleepdong/caja" target="_blank" rel="noopener">Ver el proyecto</a></div>
 <style>#demoBanner{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;background:linear-gradient(135deg,#7B5CFF,#C054E8 55%,#FF7A8A);color:#fff;font:500 13px/1.4 Sora,system-ui,sans-serif;padding:9px 16px;text-align:center;padding-top:max(9px,env(safe-area-inset-top))}
-@media(max-width:600px){#demoBanner .dm-largo{display:none}#demoBanner{flex-wrap:nowrap;justify-content:space-between;text-align:left}}
+@media(max-width:600px){#demoBanner .dm-largo{display:none}#demoBanner{justify-content:center;text-align:center}}
 #demoBanner a{color:#fff;font-weight:700;background:#ffffff2e;padding:4px 12px;border-radius:999px;text-decoration:none;white-space:nowrap}
+#demoBanner .dm-vistas{display:flex;gap:6px}
 #demoBanner + #ingreso, body:has(#demoBanner) .top{padding-top:12px}</style>'''
 cambiar('<body>', '<body>\n' + banner)
 

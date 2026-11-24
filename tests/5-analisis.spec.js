@@ -87,7 +87,9 @@ test('Caja: total = efectivo + otros medios, igual que Reportes y que lo cobrado
   const partes = await page.locator('.tot-cab b').allInnerTexts();
   expect(total).toBeCloseTo(esperado.total, 2);
   expect(sol(partes[0]) + sol(partes[1])).toBeCloseTo(total, 2);
-  const filas = await page.locator('.tot-fila b').allInnerTexts();
+  const filas = await page.locator('.tot-grupo').nth(1).locator('.tot-fila b').allInnerTexts();
+  const efe = await page.locator('.tot-grupo').nth(0).locator('.tot-fila b').allInnerTexts();
+  if (efe.length) expect(efe.reduce((a, t) => a + sol(t), 0)).toBeCloseTo(sol(partes[0]), 2);
   expect(filas.reduce((a, t) => a + sol(t), 0)).toBeCloseTo(sol(partes[1]), 2);
   if (esperado.hoy) await expect(page.locator('.tot-caja')).toContainText(new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2 }).format(esperado.hoy));
 });

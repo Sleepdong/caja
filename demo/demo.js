@@ -63,12 +63,20 @@
   const metodos = [
     { id: 1, codigo: 'EFECTIVO', nombre: 'Efectivo', activo: true }, { id: 2, codigo: 'TARJETA_DEBITO', nombre: 'Tarjeta de débito de la empresa', activo: true },
     { id: 3, codigo: 'TRANSFERENCIA', nombre: 'Transferencia', activo: true }, { id: 4, codigo: 'YAPE', nombre: 'Yape', activo: true }, { id: 5, codigo: 'PLIN', nombre: 'Plin', activo: true },
+    { id: 6, codigo: 'EFECTIVO_TURNO', nombre: 'Efectivo del turno', activo: true },
   ];
+  // Cada medio lleva su cuenta (la caja de turnos es la del socio)
+  Object.assign(metodos[0], { cuenta_financiera_id: 'cf1' }); Object.assign(metodos[1], { cuenta_financiera_id: 'cf2' });
+  Object.assign(metodos[3], { cuenta_financiera_id: 'cf3' }); Object.assign(metodos[4], { cuenta_financiera_id: 'cf4' }); Object.assign(metodos[5], { cuenta_financiera_id: 'cf5' });
+  // ?socio en la dirección: la demo se abre como tu socio
+  const COMO_SOCIO = /[?&]socio\b/.test(location.search);
+  let turnoSocio = null; const movExtra = [];
   const cuentas = [
     { id: 'cf1', nombre: 'Caja principal', tipo: 'EFECTIVO', usa_sesiones: true, activo: true, creado_en: '2026-10-01' },
     { id: 'cf2', nombre: 'Cuenta de la empresa', tipo: 'BANCO', usa_sesiones: false, activo: true, creado_en: '2026-10-01' },
     { id: 'cf3', nombre: 'Yape', tipo: 'BILLETERA', usa_sesiones: false, activo: true, creado_en: '2026-10-01' },
     { id: 'cf4', nombre: 'Plin', tipo: 'BILLETERA', usa_sesiones: false, activo: true, creado_en: '2026-10-01' },
+    { id: 'cf5', nombre: 'Caja de turnos', tipo: 'EFECTIVO', usa_sesiones: true, activo: true, creado_en: '2026-11-24' },
   ];
   const clientes = [
     { id: 'cl0', nombre: 'Cliente varios', es_generico: true, permite_credito: false, activo: true },
@@ -186,7 +194,7 @@
       vdet.push(...dets);
       vtot.push({ venta_id: id, documento: doc, fecha: iso(v.ms), cliente_id: cli.id, cliente: cli.nombre, condicion: v.condicion, total, costo_ventas: costo, importe_devuelto: 0, costo_devuelto: 0,
         estado: 'EMITIDA', saldo: r2(total - cobrado), cobros_netos: cobrado, fecha_vencimiento: v.vence || null });
-      if (v.medio) movFin.push({ id: uid('mf'), fecha: iso(v.ms), tipo: 'COBRO_VENTA', monto: total, metodo_pago_id: v.medio, cuenta_financiera_id: { 1: 'cf1', 4: 'cf3', 5: 'cf4' }[v.medio], descripcion: 'Cobro ' + doc });
+      if (v.medio) movFin.push({ id: uid('mf'), fecha: iso(v.ms), tipo: 'COBRO_VENTA', monto: total, metodo_pago_id: v.medio, cuenta_financiera_id: { 1: 'cf1', 4: 'cf3', 5: 'cf4', 6: 'cf5' }[v.medio], descripcion: 'Cobro ' + doc });
       if (v.condicion === 'CREDITO') cxc.push({ venta_id: id, documento: doc, fecha: iso(v.ms), cliente_id: cli.id, cliente: cli.nombre, total, importe_devuelto: 0, cobros_netos: 0, saldo: total,
         fecha_vencimiento: v.vence, dias_vencido: Math.max(0, Math.floor((Date.parse(hoy) - Date.parse(v.vence)) / 864e5)) });
     });
@@ -235,7 +243,8 @@
     });
 
     // Saldos de cuentas y caja de hoy
-    const saldoDe = cf => r2(movFin.filter(m => m.cuenta_financiera_id === cf).reduce((a, m) => a + m.monto, 0) + ({ cf1: 120, cf2: 900, cf3: 0, cf4: 0 }[cf]));
+    movFin.push(...movExtra);
+    const saldoDe = cf => r2(movFin.filter(m => m.cuenta_financiera_id === cf).reduce((a, m) => a + m.monto, 0) + (({ cf1: 120, cf2: 900, cf3: 0, cf4: 0, cf5: 0 }[cf] || 0)));
     const aperturaMs = enLima(hoy, 7, 45);
     const hoyMov = movFin.filter(m => m.cuenta_financiera_id === 'cf1' && Date.parse(m.fecha) >= aperturaMs);
     const sesion = { id: 'cs-hoy', sesion_id: 'cs-hoy', cuenta_financiera_id: 'cf1', estado: 'ABIERTA', abierta_en: iso(aperturaMs), monto_apertura: 50,
@@ -251,7 +260,7 @@
     })];
 
     Object.assign(D, {
-      perfiles: [{ id: 'demo', nombre: 'Luis Alvan', activo: true, roles: { codigo: 'ADMIN' } }],
+      perfiles: [COMO_SOCIO ? { id: 'demo', nombre: 'Carlos Ruiz', activo: true, roles: { codigo: 'SOCIO' } } : { id: 'demo', nombre: 'Luis Alvan', activo: true, roles: { codigo: 'ADMIN' } }],
       roles: [{ id: 1, codigo: 'ADMIN', nombre: 'Administrador' }],
       metodos_pago: metodos, cuentas_financieras: cuentas, clientes, proveedores, categorias: [{ id: 'k1', nombre: 'Cigarros', activo: true, prefijo_factura: 'CIG', unidad_medida_id: 1, paquete_nombre: 'Cajetilla', paquete_unidades: 20, vende_paquete: true, controla_vencimiento: false }, { id: 'k2', nombre: 'Gomas', activo: true, prefijo_factura: 'GOMAS', unidad_medida_id: 4, paquete_nombre: 'Caja', paquete_unidades: 12, vende_paquete: false, controla_vencimiento: true }],
       unidades_medida: [{ id: 1, codigo: 'CIGARRO', nombre: 'Cigarro' }, { id: 2, codigo: 'GOMITA', nombre: 'Gomita' }, { id: 3, codigo: 'UNIDAD', nombre: 'Unidad' }, { id: 4, codigo: 'BOLSA', nombre: 'Bolsa' }], categorias_gasto: catGasto, presentaciones, productos, motivos_movimiento: motivos,
@@ -269,7 +278,7 @@
       compras: compras.map(c => ({ id: c.id, proveedor_id: c.proveedor_id, fecha_emision: c.dia, serie: c.serie, numero: c.numero, estado: 'REGISTRADA' })),
       compra_detalles: compDet, v_compras_totales: compTot.slice().reverse(),
       v_cuentas_por_pagar: compTot.filter(c => c.saldo > 0).map(c => ({ origen: 'COMPRA', documento_id: c.compra_id, proveedor: c.proveedor, fecha: c.fecha_emision, total: c.total, saldo: c.saldo, fecha_vencimiento: c.fecha_vencimiento, dias_vencido: 0 })),
-      v_kardex: kardex, caja_sesiones: [sesion], v_caja_sesiones: sesiones,
+      v_kardex: kardex, caja_sesiones: [sesion, ...(turnoSocio ? [turnoSocio] : [])], v_caja_sesiones: sesiones,
       v_saldos_cuentas: cuentas.map(c => ({ cuenta_id: c.id, nombre: c.nombre, tipo: c.tipo, saldo: c.id === 'cf1' ? r2(sesion.monto_apertura + sesion.entradas + sesion.salidas) : saldoDe(c.id) })),
       v_flujo_caja_diario: [], alias_compra: MARCAS.map(m => ({ proveedor_id: m[9] === 'k2' ? 'pv3' : 'pv1', texto: '#' + m[11], presentacion_id: m[0] + 'c' })), periodos_contables: [], series_documento: [], almacenes: [{ id: 'a1', nombre: 'Principal' }],
       producto_proveedores: [], compra_costos_adicionales: [], devoluciones_compra: [], devolucion_compra_detalles: [], devoluciones_venta: [], devolucion_venta_detalles: [],
@@ -346,6 +355,11 @@
       { id: 'ses-1', creada: new Date(h - 864e5 * 3).toISOString(), ultima_actividad: new Date(h).toISOString(), dispositivo: navigator.userAgent, ip: '190.42.10.8', es_esta: true },
       { id: 'ses-2', creada: new Date(h - 864e5 * 9).toISOString(), ultima_actividad: new Date(h - 864e5).toISOString(), dispositivo: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1', ip: '190.42.11.3', es_esta: false }]; },
     cerrar_sesion_dispositivo() { return true; },
+    abrir_caja({ p_cuenta_id }) { if (p_cuenta_id === 'cf5') { turnoSocio = { id: 'cs-turno', sesion_id: 'cs-turno', cuenta_financiera_id: 'cf5', estado: 'ABIERTA', abierta_en: new Date(Date.now() - 1000).toISOString(), monto_apertura: 0 }; derivar(); } return { id: 'cs-turno' }; },
+    cerrar_caja({ p_sesion_id }) { if (p_sesion_id === 'cs-turno') { turnoSocio = null; derivar(); } return { diferencia: 0 }; },
+    transferir_entre_cuentas({ p_origen_id, p_destino_id, p_monto, p_descripcion }) {
+      const f = new Date().toISOString(); movExtra.push({ id: uid('mf'), fecha: f, tipo: 'TRANSFERENCIA', monto: -p_monto, cuenta_financiera_id: p_origen_id, descripcion: p_descripcion },
+        { id: uid('mf'), fecha: f, tipo: 'TRANSFERENCIA', monto: p_monto, cuenta_financiera_id: p_destino_id, descripcion: p_descripcion }); derivar(); return true; },
     registrar_venta({ p }) {
       ventasRaw.push({ ms: Date.parse(p.fecha || new Date().toISOString()), lineas: p.lineas.map(l => ({ ...l })), medio: p.pagos?.[0]?.metodo_pago_id ?? null,
         cliente: p.cliente_id || 'cl0', condicion: p.condicion || 'CONTADO', vence: p.fecha_vencimiento, obs: p.observaciones });

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-e1zcBZORO2Uq6QyVoWsFBlfMtuGMkkmFgArUgXRXQv4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-P7+47dGLWt3JdaCNzveb0edUUTraLB20jkrPxV2YiyQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -686,6 +686,35 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .md .md-prev .flecha{color:var(--gris);margin:0 6px}
 .md .md-error{color:var(--coral);font-size:13px;margin-top:8px}
 .md .md-info{color:var(--gris);font-size:13px;margin:6px 0 0}
+/* Modo socio */
+.turno-hero{text-align:center;padding:36px 24px}
+.turno-hero h2{font-size:24px;margin:12px 0 8px}
+.turno-hero .sub{max-width:460px;margin:0 auto 18px;font-size:15px;line-height:1.55}
+.th-ic{width:64px;height:64px;border-radius:20px;background:var(--brillo);color:#fff;display:grid;place-items:center;margin:0 auto}
+.th-btn{min-width:240px;font-size:17px;padding:15px 22px}
+.socio-card.pendiente{box-shadow:inset 0 0 0 1.5px var(--violeta)}
+.socio-card h2 .chip{margin-left:6px;vertical-align:2px}
+.modo-socio #btnPendientes{display:none!important}
+.pasos-turno{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pasos-turno>div{background:var(--tono);border-radius:16px;padding:14px;display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.pasos-turno>div>b{flex:0 0 26px;height:26px;border-radius:50%;background:var(--tono2);display:grid;place-items:center;font-size:13px}
+.turno-cab{margin-bottom:12px}
+.turno-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+.tk-main{background:#1E9E7C22;box-shadow:inset 0 0 0 1px #1E9E7C55}
+.turno-vender{width:100%;justify-content:center;font-size:18px;padding:16px;margin-bottom:18px;display:flex;gap:10px;align-items:center}
+.turno-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px}
+.lista-v>div{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--linea);font-size:14px}
+.lista-v>div:last-child{border-bottom:0}
+.lista-v b{font-variant-numeric:tabular-nums}
+.acc-turno{display:grid;gap:8px}
+.acc-turno .btn{display:flex;align-items:center;gap:10px;justify-content:flex-start}
+.turno-cierre{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.cuadre-turno{background:var(--tono);border-radius:14px;padding:14px;text-align:center}
+.cuadre-turno span{display:block;color:var(--gris);font-size:13px}.cuadre-turno b{display:block;font-size:30px;margin:2px 0}
+.ex-lista{margin-top:12px}
+.ex-fila{display:grid;grid-template-columns:minmax(0,1fr) auto 86px;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--linea)}
+.ex-fila small{display:block;font-size:12px}.ex-fila .n{text-align:right}.ex-fila .chip{justify-self:end}
+@media(max-width:760px){.turno-grid,.pasos-turno{grid-template-columns:1fr}.turno-kpis{grid-template-columns:1fr 1fr}.turno-kpis .tk-main{grid-column:1/-1}.turno-kpis .pn-kpi>b{font-size:24px}}
 /* Compras: diseño en dos columnas con resumen fijo */
 .compra-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start;margin-bottom:18px}
 .compra-grid>.panel{margin-bottom:0}
@@ -830,10 +859,21 @@ const SB_KEY = 'sb_publishable_Iyw1SecjcAk5xqvjVxCRjg_y-oyTj0c';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
 // Qué medio se usa en cada operación
-const MEDIOS_VENTA = ['EFECTIVO', 'YAPE', 'PLIN'];
+let MEDIOS_VENTA = ['EFECTIVO', 'YAPE', 'PLIN'];
+// Para mostrar cobros (Panel, Reportes): incluye el efectivo que cobra tu socio en su turno
+const MEDIOS_VER = ['EFECTIVO', 'EFECTIVO_TURNO', 'YAPE', 'PLIN'];
+const esEfectivo = c => c === 'EFECTIVO' || c === 'EFECTIVO_TURNO';
+// ---- Rol: el dueño (ADMIN) ve todo; el socio solo vende y maneja su turno ----
+let ROL = 'ADMIN';
+const esSocio = () => ROL !== 'ADMIN' || socioPorCorreo;
+const CARGO_SOCIO = 'Socio';
+// Correos de socios guardados como huella SHA-256 (el repositorio es público: el correo no se publica)
+const SOCIOS_SHA256 = ['07b5cd87236cc8ae4111747d1f922784c6911f22ae518185628183004362462b'];
+let socioPorCorreo = false;
+async function huellaCorreo(c) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(c || '').trim().toLowerCase())); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 const MEDIOS_COMPRA = ['TARJETA_DEBITO'];
 const MEDIOS_GASTO = ['EFECTIVO', 'TARJETA_DEBITO', 'YAPE', 'PLIN'];
-const COLOR_MEDIO = { EFECTIVO: 'var(--efectivo)', YAPE: 'var(--yape)', PLIN: 'var(--plin)', TARJETA_DEBITO: 'var(--tarjeta)' };
+const COLOR_MEDIO = { EFECTIVO: 'var(--efectivo)', EFECTIVO_TURNO: '#4E9F6E', YAPE: 'var(--yape)', PLIN: 'var(--plin)', TARJETA_DEBITO: 'var(--tarjeta)' };
 
 // ============ Utilidades ============
 const $ = s => document.querySelector(s);
@@ -860,7 +900,8 @@ function textoError(e) {
   if (esErrorRed(e)) return 'Sin conexión a internet. Puedes seguir vendiendo en Vender; lo demás se actualiza al volver la señal.';
   const m = e?.message || String(e);
   if (/JWT|not authenticated/i.test(m)) return 'Tu sesión venció. Sal y vuelve a entrar.';
-  if (/caja .* está cerrada/i.test(m)) return 'La caja está cerrada. Ábrela para cobrar en efectivo.';
+  if (/caja .* está cerrada/i.test(m)) return esSocio() ? 'Empieza tu turno para cobrar en efectivo.' : 'La caja está cerrada. Ábrela para cobrar en efectivo.';
+  if (esSocio() && /permis|autoriz|administrador|row-level|42501|no tiene/i.test(m)) return 'Tu usuario todavía no tiene permiso para esto. Avísale a Luis para que termine de activarlo.';
   return m;
 }
 async function q(p) { const { data, error } = await p; if (error) throw error; return data; }
@@ -950,7 +991,7 @@ async function cargarCatalogos() {
   }
 }
 async function cargarCatalogosRed() {
-  try { await asegurarYapePlin(); } catch (e) { if (!esErrorRed(e)) aviso('No se pudo crear Yape/Plin: ' + textoError(e), true); else throw e; }
+  if (!esSocio()) try { await asegurarYapePlin(); } catch (e) { if (!esErrorRed(e)) aviso('No se pudo crear Yape/Plin: ' + textoError(e), true); else throw e; }
   const [metodos, cuentas, clientes, proveedores, categorias, unidades, catGasto, pres, motivos, tiposComp] = await Promise.all([
     q(sb.from('metodos_pago').select('*').eq('activo', true).order('id')),
     q(sb.from('cuentas_financieras').select('*').eq('activo', true).order('creado_en')),
@@ -965,7 +1006,10 @@ async function cargarCatalogosRed() {
   ]);
   Object.assign(C, { metodos, cuentas, clientes, proveedores, categorias, unidades, catGasto, motivos, tiposComp,
     presentaciones: pres.filter(p => p.productos?.activo).sort((a, b) => a.productos.nombre.localeCompare(b.productos.nombre) || a.factor - b.factor) });
-  C.caja = cuentas.find(c => c.usa_sesiones);
+  // Caja de turnos: la cuenta del medio "Efectivo del turno" (la usa tu socio; empieza cada turno en S/ 0)
+  const mt = metodos.find(m => m.codigo === 'EFECTIVO_TURNO');
+  C.cajaTurno = mt ? cuentas.find(c => c.id === mt.cuenta_financiera_id) || null : null;
+  C.caja = esSocio() ? C.cajaTurno : cuentas.find(c => c.usa_sesiones && c.id !== C.cajaTurno?.id);
 }
 const presNombre = p => `${p.productos.nombre} · ${p.nombre}`;
 async function sesionCaja() {
@@ -1011,7 +1055,7 @@ async function pintarEstadoCaja() {
   const s = await sesionCaja().catch(() => null);
   const b = $('#estadoCaja');
   b.className = 'estado-caja' + (s ? ' abierta' : '');
-  b.textContent = s ? 'Caja abierta' : 'Caja cerrada';
+  b.textContent = esSocio() ? (s ? 'Turno abierto' : 'Sin turno') : s ? 'Caja abierta' : 'Caja cerrada';
   if (!s) $('#alertaCierreBar')?.remove(); else setTimeout(revisarCierre, 500);
   return s;
 }
@@ -1033,6 +1077,10 @@ const VISTAS = {
   panel: ['Panel', vPanel], analisis: ['Análisis', vAnalisis], vender: ['Vender', vVender], ventas: ['Ventas', vVentas], caja: ['Caja', vCaja], compras: ['Compras', vCompras],
   stock: ['Stock', vStock], gastos: ['Gastos', vGastos], catalogo: ['Productos', vCatalogo], reportes: ['Reportes', vReportes], boletas: ['Boletas', vBoletas], cuenta: ['Cuenta', vCuenta],
 };
+const VISTAS_SOCIO = {
+  turno: ['Mi turno', vTurno], vender: ['Vender', vVender], misventas: ['Mis ventas', vMisVentas], existencias: ['Stock', vExistencias], cuenta: ['Cuenta', vCuenta],
+};
+const vistas = () => esSocio() ? VISTAS_SOCIO : VISTAS;
 let vistaActual = 'vender';
 const ICONOS = {
   panel: '<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',
@@ -1047,11 +1095,15 @@ const ICONOS = {
   boletas: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="m9 11 2 2 4-4"/>',
   analisis: '<path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/>',
   cuenta: '<path d="M12 3l8 3v6c0 4.8-3.4 8-8 9-4.6-1-8-4.2-8-9V6z"/><path d="m9 12 2 2 4-4"/>',
+  turno: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  misventas: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  existencias: '<rect x="4" y="4" width="16" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="16" height="6.5" rx="1.5"/><path d="M10 7.2h4M10 16.8h4"/>',
   mas: '<circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/>',
 };
 const icoTip = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>';
 const ico = (k, t = 20) => `<svg width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[k]}</svg>`;
 const NAV_MOVIL = ['vender', 'panel', 'stock', 'ventas'];
+const navMovil = () => esSocio() ? ['turno', 'vender', 'misventas', 'existencias'] : NAV_MOVIL;
 const PAGINAS = {
   panel: () => [`Hola, ${primerNombre()}`, 'Así va tu negocio hoy.'],
   vender: () => ['Vender', 'Toca un producto, elige cómo te pagan y cobra.'],
@@ -1065,17 +1117,20 @@ const PAGINAS = {
   analisis: () => ['Análisis', 'Cómo va tu negocio en semanas y meses, con hallazgos explicados y solo cuando hay datos suficientes.'],
   boletas: () => ['Boletas', 'Las boletas que emites en SUNAT: qué falta emitir, cuáles registraste y cómo corregir un error.'],
   cuenta: () => ['Cuenta', 'Tu seguridad, tu contraseña y el resumen diario.'],
+  turno: () => [`Hola, ${primerNombre()}`, 'Tu turno en la tienda: empieza, vende y entrega al cerrar.'],
+  misventas: () => ['Mis ventas', 'Lo que vendiste hoy.'],
+  existencias: () => ['Stock', 'Cuánto queda de cada producto.'],
 };
 const primerNombre = () => (local.leer('perfil')?.nombre || '').trim().split(/\s+/)[0] || 'Luis';
 function pintarTabs() {
-  $('#tabs').innerHTML = Object.entries(VISTAS).map(([k, [t]]) => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}" ${k === vistaActual ? 'aria-current="page"' : ''}>${ico(k, 17)}<span>${t}</span></button>`).join('');
+  $('#tabs').innerHTML = Object.entries(vistas()).map(([k, [t]]) => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}" ${k === vistaActual ? 'aria-current="page"' : ''}>${ico(k, 17)}<span>${t}</span></button>`).join('');
   $('#tabs').querySelectorAll('button').forEach(b => b.onclick = () => ir(b.dataset.v));
-  const enMas = !NAV_MOVIL.includes(vistaActual);
-  $('#navMovil').innerHTML = NAV_MOVIL.map(k => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}" ${k === vistaActual ? 'aria-current="page"' : ''}>${ico(k, 23)}<span>${VISTAS[k][0]}</span></button>`).join('')
-    + `<button id="navMas" class="${enMas ? 'on' : ''}" aria-haspopup="dialog">${ico(enMas ? vistaActual : 'mas', 23)}<span>${enMas ? VISTAS[vistaActual][0] : 'Más'}</span></button>`;
+  const V = vistas(), NM = navMovil(), enMas = !NM.includes(vistaActual);
+  $('#navMovil').innerHTML = NM.map(k => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}" ${k === vistaActual ? 'aria-current="page"' : ''}>${ico(k, 23)}<span>${V[k][0]}</span></button>`).join('')
+    + (esSocio() ? '' : `<button id="navMas" class="${enMas ? 'on' : ''}" aria-haspopup="dialog">${ico(enMas ? vistaActual : 'mas', 23)}<span>${enMas ? V[vistaActual][0] : 'Más'}</span></button>`);
   $('#navMovil').querySelectorAll('[data-v]').forEach(b => b.onclick = () => ir(b.dataset.v));
-  $('#navMas').onclick = () => abrirHoja('#hojaMas');
-  $('#masGrid').innerHTML = Object.keys(VISTAS).filter(k => !NAV_MOVIL.includes(k)).map(k => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}">${ico(k, 24)}<span>${VISTAS[k][0]}</span></button>`).join('');
+  $('#navMas') && ($('#navMas').onclick = () => abrirHoja('#hojaMas'));
+  $('#masGrid').innerHTML = Object.keys(V).filter(k => !NM.includes(k)).map(k => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}">${ico(k, 24)}<span>${V[k][0]}</span></button>`).join('');
   $('#masGrid').querySelectorAll('[data-v]').forEach(b => b.onclick = () => ir(b.dataset.v));
   const [t, d] = PAGINAS[vistaActual]();
   $('#pagina').innerHTML = `<h1>${esc(t)}</h1><p>${esc(d)}</p>`;
@@ -1122,7 +1177,7 @@ document.querySelectorAll('.hoja-velo').forEach(h => h.addEventListener('click',
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarHojas(); });
 // Tu cargo y tu empresa son fijos; solo la foto se guarda en este equipo
 const CARGO = 'Gerente General', EMPRESA = 'Oni Cobin S.A.C.';
-const cargo = () => CARGO;
+const cargo = () => esSocio() ? CARGO_SOCIO : CARGO;
 try { localStorage.removeItem('caja:cargo'); } catch {}
 function iniciales(n) { const p = (n || '').trim().split(/\s+/).filter(Boolean); return ((p[0]?.[0] || 'L') + (p[1]?.[0] || '')).toUpperCase(); }
 function pintarPerfil() {
@@ -1132,7 +1187,7 @@ function pintarPerfil() {
     if (foto && /^data:image\/(jpeg|png|webp);base64,/.test(foto)) { const im = new Image(); im.alt = ''; im.src = foto; a.appendChild(im); }
     else a.textContent = iniciales(nom);
   });
-  document.querySelectorAll('.cargo-txt').forEach(c => c.textContent = CARGO);
+  document.querySelectorAll('.cargo-txt').forEach(c => c.textContent = cargo());
   document.querySelectorAll('.empresa-txt').forEach(c => c.textContent = EMPRESA);
   $('#hpNombre').textContent = nom; $('#bvNombre').textContent = primerNombre();
   $('#bienvenida').classList.toggle('oculto', !nom);
@@ -1159,14 +1214,15 @@ $('#fotoIn').onchange = async e => {
 };
 $('#fotoQuitar').onclick = () => { try { localStorage.removeItem('caja:foto'); } catch {} pintarPerfil(); aviso('Foto quitada'); };
 async function ir(v) {
+  if (!vistas()[v]) v = esSocio() ? 'turno' : 'panel';
   vistaActual = v; cerrarHojas(); pintarTabs(); $('#barraMovil').classList.remove('ver'); window.scrollTo(0, 0);
   $('#vista').innerHTML = '<p class="vacio">Cargando…</p>';
-  try { await VISTAS[v][1]($('#vista')); }
+  try { await vistas()[v][1]($('#vista')); }
   catch (e) { $('#vista').innerHTML = `<div class="panel"><h2>No se pudo cargar</h2><p class="sub">${esc(textoError(e))}</p><button class="btn" data-ir="${v}">Reintentar</button></div>`; }
 }
-$('#estadoCaja').onclick = () => ir('caja');
+$('#estadoCaja').onclick = () => ir(esSocio() ? 'turno' : 'caja');
 // Botones que llevan a otra pestaña (sin manejadores en línea, por la CSP)
-document.addEventListener('click', e => { const b = e.target.closest('[data-ir]'); if (b && VISTAS[b.dataset.ir]) ir(b.dataset.ir); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-ir]'); if (b && vistas()[b.dataset.ir]) ir(b.dataset.ir); });
 
 
 // ============ PANEL (rendimiento del día) ============
@@ -1377,7 +1433,12 @@ async function vPanel(el) {
 
   const horaLima = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false }));
   const resp = diasDesdeRespaldo(), con2 = await con2fa;
+  const entregaTurno = C.cajaTurno ? await Promise.all([
+      q(sb.from('v_saldos_cuentas').select('cuenta_id, saldo').eq('cuenta_id', C.cajaTurno.id)).then(x => num(x[0]?.saldo)).catch(() => 0),
+      q(sb.from('caja_sesiones').select('id').eq('cuenta_financiera_id', C.cajaTurno.id).eq('estado', 'ABIERTA').maybeSingle()).catch(() => null),
+    ]).then(([sal, abierta]) => !abierta && sal > 0.005 ? sal : 0) : 0;
   const pendientes = [
+    entregaTurno && { t: `Tu socio te debe entregar ${S(entregaTurno)}`, d: 'Cerró su turno. Recíbelo en tu caja para que pueda empezar otro.', b: '<button class="btn rotulo mini" data-ir="caja">Recibir</button>' },
     sesAbierta && horaLima >= 17 && { t: '¿Terminaste por hoy?', d: 'Cuenta el efectivo, cierra la caja y envíate el resumen en un solo paso.', b: '<button class="btn rotulo mini" id="btnCerrarDia">Cerrar el día</button>' },
     urgentes.length && { t: urgentes.some(l => l.dias < 0) ? 'Tienes mercadería vencida' : 'Mercadería por vencer esta semana', d: urgentes.slice(0, 3).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : `en ${l.dias} ${l.dias === 1 ? 'día' : 'días'}`})`).join(', ') + (urgentes.length > 3 ? ` y ${urgentes.length - 3} más` : '') + '.', b: '<button class="btn claro mini" data-ir="stock">Ver</button>' },
     !gastosMes && dias.some(x => vn(x) > 0) && { t: 'No has registrado gastos en 30 días', d: 'Tu ganancia neta está sobrestimada: sin alquiler, transporte o bolsas, se ve igual a la bruta.', b: '<button class="btn claro mini" data-ir="gastos">Registrar gasto</button>' },
@@ -1435,8 +1496,8 @@ async function vPanel(el) {
     </div>
     <div class="pn-s2">
       <section class="panel"><h2>Cómo te pagaron hoy</h2>
-        ${totMedios ? `<div class="barra-medio" role="img" aria-label="Reparto por medio de pago">${medios(MEDIOS_VENTA).filter(m => porMedio[m.id] > 0).map(m => `<div style="width:${porMedio[m.id] / totMedios * 100}%;background:${COLOR_MEDIO[m.codigo]}" title="${esc(m.nombre)}"></div>`).join('')}</div>
-        <table>${medios(MEDIOS_VENTA).filter(m => porMedio[m.id] > 0).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${P(num(porMedio[m.id]) / totMedios * 100)}</td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Aún no hay cobros hoy.</p>'}
+        ${totMedios ? `<div class="barra-medio" role="img" aria-label="Reparto por medio de pago">${medios(MEDIOS_VER).filter(m => porMedio[m.id] > 0).map(m => `<div style="width:${porMedio[m.id] / totMedios * 100}%;background:${COLOR_MEDIO[m.codigo]}" title="${esc(m.nombre)}"></div>`).join('')}</div>
+        <table>${medios(MEDIOS_VER).filter(m => porMedio[m.id] > 0).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${P(num(porMedio[m.id]) / totMedios * 100)}</td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Aún no hay cobros hoy.</p>'}
       </section>
       <section class="panel"><h2>Por reponer</h2>${reponer.length ? `<table>${reponer.map(r => `<tr><td>${esc(r.producto)}</td><td class="n"><span class="chip mal">quedan ${N(r.cantidad)}</span></td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Todo con stock suficiente.</p>'}</section>
       <div id="boletasPanel"></div>
@@ -1451,7 +1512,7 @@ async function vPanel(el) {
     </div>
   </div>`;
   // Texto del resumen (negritas con *asteriscos*, formato de WhatsApp)
-  const nomMedio = Object.fromEntries(medios(MEDIOS_VENTA).map(m => [m.id, m.nombre]));
+  const nomMedio = Object.fromEntries(medios(MEDIOS_VER).map(m => [m.id, m.nombre]));
   const vVar = ayerHora ? pct(vn(H0), ayerHora.venta) : null;
   const porCobrar = fiados.reduce((a, f) => a + num(f.saldo), 0), vencido = fiados.filter(f => num(f.dias_vencido) > 0).reduce((a, f) => a + num(f.saldo), 0);
   const fechaLarga = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -1525,6 +1586,7 @@ async function vVender(el) {
       q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())),
       q(sb.from('v_lineas_rentabilidad').select('producto_id, venta_neta').gte('fecha', d30)).catch(() => []),
     ]);
+    if (esSocio()) stock = stock.map(x => ({ ...x, costo_promedio: 0 }));
     local.guardar('vender', { precios, stock, rot, en: Date.now() });
   } catch (e) {
     const copia = local.leer('vender');
@@ -1596,7 +1658,7 @@ async function vVender(el) {
 
   const pintarTicket = () => {
     const t = total();
-    const ef = medioVenta === 'EFECTIVO';
+    const ef = esEfectivo(medioVenta);
     const rec = num(recibido), vuelto = r2(rec - (cond === 'CREDITO' ? num($('#inicial')?.value) : t));
     $('#ticket').innerHTML = `
       <div class="cab"><h2>Venta</h2><small>${ticket.length ? (n => n + (n === 1 ? ' artículo' : ' artículos'))(ticket.reduce((a, x) => a + x.cantidad, 0)) : ''}</small></div>
@@ -1610,7 +1672,7 @@ async function vVender(el) {
       <div class="pie">
         <div class="total"><span>Total</span><b>${S(t)}</b></div>
         ${t > 0 ? (() => { const k = ticket.reduce((a, x) => a + x.cantidad * costoDe(x.producto_id, x.factor), 0), g = t - k; return k > 0 ? `<div class="ganancia-est"><span>Ganancia de esta venta</span><b>${S(g)} · ${P(g / t * 100)}</b></div>` : ''; })() : ''}
-        <div class="medios">${medios(MEDIOS_VENTA).map(m => `<button class="medio ${m.codigo === medioVenta ? 'on' : ''}" data-c="${m.codigo}"><i>${m.nombre[0]}</i>${esc(m.nombre)}</button>`).join('')}</div>
+        <div class="medios">${medios(MEDIOS_VENTA).map(m => (n => `<button class="medio ${m.codigo === medioVenta ? 'on' : ''}" data-c="${m.codigo}"><i>${n[0]}</i>${esc(n)}</button>`)(m.codigo === 'EFECTIVO_TURNO' ? 'Efectivo' : m.nombre)).join('')}</div>
         ${ef && t > 0 && cond === 'CONTADO' ? `<label for="recibido">Recibes</label><input id="recibido" type="number" inputmode="decimal" step="0.10" min="0" value="${recibido}" placeholder="${t.toFixed(2)}">
           <div class="rapidos">${[...new Set([t, 10, 20, 50, 100, 200].filter(x => x >= t))].slice(0, 5).map(x => `<button data-r="${x}">${x === t ? 'Exacto' : 'S/ ' + x}</button>`).join('')}</div>
           ${rec > 0 ? `<div class="vuelto ${vuelto < 0 ? 'falta' : ''}"><span>${vuelto < 0 ? 'Falta' : 'Vuelto'}</span><b>${S(Math.abs(vuelto))}</b></div>` : ''}` : ''}
@@ -1659,13 +1721,13 @@ async function vVender(el) {
     const t = total(); if (!t) return;
     const m = medios(MEDIOS_VENTA).find(x => x.codigo === medioVenta);
     const monto = cond === 'CREDITO' ? r2($('#inicial').value) : t;
-    if (cond === 'CONTADO' && medioVenta === 'EFECTIVO' && recibido !== '' && num(recibido) < t) return aviso('Lo recibido no alcanza para el total', true);
+    if (cond === 'CONTADO' && esEfectivo(medioVenta) && recibido !== '' && num(recibido) < t) return aviso('Lo recibido no alcanza para el total', true);
     const perdidas = ticket.filter(x => evalMargen(x.precio, costoDe(x.producto_id, x.factor))?.nivel === 'perdida');
     if (perdidas.length && !(await dialogo('Vas a vender bajo el costo', [{ type: 'info', html: `<p class="sub" style="margin:0">${perdidas.map(x => `<b>${esc(x.nombre)} (${esc(x.pres)})</b>: precio ${S(x.precio)}, te cuesta ${S(costoDe(x.producto_id, x.factor))}`).join('<br>')}</p>` }], 'Vender igual'))) return;
-    if (navigator.onLine && medioVenta === 'EFECTIVO' && monto > 0) {
+    if (navigator.onLine && esEfectivo(medioVenta) && monto > 0) {
       let abierta = true;
       try { abierta = !!(await sesionCaja()); } catch (e) { if (!esErrorRed(e)) throw e; }
-      if (!abierta && !(await abrirCajaRapido())) return;
+      if (!abierta) { if (esSocio()) { aviso('Empieza tu turno para cobrar en efectivo', true); return ir('turno'); } if (!(await abrirCajaRapido())) return; }
     }
     const p = {
       cliente_id: cond === 'CREDITO' ? $('#cliCred').value : generico?.id,
@@ -1689,11 +1751,11 @@ async function vVender(el) {
       guardadaLocal = true;
       ticket.forEach(x => { const s0 = stk[x.producto_id]; if (s0) s0.cantidad = num(s0.cantidad) - x.cantidad * x.factor; });
     }
-    const vuelto = medioVenta === 'EFECTIVO' && cond === 'CONTADO' && num(recibido) > t ? r2(num(recibido) - t) : 0;
+    const vuelto = esEfectivo(medioVenta) && cond === 'CONTADO' && num(recibido) > t ? r2(num(recibido) - t) : 0;
     // Datos para el ticket (solo se envía si el cliente lo pide)
     const datosTicket = { fecha: p.fecha, lineas: ticket.map(x => ({ nombre: x.nombre, pres: x.pres, cantidad: x.cantidad, precio: x.precio })), total: t, medio: m.nombre, cond, pagado: monto,
       recibido: vuelto ? num(recibido) : 0, vuelto, vence: p.fecha_vencimiento || null, cliente: cond === 'CREDITO' ? C.clientes.find(c => c.id === p.cliente_id) : null };
-    $('#ticket').innerHTML = `<div class="hecho"><div class="ic">✓</div><p class="sub" style="margin:0">${cond === 'CREDITO' ? 'Fiado registrado' : 'Cobrado con ' + esc(m.nombre)}</p>
+    $('#ticket').innerHTML = `<div class="hecho"><div class="ic">✓</div><p class="sub" style="margin:0">${cond === 'CREDITO' ? 'Fiado registrado' : 'Cobrado con ' + esc(m.codigo === 'EFECTIVO_TURNO' ? 'Efectivo' : m.nombre)}</p>
       ${guardadaLocal ? '<p class="chip aviso" style="margin:6px 0 0">Guardada sin internet: se sube sola</p>' : ''}
       <b>${S(t)}</b>${vuelto ? `<div class="vuelto" style="margin-top:14px"><span>Vuelto</span><b>${S(vuelto)}</b></div>` : ''}
       <button class="btn rotulo cobrar" id="nueva" style="margin-top:16px">Nueva venta</button>
@@ -1917,6 +1979,160 @@ async function devolverVenta(ventaId, doc) {
 }
 
 // ============ CAJA ============
+// ============ MODO SOCIO: MI TURNO, MIS VENTAS, STOCK ============
+// Su turno usa su propia caja ("Caja de turnos"), que empieza en S/ 0: lo que cobra en efectivo te lo entrega al cerrar.
+const nombreDueno = () => 'Luis';
+async function wspDueno() {
+  let n = local.leer('wspDueno');
+  if (!n) {
+    const v = await dialogo(`WhatsApp de ${nombreDueno()}`, [{ type: 'info', html: `<p class="sub" style="margin:0">Para mandarle avisos y el resumen de tu turno. Se guarda solo en tu celular.</p>` },
+      { label: 'Número', type: 'tel', ph: '987654321', required: true }], 'Guardar');
+    if (!v) return null; n = String(v[1]).replace(/\D/g, ''); if (n.length === 9) n = '51' + n; if (n.length < 9) return aviso('Escribe un número válido', true), null;
+    local.guardar('wspDueno', n);
+  }
+  return n;
+}
+async function mandarWsp(txt) { const n = await wspDueno(); if (n) window.open(`https://wa.me/${n}?text=${encodeURIComponent(txt)}`, '_blank', 'noopener'); }
+async function datosTurno() {
+  const [ses, saldos] = await Promise.all([pintarEstadoCaja(), q(sb.from('v_saldos_cuentas').select('*'))]);
+  const saldo = num(saldos.find(x => x.cuenta_id === C.cajaTurno?.id)?.saldo);
+  let ventas = [], cobros = [];
+  if (ses) [ventas, cobros] = await Promise.all([
+    q(sb.from('v_ventas_totales').select('venta_id, documento, fecha, total, estado, condicion').gte('fecha', ses.abierta_en).order('fecha', { ascending: false })),
+    q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', ses.abierta_en)),
+  ]);
+  const vig = ventas.filter(v => v.estado === 'EMITIDA');
+  const porMedio = {}; cobros.forEach(c => { const k = C.metodos.find(m => m.id === c.metodo_pago_id)?.codigo || 'OTRO'; porMedio[k] = r2((porMedio[k] || 0) + num(c.monto)); });
+  return { ses, saldo, ventas: vig, total: r2(vig.reduce((a, v) => a + num(v.total), 0)), efectivo: r2(porMedio.EFECTIVO_TURNO || 0), digital: r2((porMedio.YAPE || 0) + (porMedio.PLIN || 0)), porMedio };
+}
+async function vTurno(el) {
+  if (!C.cajaTurno) { el.innerHTML = `<div class="panel turno-hero"><div class="th-ic">${ico('turno', 30)}</div><h2>Tu turno aún no está listo</h2>
+    <p class="sub">${nombreDueno()} tiene que preparar la caja de turnos desde su app. Cuando lo haga, aquí podrás empezar tu turno.</p></div>`; return; }
+  const t = await datosTurno(), nom = primerNombre();
+  const hora = f => new Date(f).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: 'numeric', minute: '2-digit' });
+  if (!t.ses) {
+    const debe = t.saldo > 0.005;
+    el.innerHTML = `<div class="panel turno-hero"><div class="th-ic">${ico('turno', 30)}</div>
+      ${debe ? `<h2>Falta entregar tu turno anterior</h2><p class="sub">Según el sistema tienes <b>${S(t.saldo)}</b> en efectivo por entregar. Cuando ${nombreDueno()} lo reciba en su app, podrás empezar un turno nuevo.</p>
+        <button class="btn claro" id="tAvisarEntrega">Avisar a ${nombreDueno()} por WhatsApp</button>`
+      : `<h2>¿Empezamos, ${esc(nom)}?</h2>
+        <p class="sub">Tu turno empieza en <b>S/ 0.00</b>. Todo lo que cobres en efectivo lo juntas y se lo entregas a ${nombreDueno()} al cerrar. Lo de Yape y Plin entra directo a su cuenta.</p>
+        <button class="btn rotulo th-btn" id="tEmpezar">Empezar mi turno</button>`}
+    </div>
+    <div class="panel"><h2>Cómo funciona</h2><div class="pasos-turno">
+      <div><b>1</b><span><b>Empiezas</b> tu turno en S/ 0.00</span></div>
+      <div><b>2</b><span><b>Vendes</b> en Vender: efectivo, Yape o Plin</span></div>
+      <div><b>3</b><span><b>Cierras</b> contando el efectivo y lo entregas</span></div></div></div>`;
+    $('#tEmpezar') && ($('#tEmpezar').onclick = async () => {
+      const r = await rpc('abrir_caja', { p_monto_contado: 0, p_observaciones: `Turno de ${nom}`, p_cuenta_id: C.cajaTurno.id }, '¡Turno iniciado! Buenas ventas');
+      if (r.ok) ir('vender');
+    });
+    $('#tAvisarEntrega') && ($('#tAvisarEntrega').onclick = () => mandarWsp(`Hola ${nombreDueno()}, tengo ${S(t.saldo)} de mi turno para entregarte. ¿Lo recibes en la app para empezar el siguiente?`));
+    return;
+  }
+  const ult = t.ventas.slice(0, 6);
+  el.innerHTML = `<div class="turno-cab"><span class="chip ok">Turno abierto desde las ${hora(t.ses.abierta_en)}</span></div>
+    <div class="turno-kpis">
+      <div class="pn-kpi tk-main"><small>Efectivo para entregar</small><b>${S(t.saldo)}</b><span class="pn-cmp">Junta este efectivo aparte: es lo que entregas al cerrar</span></div>
+      <div class="pn-kpi"><small>Vendiste en tu turno</small><b>${S(t.total)}</b><span class="pn-cmp">${t.ventas.length} ${t.ventas.length === 1 ? 'venta' : 'ventas'}</span></div>
+      <div class="pn-kpi"><small>Yape y Plin</small><b>${S(t.digital)}</b><span class="pn-cmp">Entra directo a la cuenta de ${nombreDueno()}</span></div>
+    </div>
+    <button class="btn rotulo turno-vender" data-ir="vender">${ico('vender', 22)}<span>Vender</span></button>
+    <div class="turno-grid">
+      <section class="panel"><div class="pn-cab"><h2>Tus últimas ventas</h2><button class="lnk" data-ir="misventas">Ver todas →</button></div>
+        ${ult.length ? `<div class="lista-v">${ult.map(v => `<div><span>${hora(v.fecha)}</span><span class="sub">${esc(v.documento || '')}${v.condicion === 'CREDITO' ? ' · fiado' : ''}</span><b>${S(v.total)}</b></div>`).join('')}</div>` : '<p class="sub" style="margin:0">Todavía no vendes en este turno.</p>'}</section>
+      <section class="panel"><h2>¿Algo pasó?</h2>
+        <div class="acc-turno"><button class="btn claro" id="tFalta">${ico('existencias', 18)}<span>Avisar que algo se acabó</span></button>
+        <button class="btn claro" id="tError">${ico('misventas', 18)}<span>Me equivoqué en una venta</span></button></div></section>
+    </div>
+    <div class="panel turno-cierre"><div><h2>¿Terminaste?</h2><p class="sub" style="margin:0">Cuenta el efectivo que juntaste y ciérralo. Luego se lo entregas a ${nombreDueno()}.</p></div>
+      <button class="btn" id="tCerrar">Cerrar mi turno</button></div>`;
+  $('#tFalta').onclick = async () => {
+    const ex = await q(sb.from('v_existencias').select('producto, cantidad, requiere_reposicion').eq('activo', true)).catch(() => []);
+    const v = await dialogo('¿Qué se acabó?', [{ label: 'Producto', type: 'select', options: [{ value: '', label: 'Elige uno' }, ...ex.sort((a, b) => num(a.cantidad) - num(b.cantidad)).map(e => ({ value: e.producto, label: `${e.producto} (quedan ${N(e.cantidad)})` }))] },
+      { label: 'Comentario (opcional)', ph: 'Ej.: piden mucho el de menta' }], 'Avisar por WhatsApp');
+    if (!v || !v[0]) return;
+    mandarWsp(`Hola ${nombreDueno()}, se está acabando *${v[0]}*.${v[1] ? ' ' + v[1] : ''}`);
+  };
+  $('#tError').onclick = async () => {
+    if (!t.ventas.length) return aviso('Todavía no tienes ventas en este turno', true);
+    const v = await dialogo('Me equivoqué en una venta', [{ type: 'info', html: `<p class="sub" style="margin:0">Tú no puedes anular ventas. Elige cuál es y ${nombreDueno()} la revisa y la corrige.</p>` },
+      { label: 'Venta', type: 'select', options: t.ventas.map(x => ({ value: x.venta_id, label: `${hora(x.fecha)} · ${x.documento || ''} · ${S(x.total)}` })) },
+      { label: '¿Qué pasó?', required: true, ph: 'Ej.: cobré 2 y era 1' }], 'Avisar por WhatsApp');
+    if (!v) return; const x = t.ventas.find(y => y.venta_id === v[1]);
+    mandarWsp(`Hola ${nombreDueno()}, me equivoqué en la venta ${x?.documento || ''} de las ${hora(x?.fecha)} (${S(x?.total)}): ${v[2]}. ¿Me ayudas a corregirla?`);
+  };
+  $('#tCerrar').onclick = () => cerrarTurno(t).catch(e => aviso(textoError(e), true));
+}
+async function cerrarTurno(t) {
+  const v = await dialogo('Cerrar mi turno', [
+    { type: 'info', html: `<div class="cuadre-turno"><span>Según el sistema juntaste</span><b>${S(t.saldo)}</b><small class="sub">en efectivo. Cuéntalo y escribe cuánto tienes.</small></div>` },
+    { label: 'Efectivo que cuentas (S/)', type: 'number', value: '', required: true, ph: S(t.saldo).replace('S/ ', '') },
+    { label: 'Si no cuadra, ¿qué pasó?', ph: 'Ej.: di vuelto de más' }], 'Cerrar turno');
+  if (!v) return;
+  const c = r2(v[1]), dif = r2(c - t.saldo);
+  if (Math.abs(dif) >= 0.005 && !String(v[2] || '').trim()) return aviso(`${dif > 0 ? 'Sobran' : 'Faltan'} ${S(Math.abs(dif))}: escribe qué pasó`, true);
+  const r = await rpc('cerrar_caja', { p_sesion_id: t.ses.id, p_monto_contado: c, p_observaciones: [`Turno de ${primerNombre()}`, v[2]].filter(Boolean).join(' · ') });
+  if (!r.ok) return;
+  const txt = [`*Turno de ${primerNombre()}*`, `Vendí ${S(t.total)} en ${t.ventas.length} ${t.ventas.length === 1 ? 'venta' : 'ventas'}`, `Efectivo para entregarte: *${S(c)}*`,
+    `Yape y Plin: ${S(t.digital)}`, Math.abs(dif) >= 0.005 ? `${dif > 0 ? 'Sobraron' : 'Faltaron'} ${S(Math.abs(dif))}: ${v[2]}` : 'Cuadró exacto ✅'].join('\n');
+  await ir('turno');
+  if (await dialogo('Turno cerrado', [{ type: 'info', html: `<p style="margin:0 0 6px">Entrégale a ${nombreDueno()} <b>${S(c)}</b> en efectivo.</p><p class="sub" style="margin:0">${Math.abs(dif) < 0.005 ? '¡Cuadró exacto!' : `${dif > 0 ? 'Sobraron' : 'Faltaron'} ${S(Math.abs(dif))}.`} ¿Le mandas el resumen?</p>` }], 'Enviar resumen por WhatsApp')) mandarWsp(txt);
+}
+async function vMisVentas(el) {
+  const ventas = await q(sb.from('v_ventas_totales').select('venta_id, documento, fecha, total, estado, condicion, cliente').gte('fecha', inicioHoy()).order('fecha', { ascending: false }));
+  const hora = f => new Date(f).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: 'numeric', minute: '2-digit' });
+  const vig = ventas.filter(v => v.estado === 'EMITIDA');
+  el.innerHTML = `<div class="turno-kpis"><div class="pn-kpi"><small>Vendido hoy</small><b>${S(vig.reduce((a, v) => a + num(v.total), 0))}</b><span class="pn-cmp">${vig.length} ${vig.length === 1 ? 'venta' : 'ventas'}</span></div></div>
+    <div class="panel">${ventas.length ? `<div class="lista-v">${ventas.map(v => `<div><span>${hora(v.fecha)}</span><span class="sub">${esc(v.documento || '')}${v.condicion === 'CREDITO' ? ` · fiado a ${esc(v.cliente || '')}` : ''}${v.estado !== 'EMITIDA' ? ' · <span class="chip mal">anulada</span>' : ''}</span><b>${S(v.total)}</b></div>`).join('')}</div>`
+      : '<p class="sub" style="margin:0">Todavía no hay ventas hoy.</p>'}</div>`;
+}
+async function vExistencias(el) {
+  const ex = await q(sb.from('v_existencias').select('producto_id, producto, cantidad, stock_minimo, requiere_reposicion').eq('activo', true));
+  const fac = id => Math.max(1, ...C.presentaciones.filter(p => p.producto_id === id).map(p => num(p.factor)));
+  const fila = e => { const f = fac(e.producto_id), c = num(e.cantidad);
+    return `<div class="ex-fila" data-n="${esc(e.producto.toLowerCase())}"><div><b>${esc(e.producto)}</b><small class="sub">${f > 1 ? `${Math.floor(c / f)} paq. + ${N(c % f)} sueltos` : ''}</small></div>
+      <div class="n"><b>${N(c)}</b><small class="sub">und.</small></div>${e.requiere_reposicion ? '<span class="chip mal">se acaba</span>' : '<span></span>'}</div>`; };
+  el.innerHTML = `<div class="panel"><input id="exBuscar" placeholder="Buscar producto" autocomplete="off">
+    <div class="ex-lista">${ex.sort((a, b) => (b.requiere_reposicion - a.requiere_reposicion) || a.producto.localeCompare(b.producto)).map(fila).join('') || '<p class="sub">Sin productos.</p>'}</div></div>`;
+  $('#exBuscar').oninput = () => { const t = $('#exBuscar').value.trim().toLowerCase(); el.querySelectorAll('.ex-fila').forEach(f => f.classList.toggle('oculto', !!t && !f.dataset.n.includes(t))); };
+}
+
+// ---- Lado del dueño: caja de turnos de tu socio ----
+async function prepararCajaTurnos() {
+  if (!(await dialogo('Preparar la caja de turnos', [{ type: 'info', html: `<p class="sub" style="margin:0">Se crea una caja aparte para tu socio. Cada turno empieza en <b>S/ 0.00</b>; lo que cobre en efectivo queda ahí hasta que te lo entregue y lo recibas en tu Caja principal. Lo de Yape y Plin entra a tus cuentas de siempre.</p>` }], 'Crear caja de turnos'))) return;
+  try {
+    let cta = await q(sb.from('cuentas_financieras').select('*').eq('nombre', 'Caja de turnos').maybeSingle());
+    if (!cta) cta = await q(sb.from('cuentas_financieras').insert({ nombre: 'Caja de turnos', tipo: C.caja?.tipo || 'EFECTIVO', usa_sesiones: true }).select('*').single());
+    const ya = await q(sb.from('metodos_pago').select('id').eq('codigo', 'EFECTIVO_TURNO').maybeSingle());
+    if (!ya) await q(sb.from('metodos_pago').insert({ codigo: 'EFECTIVO_TURNO', nombre: 'Efectivo del turno', cuenta_financiera_id: cta.id, requiere_referencia: false }));
+    await cargarCatalogos(); aviso('Caja de turnos lista'); ir('caja');
+  } catch (e) { aviso(textoError(e), true); }
+}
+async function pintarTurnoSocio(enTurno) {
+  const caja = $('#turnoSocio'); if (!caja) return;
+  if (!C.cajaTurno) {
+    caja.innerHTML = `<div class="panel socio-card"><div class="envio-cab"><div><h2>¿Alguien te ayuda en la tienda?</h2>
+      <p class="sub" style="margin:0">Prepara una caja aparte para tu socio: él solo ve Vender, su turno y el stock, nunca tus costos ni tus cuentas. Cada turno empieza en S/ 0.00.</p></div>
+      <button class="btn claro" id="btnPrepTurno">Preparar caja de turnos</button></div></div>`;
+    $('#btnPrepTurno').onclick = () => prepararCajaTurnos(); return;
+  }
+  const ses = await q(sb.from('caja_sesiones').select('*').eq('cuenta_financiera_id', C.cajaTurno.id).eq('estado', 'ABIERTA').maybeSingle()).catch(() => null);
+  const hora = f => new Date(f).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: 'numeric', minute: '2-digit' });
+  const entregar = !ses && enTurno > 0.005;
+  caja.innerHTML = `<div class="panel socio-card ${entregar ? 'pendiente' : ''}"><div class="envio-cab"><div>
+      <h2>Turno de tu socio ${ses ? `<span class="chip ok">abierto desde las ${hora(ses.abierta_en)}</span>` : '<span class="chip">sin turno</span>'}</h2>
+      <p class="sub" style="margin:0">${ses ? `Lleva <b>${S(enTurno)}</b> en efectivo. Te lo entrega cuando cierre su turno.`
+        : entregar ? `Cerró su turno y te tiene que entregar <b>${S(enTurno)}</b> en efectivo. Cuando lo recibas, pásalo a tu caja: así puede empezar otro turno.`
+        : 'No hay turno abierto y no hay nada por recibir.'}</p></div>
+      ${entregar ? `<button class="btn rotulo" id="btnRecibirTurno">Recibir ${S(enTurno)}</button>` : ''}</div></div>`;
+  $('#btnRecibirTurno') && ($('#btnRecibirTurno').onclick = async () => {
+    if (!(await sesionCaja()) && !(await abrirCajaRapido())) return;
+    const r = await rpc('transferir_entre_cuentas', { p_origen_id: C.cajaTurno.id, p_destino_id: C.caja.id, p_monto: r2(enTurno), p_descripcion: 'Entrega del turno de tu socio' }, `Recibiste ${S(enTurno)} en tu caja`);
+    if (r.ok) ir('caja');
+  });
+}
+
 // ============ MOVER DINERO (aporte, retiro, pase entre cuentas) ============
 const colorCuenta = (id, nombre) => { if (id === C.caja?.id) return COLOR_MEDIO.EFECTIVO; const m = C.metodos.find(x => x.cuenta_financiera_id === id);
   if (m && COLOR_MEDIO[m.codigo]) return COLOR_MEDIO[m.codigo]; return /yape/i.test(nombre || '') ? COLOR_MEDIO.YAPE : /plin/i.test(nombre || '') ? COLOR_MEDIO.PLIN : COLOR_MEDIO.TARJETA_DEBITO; };
@@ -2010,7 +2226,8 @@ async function vCaja(el) {
   const colorCta = id => { if (id === C.caja?.id) return COLOR_MEDIO.EFECTIVO; const m = medioDe(id); if (m && COLOR_MEDIO[m.codigo]) return COLOR_MEDIO[m.codigo];
     const n = String(saldos.find(x => x.cuenta_id === id)?.nombre || ''); return /yape/i.test(n) ? COLOR_MEDIO.YAPE : /plin/i.test(n) ? COLOR_MEDIO.PLIN : COLOR_MEDIO.TARJETA_DEBITO; };
   const hoyCta = {}; cobrosHoy.forEach(c => { const cta = C.metodos.find(m => m.id === c.metodo_pago_id)?.cuenta_financiera_id; if (cta) hoyCta[cta] = r2((hoyCta[cta] || 0) + num(c.monto)); });
-  const totalCaja = r2(saldos.reduce((a, x) => a + num(x.saldo), 0)), otras = saldos.filter(x => x.cuenta_id !== C.caja?.id);
+  const turnoId = C.cajaTurno?.id, enTurno = num(saldos.find(x => x.cuenta_id === turnoId)?.saldo), efectivoTot = r2(enCaja + enTurno);
+  const totalCaja = r2(saldos.reduce((a, x) => a + num(x.saldo), 0)), otras = saldos.filter(x => x.cuenta_id !== C.caja?.id && x.cuenta_id !== turnoId);
   const totalOtras = r2(otras.reduce((a, x) => a + num(x.saldo), 0)), cobradoHoy = r2(cobrosHoy.reduce((a, c) => a + num(c.monto), 0)); // igual que el Panel: todos los cobros de hoy
   const notaHoy = id => hoyCta[id] ? `<small>hoy +${S(hoyCta[id])} en ventas</small>` : '';
   // La barra reparte solo el dinero a favor (una cuenta en negativo no ocupa espacio)
@@ -2024,8 +2241,10 @@ async function vCaja(el) {
       ${saldos.some(x => num(x.saldo) < 0) ? `<p class="sub" style="margin:10px 0 0"><span style="color:var(--coral)">Ojo:</span> ${saldos.filter(x => num(x.saldo) < 0).map(x => esc(x.nombre)).join(', ')} está en negativo y resta del total. Pasa dinero a esa cuenta o registra el aporte que falta.</p>` : ''}
       <p class="sub" style="margin:12px 0 0">${cobradoHoy ? `Hoy cobraste <b>${S(cobradoHoy)}</b> en ventas.` : 'Hoy todavía no cobras ventas.'}</p></div>
     <div class="tot-grupos">
-      <div class="tot-grupo"><div class="tot-cab"><span><span class="punto" style="background:${COLOR_MEDIO.EFECTIVO}"></span>Efectivo</span>${montoCta(enCaja)}</div>
-        <small>${esc(C.caja?.nombre || 'Caja principal')} · ${ses ? 'caja abierta' : 'caja cerrada'}${hoyCta[C.caja?.id] ? ` · hoy +${S(hoyCta[C.caja?.id])} en ventas` : ''}</small></div>
+      <div class="tot-grupo"><div class="tot-cab"><span><span class="punto" style="background:${COLOR_MEDIO.EFECTIVO}"></span>Efectivo</span>${montoCta(efectivoTot)}</div>
+        ${turnoId ? `<div class="tot-fila"><span><span class="punto" style="background:${COLOR_MEDIO.EFECTIVO}"></span>${esc(C.caja?.nombre || 'Caja principal')} <small>${ses ? 'caja abierta' : 'caja cerrada'}</small></span>${montoCta(enCaja)}</div>
+          <div class="tot-fila"><span><span class="punto" style="background:${COLOR_MEDIO.EFECTIVO_TURNO}"></span>${esc(C.cajaTurno.nombre)} <small>lo tiene tu socio hasta que te lo entregue</small></span>${montoCta(enTurno)}</div>`
+        : `<small>${esc(C.caja?.nombre || 'Caja principal')} · ${ses ? 'caja abierta' : 'caja cerrada'}${hoyCta[C.caja?.id] ? ` · hoy +${S(hoyCta[C.caja?.id])} en ventas` : ''}</small>`}</div>
       <div class="tot-grupo"><div class="tot-cab"><span>Otros medios de pago</span>${montoCta(totalOtras)}</div>
         ${otras.map(x => `<div class="tot-fila"><span><span class="punto" style="background:${colorCta(x.cuenta_id)}"></span>${esc(x.nombre)} ${notaHoy(x.cuenta_id)}</span>${montoCta(x.saldo)}</div>`).join('') || '<small>No tienes otras cuentas.</small>'}</div>
     </div></div>`;
@@ -2038,6 +2257,7 @@ async function vCaja(el) {
   el.innerHTML = `
   ${pend.n ? `<div class="aviso-barra"><p><b>${pend.n} ${pend.n === 1 ? 'venta hecha' : 'ventas hechas'} sin internet por ${S(pend.total)} no ${pend.n === 1 ? 'se ha subido' : 'se han subido'}.</b> ${ses ? 'Se suben solas cuando hay conexión.' : 'No se pueden subir con la caja cerrada: ábrela y súbelas.'}</p><button class="btn rotulo" id="btnSubirCola">${ses ? 'Subir ahora' : 'Abrir caja y subirlas'}</button></div>` : ''}
   ${resumenCaja}
+  <div id="turnoSocio"></div>
   <div class="panel contar-ahora"><div class="envio-cab"><div><h2>¿Cuánto efectivo tienes de verdad?</h2>
     <p class="sub" style="margin:0">Cuenta billetes y monedas cuando quieras y compáralo con lo que dice el sistema (${S(enCaja)}). Si no cuadra, la app te ayuda a registrar por qué.${ultArq ? ` Último conteo ${hace(ultArq.fecha)}: ${Math.abs(num(ultArq.dif)) < 0.005 ? 'cuadró' : (ultArq.dif > 0 ? 'sobraban ' : 'faltaban ') + S(Math.abs(ultArq.dif))}.` : ''}</p></div>
     <button class="btn rotulo" id="btnContarAhora">Contar el dinero ahora</button></div></div>
@@ -2082,6 +2302,7 @@ async function vCaja(el) {
       <td class="n">${u.diferencia != null ? `<span class="chip ${num(u.diferencia) === 0 ? 'ok' : 'mal'}">${S(u.diferencia)}</span>` : ''}</td><td>${esc(u.observaciones)}</td></tr>`).join('') || '<tr><td colspan="7" class="vacio">Aún no hay cierres.</td></tr>'}
   </table></div></div>`;
   if ($('#btnAbrir')) $('#btnAbrir').onclick = async () => { if (await abrirCajaRapido()) ir('caja'); };
+  pintarTurnoSocio(enTurno).catch(() => {});
   $('#btnContarAhora').onclick = () => contarDinero().catch(e => aviso(textoError(e), true));
   $('#btnSubirCola') && ($('#btnSubirCola').onclick = async () => { await subirAtascadas(); ir('caja'); });
   el.querySelectorAll('[data-cerrar-ant]').forEach(b => b.onclick = () => cerrarElDia().catch(e => aviso(textoError(e), true)));
@@ -4269,7 +4490,7 @@ async function vReportes(el) {
         ${fila('Gastos financieros', -s('gastos_financieros'))}${fila('Otros egresos', -s('otros_egresos'))}
         ${fila('Ganancia neta', s('utilidad_neta_estimada'), 1)}<tr><td class="sub">Consumo del dueño (no es gasto)</td><td class="n sub">${S(s('retiro_en_especie'))}</td></tr></table></div>
       <div class="panel"><h2>Cómo te pagaron</h2><p class="sub">Cobros de ventas en el periodo.</p><table>
-        ${medios(MEDIOS_VENTA).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${totMedios ? P(num(porMedio[m.id]) / totMedios * 100) : ''}</td></tr>`).join('')}</table>
+        ${medios(MEDIOS_VER).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${totMedios ? P(num(porMedio[m.id]) / totMedios * 100) : ''}</td></tr>`).join('')}</table>
         <h3>Dinero disponible hoy</h3><table>${saldos.map(x => fila(esc(x.nombre), x.saldo)).join('')}${fila('Total', saldos.reduce((a, x) => a + num(x.saldo), 0), 1)}</table></div>
     </div>
     <div class="panel"><h2>Qué producto deja más</h2><div class="scroll"><table><tr><th>Producto</th><th class="n">Unidades</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th></tr>
@@ -4630,7 +4851,7 @@ async function vCuenta(el) {
     { ok: dRes !== null && dRes < 7, t: 'Copia de seguridad', d: dRes === null ? 'Nunca has descargado una.' : dRes === 0 ? 'Hecha hoy.' : `La última fue hace ${dRes} ${dRes === 1 ? 'día' : 'días'}.`, a: dRes !== null && dRes < 7 ? '' : '<button class="btn claro mini" data-ancla="btnRespaldo">Descargar</button>' },
     { ok: Array.isArray(sesiones) && sesiones.length <= 2, t: 'Sesiones abiertas', d: Array.isArray(sesiones) ? `${sesiones.length} ${sesiones.length === 1 ? 'dispositivo' : 'dispositivos'} con tu cuenta abierta.` : 'No se pudo revisar.', a: '<button class="btn claro mini" data-ancla="misSesiones">Revisar</button>' },
     { ok: minInactividad() <= 60, t: 'Cierre automático', d: `Tu sesión se cierra tras ${minInactividad()} minutos sin uso.`, a: '' },
-  ];
+  ].filter(c => !(esSocio() && c.t === 'Copia de seguridad'));
   const puntos = checks.filter(c => c.ok).length;
   const dispositivo = ua => { const u = ua || ''; const so = /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android' : /Windows/.test(u) ? 'Windows' : /Mac OS X/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'Dispositivo';
     const nav = /Edg\//.test(u) ? 'Edge' : /Brave/.test(u) ? 'Brave' : /CriOS|Chrome\//.test(u) ? 'Chrome' : /FxiOS|Firefox\//.test(u) ? 'Firefox' : /Safari\//.test(u) ? 'Safari' : 'navegador'; return `${so} · ${nav}`; };
@@ -4666,8 +4887,8 @@ async function vCuenta(el) {
   </div>
   <div class="panel" id="respaldo"></div>
   <div class="panel" id="tgPanel"><h2>Resumen diario por Telegram</h2><p class="sub">Cargando…</p></div>`;
-  pintarRespaldo();
-  pintarTelegram();
+  if (esSocio()) { $('#respaldo')?.remove(); $('#tgPanel')?.remove(); }
+  else { pintarRespaldo(); pintarTelegram(); }
   el.querySelectorAll('[data-ancla]').forEach(b => b.onclick = () => { const t = $('#' + b.dataset.ancla); t?.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (t?.tagName === 'BUTTON') t.focus(); });
   el.querySelectorAll('[data-cerrarses]').forEach(b => b.onclick = async () => {
     if (!(await dialogo('Cerrar esa sesión', [{ type: 'info', html: '<p class="sub" style="margin:0">Ese dispositivo tendrá que volver a entrar con tu contraseña. Si no lo reconoces, cambia también tu contraseña.</p>' }], 'Cerrar sesión'))) return;
@@ -4834,6 +5055,11 @@ async function entrar(session) {
     try { perfil = await q(sb.from('perfiles').select('nombre, activo, roles(codigo)').eq('id', session.user.id).maybeSingle()); if (perfil) local.guardar('perfil', perfil); }
     catch (e) { perfil = esErrorRed(e) ? local.leer('perfil') : null; if (!perfil) throw e; }
     if (!perfil?.activo) { aviso('Tu usuario no tiene un perfil activo en el sistema', true); await sb.auth.signOut(); return; }
+    ROL = perfil.roles?.codigo || 'ADMIN';
+    socioPorCorreo = SOCIOS_SHA256.includes(await huellaCorreo(session.user?.email).catch(() => ''));
+    document.body.classList.toggle('modo-socio', esSocio());
+    document.querySelectorAll('.cargo-txt').forEach(x => x.textContent = esSocio() ? CARGO_SOCIO : CARGO);
+    if (esSocio()) { MEDIOS_VENTA = ['EFECTIVO_TURNO', 'YAPE', 'PLIN']; medioVenta = 'EFECTIVO_TURNO'; vistaActual = 'turno'; }
     if (recuperacionPendiente) {
       recuperacionPendiente = false;
       let listo = false;
@@ -4849,7 +5075,7 @@ async function entrar(session) {
     $('#ingreso').classList.add('oculto'); $('#app').classList.remove('oculto');
     ultimaActividad = Date.now();
     await cargarCatalogos();
-    registrarFijosPendientes().then(n => { if (n && vistaActual === 'gastos') ir('gastos'); }).catch(() => {});
+    if (!esSocio()) registrarFijosPendientes().then(n => { if (n && vistaActual === 'gastos') ir('gastos'); }).catch(() => {});
     $('#btnPendientes').onclick = verPendientes;
     actualizarRed(); pintarPendientes();
     ir(vistaActual);

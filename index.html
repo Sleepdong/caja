@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-FPF6I+OpfKEM0rt603rw0XiWgP4hmSzxKcH5LOtzemY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-0dfVu1GjpVD6Iac5Aa5/83PvyN6DEOVBh7TlLz4O3yw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2813,14 +2813,58 @@ async function escanearFactura(archivo) {
 // Cuentas lo que hay de verdad (paquetes cerrados + sueltos) y se compara con el sistema.
 // Las diferencias se registran como "Faltante / Sobrante en conteo físico" (ajustes con motivo).
 const conteoLocal = { leer: () => local.leer('conteo'), guardar: c => local.guardar('conteo', c), borrar: () => { try { localStorage.removeItem('caja:conteo'); } catch {} } };
+const ERA_VENTA = ' · era venta';
 async function historialConteos() {
   const ids = C.motivos.filter(m => ['CONTEO_SOBRANTE', 'CONTEO_FALTANTE'].includes(m.codigo)).map(m => m.id);
   if (!ids.length) return [];
-  const movs = await q(sb.from('movimientos_inventario').select('fecha, observacion, movimiento_detalles(cantidad_base, costo_total)').in('motivo_id', ids).order('fecha', { ascending: false }).limit(60));
+  const movs = await q(sb.from('movimientos_inventario').select('fecha, observacion, movimiento_detalles(*)').in('motivo_id', ids).order('fecha', { ascending: false }).limit(120));
   const g = {};
-  movs.forEach(m => { const o = g[m.observacion] ??= { fecha: m.fecha, falt: 0, sobr: 0, uFalt: 0, uSobr: 0 };
-    m.movimiento_detalles.forEach(d => { const c = num(d.cantidad_base), v = Math.abs(num(d.costo_total)); if (c < 0) { o.falt += v; o.uFalt -= c; } else { o.sobr += v; o.uSobr += c; } }); });
-  return Object.values(g);
+  // Las correcciones "Fue venta" llevan la misma observación del conteo + ERA_VENTA: se juntan con su conteo
+  [...movs].reverse().forEach(m => { const obsBase = String(m.observacion || '').replace(ERA_VENTA, ''), corr = obsBase !== String(m.observacion || '');
+    const o = g[obsBase] ??= { obs: obsBase, fecha: m.fecha, falt: 0, sobr: 0, uFalt: 0, uSobr: 0, uVend: 0, vend: 0, prod: {} };
+    (m.movimiento_detalles || []).forEach(d => { const c = num(d.cantidad_base), v = num(d.costo_total);
+      const pid = d.producto_id || C.presentaciones.find(x => x.id === d.presentacion_id)?.producto_id;
+      const pr = pid ? (o.prod[pid] ??= { falta: 0, costo: 0, vend: 0 }) : null;
+      if (corr) { o.uVend += c; o.vend += v; if (pr) pr.vend += c; }
+      else if (c < 0) { o.falt += Math.abs(v); o.uFalt -= c; if (pr) { pr.falta -= c; pr.costo += Math.abs(v); } }
+      else { o.sobr += Math.abs(v); o.uSobr += c; } }); });
+  return Object.values(g).sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+}
+// "Fue venta": corrige un conteo ya registrado cuyo faltante era una venta sin anotar.
+// 1) devuelve las unidades al stock con su mismo costo (ajuste positivo con la observación del conteo + ERA_VENTA)
+// 2) las registra como venta del conteo (entra la plata a la cuenta). Si la venta falla, se deshace el paso 1.
+async function fueVenta(h) {
+  const items = Object.entries(h.prod).map(([id, x]) => ({ id, max: x.falta - x.vend, cu: x.falta > 0 ? x.costo / x.falta : 0 })).filter(x => x.max > 0);
+  if (!items.length) return aviso('Ese conteo ya no tiene faltantes por corregir', true);
+  const baseDe = id => C.presentaciones.find(p => p.producto_id === id && p.es_base) || C.presentaciones.find(p => p.producto_id === id && num(p.factor) === 1);
+  const sinBase = items.filter(x => !baseDe(x.id));
+  if (sinBase.length) return aviso('Falta la presentación por unidad de un producto de ese conteo', true);
+  const preciosV = await q(sb.from('v_precios_vigentes').select('presentacion_id, precio')).catch(() => []);
+  const nom = id => { const p = baseDe(id); return p?.productos?.nombre || presNombre(p); };
+  const campos = [{ type: 'info', html: `<p class="sub" style="margin:0">Conteo del ${fh(h.fecha)}. Si lo que faltó en realidad lo vendiste y la plata está en tu caja, no es una pérdida. Se registra como venta y el faltante de ese conteo deja de contar como pérdida. Tu stock no cambia.</p>` }];
+  items.forEach(x => { campos.push({ label: `${nom(x.id)}: ¿cuántas unidades vendiste? (faltaron ${N(x.max)})`, type: 'number', value: x.max, required: true },
+    { label: `Precio por unidad (S/)`, type: 'number', value: num(preciosV.find(p => p.presentacion_id === baseDe(x.id).id)?.precio) || '', required: true }); });
+  campos.push({ label: '¿Cómo te pagaron?', type: 'select', options: medios(MEDIOS_VENTA).map(m => ({ value: m.id, label: m.nombre })) });
+  const v = await dialogo('Fue venta', campos, 'Registrar venta');
+  if (!v) return false;
+  const lin = items.map((x, i) => ({ ...x, c: Math.round(num(v[1 + i * 2])), precio: r2(v[2 + i * 2]) })).filter(x => x.c > 0);
+  if (!lin.length) return aviso('Escribe cuántas unidades vendiste', true);
+  const malo = lin.find(x => x.c > x.max); if (malo) return aviso(`De ${nom(malo.id)} solo faltaron ${N(malo.max)} unidades`, true);
+  if (lin.some(x => !(x.precio > 0))) return aviso('Escribe el precio de venta de cada producto', true);
+  const met = Number(v[v.length - 1]), m = C.metodos.find(x => x.id === met), total = r2(lin.reduce((a, x) => a + x.c * x.precio, 0));
+  if (m?.codigo === 'EFECTIVO' && !(await sesionCaja()) && !(await abrirCajaRapido())) return false;
+  const mot = cod => C.motivos.find(x => x.codigo === cod)?.id;
+  const obs = h.obs + ERA_VENTA;
+  const lineasAj = lin.map(x => ({ presentacion_id: baseDe(x.id).id, cantidad: x.c, ...(x.cu > 0 ? { costo_unitario: r2(x.cu * 10000) / 10000 } : {}) }));
+  if (!(await rpc('registrar_ajuste_inventario', { p: { tipo: 'AJUSTE_POSITIVO', motivo_id: mot('CONTEO_SOBRANTE'), observacion: obs, lineas: lineasAj } })).ok) return false;
+  const p = { cliente_id: C.clientes.find(x => x.es_generico)?.id, condicion: 'CONTADO', fecha: new Date().toISOString(), observaciones: 'Venta registrada en el conteo físico',
+    lineas: lin.map(x => ({ presentacion_id: baseDe(x.id).id, cantidad: x.c, precio_unitario: x.precio })),
+    pagos: [{ metodo_pago_id: met, monto: total, referencia: null }] };
+  if (!(await rpc('registrar_venta', { p }, `Venta registrada por ${S(total)}: el faltante ya no cuenta como pérdida`)).ok) {
+    await rpc('registrar_ajuste_inventario', { p: { tipo: 'AJUSTE_NEGATIVO', motivo_id: mot('CONTEO_FALTANTE'), observacion: obs, lineas: lineasAj.map(({ presentacion_id, cantidad }) => ({ presentacion_id, cantidad })) } });
+    return false;
+  }
+  return true;
 }
 async function pintarConteo(ex, factorMax) {
   const caja = $('#conteo'); if (!caja) return;
@@ -2836,9 +2880,12 @@ async function pintarConteo(ex, factorMax) {
       <div class="envio-btns"><button class="btn" id="cntEmpezar">Empezar conteo</button></div></div>
       ${hist.length || ult ? `<h3>Conteos anteriores</h3><div class="scroll"><table><tr><th>Fecha</th><th class="n">Faltó</th><th class="n">Sobró</th><th class="n">Resultado</th></tr>
         ${ult?.cuadro && (!hist[0] || ult.fecha > hist[0].fecha) ? `<tr><td>${fh(ult.fecha)}</td><td class="n">—</td><td class="n">—</td><td class="n"><span class="chip ok">Todo cuadró</span></td></tr>` : ''}
-        ${hist.slice(0, 8).map(h => `<tr><td>${fh(h.fecha)}</td><td class="n">${h.uFalt ? `${N(h.uFalt)} und. · ${S(h.falt)}` : '—'}</td><td class="n">${h.uSobr ? `${N(h.uSobr)} und. · ${S(h.sobr)}` : '—'}</td>
-          <td class="n">${(v => `<span class="chip ${v < -0.005 ? 'mal' : 'ok'}">${v < -0.005 ? 'Perdiste ' + S(-v) : 'Neto ' + S(v)}</span>`)(h.sobr - h.falt)}</td></tr>`).join('')}</table></div>` : ''}
+        ${hist.slice(0, 8).map((h, i) => { const pend = Object.values(h.prod).some(x => x.falta - x.vend > 0), v = h.sobr - h.falt + h.vend;
+          return `<tr><td>${fh(h.fecha)}</td><td class="n">${h.uFalt ? `${N(h.uFalt)} und. · ${S(h.falt)}` : '—'}</td><td class="n">${h.uSobr ? `${N(h.uSobr)} und. · ${S(h.sobr)}` : '—'}</td>
+          <td class="n" style="white-space:nowrap">${h.uVend ? `<span class="chip ok">Era venta: ${N(h.uVend)} und.</span> ` : ''}<span class="chip ${v < -0.005 ? 'mal' : 'ok'}">${v < -0.005 ? 'Perdiste ' + S(-v) : 'Neto ' + S(v)}</span>${pend ? ` <button class="btn claro mini" data-fueventa="${i}">Fue venta</button>` : ''}</td></tr>`; }).join('')}</table></div>
+        ${hist.slice(0, 8).some(h => Object.values(h.prod).some(x => x.falta - x.vend > 0)) ? '<p class="sub" style="margin:8px 0 0">¿Un faltante era en realidad una venta que no anotaste y la plata está en tu caja? Usa <b>Fue venta</b>: el producto se registra como vendido y deja de contar como pérdida.</p>' : ''}` : ''}
     </div>`;
+    caja.querySelectorAll('[data-fueventa]').forEach(b => b.onclick = () => fueVenta(hist[Number(b.dataset.fueventa)]).then(ok => ok && ir('stock')).catch(e => aviso(textoError(e), true)));
     $('#cntEmpezar').onclick = () => {
       conteoLocal.guardar({ inicio: new Date().toISOString(), sistema: Object.fromEntries(ex.map(e => [e.producto_id, num(e.cantidad)])), valores: {} });
       pintarConteo(ex, factorMax); $('#conteo').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2930,7 +2977,8 @@ async function pintarConteo(ex, factorMax) {
       ${cambiaron.length ? `<p class="aviso-txt"><b>Ojo:</b> desde que empezaste, el stock de ${cambiaron.map(e => esc(e.producto)).join(', ')} cambió (ventas o compras). Revisa que tu conteo de ${cambiaron.length === 1 ? 'ese producto' : 'esos productos'} esté al día.</p>` : ''}
       <div class="scroll"><table><tr><th>Producto</th><th class="n">Diferencia</th><th class="n">Valor</th></tr>
       ${lineas.map(x => `<tr><td>${esc(x.e.producto)}</td><td class="n">${x.d > 0 ? '+' : '−'}${N(Math.abs(x.d))}</td><td class="n">${S(x.d * num(act[x.e.producto_id]?.costo_promedio))}</td></tr>`).join('')}</table></div>
-      <p class="sub" style="margin:10px 0 0">Tu stock quedará igual a lo que contaste. Lo que falta se registra como pérdida y lo verás en tus reportes como merma.</p>` }], 'Registrar');
+      <p class="sub" style="margin:10px 0 0">Tu stock quedará igual a lo que contaste. Lo que falta se registra como pérdida y lo verás en tus reportes como merma.</p>
+      ${lineas.some(x => x.d < 0) ? '<p class="aviso-txt" style="margin-top:10px"><b>¿Lo que falta lo vendiste y tienes la plata?</b> Cancela y usa <b>Lo vendí</b> en ese producto. Si ya lo registraste, luego puedes corregirlo con <b>Fue venta</b> en Conteos anteriores.</p>' : ''}` }], 'Registrar');
     if (!ok) return;
     const obs = `Conteo físico ${new Date().toLocaleString('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
     const mot = cod => C.motivos.find(m => m.codigo === cod)?.id;

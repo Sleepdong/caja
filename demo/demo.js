@@ -274,7 +274,7 @@
       v_flujo_caja_diario: [], alias_compra: MARCAS.map(m => ({ proveedor_id: m[9] === 'k2' ? 'pv3' : 'pv1', texto: '#' + m[11], presentacion_id: m[0] + 'c' })), periodos_contables: [], series_documento: [], almacenes: [{ id: 'a1', nombre: 'Principal' }],
       producto_proveedores: [], compra_costos_adicionales: [], devoluciones_compra: [], devolucion_compra_detalles: [], devoluciones_venta: [], devolucion_venta_detalles: [],
       movimientos_inventario: [{ id: 'mi1', fecha: iso(enLima(diaMenos(5), 21, 30)), observacion: 'Conteo físico ' + diaMenos(5), motivo_id: 6, tipo: 'AJUSTE_NEGATIVO',
-        movimiento_detalles: [{ cantidad_base: -3, costo_total: -r2(3 * costoBase.p2) }] }],
+        movimiento_detalles: [{ producto_id: 'p2', cantidad_base: -3, costo_total: -r2(3 * costoBase.p2) }] }],
       movimiento_detalles: [], auditoria: [], config_telegram: [],
     });
   }

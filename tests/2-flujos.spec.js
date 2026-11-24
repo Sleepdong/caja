@@ -64,6 +64,18 @@ test('conteo de inventario: un faltante se registra como venta con "Lo vendí"',
   await expect(fila.locator('.cnt-nom small')).toContainText(`(${sistema - 5} und.)`);
 });
 
+test('conteo ya registrado: "Fue venta" convierte el faltante en venta', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await page.evaluate(() => localStorage.removeItem('caja:conteo'));
+  await irA(page, 'stock');
+  const antes = await page.evaluate(async () => (await sb.from('ventas').select('id, origen').eq('origen', 'CONTEO')).data.length);
+  const btn = page.locator('[data-fueventa]').first();
+  await expect(btn).toBeVisible();
+  await btn.click();
+  await aceptarDialogo(page);
+  await expect.poll(() => page.evaluate(async () => (await sb.from('ventas').select('id, origen').eq('origen', 'CONTEO')).data.length)).toBe(antes + 1);
+});
+
 test('cerrar el día abre el asistente con el conteo de billetes', async ({ page, errores }) => {
   await abrirDemo(page);
   await irA(page, 'caja');

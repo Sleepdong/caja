@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-0dfVu1GjpVD6Iac5Aa5/83PvyN6DEOVBh7TlLz4O3yw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-Lkp8N73IAVnaUv180lgucbnS1QLCFJvDK8j4YVDKOM0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -2857,7 +2857,11 @@ async function fueVenta(h) {
   const obs = h.obs + ERA_VENTA;
   const lineasAj = lin.map(x => ({ presentacion_id: baseDe(x.id).id, cantidad: x.c, ...(x.cu > 0 ? { costo_unitario: r2(x.cu * 10000) / 10000 } : {}) }));
   if (!(await rpc('registrar_ajuste_inventario', { p: { tipo: 'AJUSTE_POSITIVO', motivo_id: mot('CONTEO_SOBRANTE'), observacion: obs, lineas: lineasAj } })).ok) return false;
-  const p = { cliente_id: C.clientes.find(x => x.es_generico)?.id, condicion: 'CONTADO', fecha: new Date().toISOString(), observaciones: 'Venta registrada en el conteo físico',
+  // El ajuste toma la hora del servidor y la venta la de este equipo: si el reloj del equipo va atrasado, la venta quedaría
+  // "antes" del ajuste y el stock no alcanzaría. La venta se fecha 1 segundo después del ajuste.
+  const fAj = (await q(sb.from('movimientos_inventario').select('fecha').eq('observacion', obs).order('fecha', { ascending: false }).limit(1)).catch(() => []))[0]?.fecha;
+  const fechaV = new Date(Math.max(Date.now(), fAj ? new Date(fAj).getTime() + 1000 : 0)).toISOString();
+  const p = { cliente_id: C.clientes.find(x => x.es_generico)?.id, condicion: 'CONTADO', fecha: fechaV, observaciones: 'Venta registrada en el conteo físico',
     lineas: lin.map(x => ({ presentacion_id: baseDe(x.id).id, cantidad: x.c, precio_unitario: x.precio })),
     pagos: [{ metodo_pago_id: met, monto: total, referencia: null }] };
   if (!(await rpc('registrar_venta', { p }, `Venta registrada por ${S(total)}: el faltante ya no cuenta como pérdida`)).ok) {

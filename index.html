@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-3CouLfC0mqC/CXAj0RsD85GjbBt3QxitxNIrD+JSEvk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-qHRKDS92gNpTon4lsiKTLtWEkjLRJP6WfxaXgUabePY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -503,6 +503,34 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .pend-item:first-of-type{border-top:0}.pend-item>div{flex:1;min-width:0}.pend-item b{display:block;font-size:14.5px}.pend-item small{color:var(--gris);font-size:12.5px}
 .pendientes details summary{cursor:pointer;color:var(--gris);font-size:13.5px;padding-top:8px}
 .periodos{display:flex;gap:8px;flex-wrap:wrap}
+.sk-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:12px}
+.sk-kpis .cmp b{color:var(--texto)}
+.sk-filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.sk-filtros input{flex:1 1 220px;width:auto;min-width:0}.sk-filtros .seg-mini{flex-wrap:wrap;border-radius:18px;max-width:100%}.sk-grid{min-width:0}.sk-kpis .an-card{min-width:0}
+.sk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.sk-card{background:var(--blanco);border-radius:20px;padding:15px 16px 12px;display:flex;flex-direction:column;gap:3px;box-shadow:inset 3px 0 0 var(--tono2)}
+.sk-card.mal{box-shadow:inset 3px 0 0 var(--coral)}.sk-card.aviso{box-shadow:inset 3px 0 0 var(--ambar)}.sk-card.ok{box-shadow:inset 3px 0 0 var(--menta)}
+.sk-cab{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.sk-cab b{font-size:14.5px}.sk-cab .chip{white-space:nowrap;font-size:11.5px}
+.sk-cant{font-size:24px;font-weight:700;letter-spacing:-.03em;margin-top:4px}
+.sk-barra{height:7px;background:var(--tono);border-radius:99px;overflow:hidden;margin:8px 0 6px}.sk-barra i{display:block;height:100%;border-radius:99px;background:var(--gris)}
+.sk-card.mal .sk-barra i{background:var(--coral)}.sk-card.aviso .sk-barra i{background:var(--ambar)}.sk-card.ok .sk-barra i{background:var(--menta)}
+.sk-pie{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--gris)}.sk-pie .lnk{font-size:12.5px;margin-left:8px}
+.sk-ley{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--gris);margin:12px 0 18px}.sk-ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.sk-ley i.mal{background:var(--coral)}.sk-ley i.aviso{background:var(--ambar)}.sk-ley i.ok{background:var(--menta)}
+.txt-aviso{color:var(--ambar)}
+.pd-ajustes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 18px}.pd-ajustes .seg-mini{flex-wrap:wrap;border-radius:16px}
+.pd-res{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(140deg,#7B5CFF33,#1E9E7C22)}
+.pd-res small{display:block;color:var(--tinta2);font-size:12.5px}.pd-res b{display:block;font-size:26px;letter-spacing:-.03em}.pd-res span{color:var(--gris);font-size:13px}
+.pd-res .pd-acc .btn{display:flex;gap:8px;align-items:center}
+.pd-gcab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}.pd-gcab .btn{display:flex;gap:8px;align-items:center}
+.pd-item{display:grid;grid-template-columns:minmax(0,1fr) auto 96px;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--linea)}
+.pd-info b{margin-right:6px}.pd-info .chip{font-size:11.5px}.pd-info small{display:block;color:var(--gris);font-size:12.5px;margin-top:4px;line-height:1.4}
+.pd-cant{display:flex;flex-direction:column;align-items:center;gap:3px}.pd-cant small{color:var(--gris);font-size:11.5px}
+.pd-cant .stepper input{width:56px!important;-moz-appearance:textfield;font-variant-numeric:tabular-nums}
+.stepper input::-webkit-inner-spin-button,.stepper input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.stepper input{-moz-appearance:textfield}
+.pd-costo{text-align:right}.pd-costo b{display:block;font-variant-numeric:tabular-nums}.pd-costo small{color:var(--gris);font-size:11.5px}
+.pd-resto summary{cursor:pointer;list-style:none}.pd-resto summary::-webkit-details-marker{display:none}.pd-resto[open] summary{margin-bottom:8px}
+@media(max-width:640px){.pd-item{grid-template-columns:1fr auto;}.pd-costo{grid-column:2;text-align:right}.pd-cant{grid-row:2;grid-column:1;align-items:flex-start}.sk-kpis{grid-template-columns:1fr 1fr}.sk-kpis .an-card>b{font-size:20px}}
 .rep-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
 .rep-rap{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto}
 .rep-rap button{border:0;background:var(--blanco);color:var(--gris);border-radius:999px;padding:9px 15px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
@@ -2795,10 +2823,11 @@ const ajustePedido = () => { try { return Object.assign({ historia: 14, cubrir: 
 const guardarAjustePedido = a => { try { localStorage.setItem('ajustePedido', JSON.stringify(a)); } catch {} };
 const fechaHace = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
 const diasEntre = (a, b) => Math.round((new Date(b + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 86400000);
-async function pintarPedido(ex) {
+// Cálculo del pedido: venta diaria reciente, cuánto te dura el stock y cuántos paquetes comprar
+async function calcPedido(ex) {
   const aj = ajustePedido();
   const desde = fechaHace(aj.historia - 1);
-  const lineas = await todo(() => sb.from('v_lineas_rentabilidad').select('fecha, producto_id, cantidad_base').gte('fecha', desde).lte('fecha', hoy()));
+  const [lineas, hist] = await Promise.all([todo(() => sb.from('v_lineas_rentabilidad').select('fecha, producto_id, cantidad_base').gte('fecha', desde).lte('fecha', hoy())), historialCostos().catch(() => [])]);
   const vendido = {}; let primera = null;
   lineas.forEach(l => { vendido[l.producto_id] = (vendido[l.producto_id] || 0) + num(l.cantidad_base); if (num(l.cantidad_base) > 0 && (!primera || l.fecha < primera)) primera = l.fecha; });
   // Si empezaste a vender hace poco, el promedio usa solo los días con historial
@@ -2812,35 +2841,57 @@ async function pintarPedido(ex) {
     const objetivo = Math.max(diario * (aj.cubrir + aj.seguridad), num(e.stock_minimo));
     const paquetes = Math.max(0, Math.ceil((objetivo - stock) / f - 1e-9));
     const cobertura = diario > 0 ? stock / diario : null;
-    return { e, compra, f, stock, v, diario, cobertura, paquetes, costoPaq: r2(num(e.costo_promedio) * f), sinRotacion: conHistoria && v === 0 && stock > 0 };
+    // Proveedor sugerido: el último que te lo vendió (y su precio por paquete)
+    const ult = hist.filter(h => h.producto_id === e.producto_id).pop();
+    const costoUlt = ult ? (ult.presentacion_id === compra.id ? ult.costo : ult.costo / num(C.presentaciones.find(p => p.id === ult.presentacion_id)?.factor || 1) * f) : 0;
+    return { e, compra, f, stock, v, diario, cobertura, objetivo, paquetes, sugerido: paquetes, prov: ult?.proveedor_id || '', costoPaq: r2(costoUlt || num(e.costo_promedio) * f), sinRotacion: conHistoria && v === 0 && stock > 0 };
   }).filter(Boolean).sort((a, b) => (a.cobertura ?? 1e9) - (b.cobertura ?? 1e9) || b.paquetes - a.paquetes);
-  const estado = r => r.stock <= 0 ? '<span class="chip mal">Agotado</span>'
-    : r.cobertura === null ? (r.sinRotacion ? `<span class="chip aviso">Sin ventas en ${dias} días</span>` : '<span class="chip">Sin historial</span>')
-    : r.cobertura < aj.cubrir ? `<span class="chip mal">Se acaba en ${N(Math.max(0, Math.floor(r.cobertura)))} días</span>`
-    : `<span class="chip ok">Alcanza ${N(Math.floor(r.cobertura))} días</span>`;
-  const quietos = filas.filter(r => r.sinRotacion), plataQuieta = quietos.reduce((a, r) => a + num(r.e.valor_total), 0);
+  return { aj, dias, conHistoria, filas };
+}
+// Semáforo de cada producto
+function estadoStock(r, aj) {
+  if (r.stock <= 0) return { k: 'mal', t: 'Agotado' };
+  if (r.cobertura === null) return r.sinRotacion ? { k: 'aviso', t: 'No se mueve' } : { k: '', t: 'Sin historial' };
+  if (r.cobertura < 3) return { k: 'mal', t: `Te dura ~${Math.max(1, Math.floor(r.cobertura))} ${Math.floor(r.cobertura) <= 1 ? 'día' : 'días'}` };
+  if (r.cobertura < aj.cubrir) return { k: 'aviso', t: `Te dura ~${Math.floor(r.cobertura)} días` };
+  return { k: 'ok', t: `Te dura ${Math.floor(r.cobertura) > 60 ? '+60' : Math.floor(r.cobertura)} días` };
+}
+const paqSueltos = (c, f, uni = 'und.') => f > 1 ? `${Math.floor(c / f)} paq.${c % f ? ` + ${N(c % f)}` : ''}` : `${N(c)} ${uni}`;
+async function pintarPedido(ex, P) {
+  P = P || await calcPedido(ex);
+  const { aj, dias, conHistoria, filas } = P;
+  const nomProvP = id => C.proveedores.find(p => p.id === id)?.razon_social || 'Sin proveedor anterior';
   const pintar = () => {
-    const total = filas.reduce((a, r) => a + r.paquetes * r.costoPaq, 0), nPaq = filas.reduce((a, r) => a + r.paquetes, 0);
-    $('#pedido').innerHTML = `<div class="panel"><h2>Qué comprar</h2>
-      <p class="sub">${conHistoria ? `Según lo que vendiste en los últimos ${dias} ${dias === 1 ? 'día' : 'días'}. Te alcanza para ${aj.cubrir} días más ${aj.seguridad} de reserva.` : 'Aún no hay ventas registradas: por ahora el pedido usa tu stock mínimo. Con unos días de ventas se calcula solo según lo que realmente vendes.'}</p>
-      <div class="fila" style="max-width:640px;margin-bottom:12px">
-        <div><label>Mirar ventas de</label><select id="pjHist">${[7, 14, 30].map(d => `<option value="${d}" ${d === aj.historia ? 'selected' : ''}>últimos ${d} días</option>`).join('')}</select></div>
-        <div><label>Comprar para</label><select id="pjCubrir">${[3, 5, 7, 10, 15, 30].map(d => `<option value="${d}" ${d === aj.cubrir ? 'selected' : ''}>${d} días</option>`).join('')}</select></div>
-        <div><label>Reserva</label><select id="pjSeg">${[0, 1, 2, 3, 5].map(d => `<option value="${d}" ${d === aj.seguridad ? 'selected' : ''}>${d === 0 ? 'Sin reserva' : d === 1 ? '1 día' : d + ' días'}</option>`).join('')}</select></div></div>
-      <div class="scroll"><table><tr><th>Producto</th><th class="n">Pedir</th><th>Estado</th><th class="n">Stock</th><th class="n">Vende por día</th><th class="n">Costo aprox.</th></tr>
-        ${filas.map((r, i) => `<tr><td>${esc(r.e.producto)}<div class="sub" style="margin:0">${esc(r.compra.nombre)}</div></td>
-          <td class="n" style="white-space:nowrap"><input type="number" min="0" step="1" inputmode="numeric" value="${r.paquetes}" data-pq="${i}" style="width:62px"> <span class="sub">${r.f > 1 ? 'paq.' : 'und.'}</span></td>
-          <td>${estado(r)}</td><td class="n">${N(r.stock)}</td><td class="n">${r.diario ? N(r.diario, 1) : '—'}</td>
-          <td class="n">${r.costoPaq > 0 ? S(r.paquetes * r.costoPaq) : '<span class="sub">sin costo</span>'}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin productos.</td></tr>'}
-        ${nPaq ? `<tr><td><b>Total del pedido</b></td><td class="n"><b>${N(nPaq)}</b></td><td colspan="3"></td><td class="n"><b>${S(total)}</b></td></tr>` : ''}</table></div>
-      ${quietos.length ? `<div class="cuadre mal" style="margin-top:12px">Tienes ${S(plataQuieta)} en mercadería que no se vendió en ${dias} días (${quietos.map(r => esc(r.e.producto)).join(', ')}). No vuelvas a comprarla hasta que rote, o prueba bajarle el precio.</div>` : ''}
-      <div class="fila" style="margin-top:12px"><div class="auto"><button class="btn wsp" id="pjWsp" ${nPaq ? '' : 'disabled'}>${icoWsp}<span>Pedir por WhatsApp</span></button></div>
-        <div class="auto"><button class="btn claro" id="pjCrear" ${nPaq ? '' : 'disabled'}>Crear compra con este pedido</button></div>
-        <div><p class="sub" style="margin:0">${nPaq ? 'Puedes cambiar las cantidades antes. Luego revisas los costos en Compras.' : 'Por ahora no necesitas comprar nada.'}</p></div></div></div>`;
-    const re = () => { guardarAjustePedido({ historia: Number($('#pjHist').value), cubrir: Number($('#pjCubrir').value), seguridad: Number($('#pjSeg').value) }); pintarPedido(ex).catch(e => aviso(textoError(e), true)); };
-    ['#pjHist', '#pjCubrir', '#pjSeg'].forEach(sel => $(sel).onchange = re);
+    const pedir = filas.filter(r => r.paquetes > 0), resto = filas.filter(r => r.paquetes === 0);
+    const total = pedir.reduce((a, r) => a + r.paquetes * r.costoPaq, 0), nPaq = pedir.reduce((a, r) => a + r.paquetes, 0);
+    const grupos = {}; pedir.forEach(r => (grupos[r.prov] ??= []).push(r));
+    const quietos = filas.filter(r => r.sinRotacion), plataQuieta = quietos.reduce((a, r) => a + num(r.e.valor_total), 0);
+    const tarjeta = r => { const i = filas.indexOf(r), st = estadoStock(r, aj), uni = r.f > 1 ? r.compra.nombre.split(' ')[0].toLowerCase() : 'und.';
+      return `<div class="pd-item"><div class="pd-info"><b>${esc(r.e.producto)}</b><span class="chip ${st.k}">${st.t}</span>
+          <small>${r.diario ? `Quedan ${N(r.stock)} und. · vendes ~${N(r.diario, 1)} por día. Para ${aj.cubrir} días + ${aj.seguridad} de reserva necesitas ${N(Math.ceil(r.objetivo))} und.` : r.stock <= 0 ? 'Agotado y sin ventas recientes para calcular: se usa tu stock mínimo.' : `Quedan ${N(r.stock)} und. Se usa tu stock mínimo (${N(r.e.stock_minimo)}).`}</small></div>
+        <div class="pd-cant"><div class="stepper"><button type="button" data-menos="${i}" aria-label="Uno menos">−</button><input type="number" min="0" step="1" inputmode="numeric" value="${r.paquetes}" data-pq="${i}" aria-label="Cantidad"><button type="button" data-mas="${i}" aria-label="Uno más">+</button></div>
+          <small>${esc(uni)}${r.f > 1 ? ` x ${N(r.f)}` : ''}${r.paquetes !== r.sugerido ? ` · sugerido ${r.sugerido}` : ''}</small></div>
+        <div class="pd-costo"><b>${r.costoPaq > 0 ? S(r.paquetes * r.costoPaq) : '—'}</b><small>${r.costoPaq > 0 ? `${S(r.costoPaq)} c/u` : 'sin costo'}</small></div></div>`; };
+    $('#pedido').innerHTML = `
+      <div class="pd-ajustes panel"><div><span class="md-lbl">Comprar para</span><div class="seg-mini">${[3, 5, 7, 10, 15].map(d => `<button type="button" data-cubrir="${d}" class="${d === aj.cubrir ? 'on' : ''}">${d} días</button>`).join('')}</div></div>
+        <div><span class="md-lbl">Reserva por si acaso</span><div class="seg-mini">${[0, 1, 2, 3].map(d => `<button type="button" data-seg="${d}" class="${d === aj.seguridad ? 'on' : ''}">${d === 0 ? 'No' : d + (d === 1 ? ' día' : ' días')}</button>`).join('')}</div></div>
+        <div><span class="md-lbl">Calcular con ventas de</span><div class="seg-mini">${[7, 14, 30].map(d => `<button type="button" data-hist="${d}" class="${d === aj.historia ? 'on' : ''}">${d} días</button>`).join('')}</div></div>
+        <p class="sub" style="margin:0;grid-column:1/-1">${conHistoria ? `Con lo que vendiste en los últimos ${dias} ${dias === 1 ? 'día' : 'días'}, la app calcula cuánto necesitas para que te alcance ${aj.cubrir} días más ${aj.seguridad} de reserva.` : 'Aún no hay ventas registradas: por ahora el pedido usa tu stock mínimo.'}</p></div>
+      <div class="pd-res panel"><div><small>Tu pedido</small><b>${nPaq ? `${N(nPaq)} ${nPaq === 1 ? 'paquete' : 'paquetes'}` : 'Nada por comprar'}</b><span>${nPaq ? `Costo aproximado ${S(total)} · ${pedir.length} ${pedir.length === 1 ? 'producto' : 'productos'}` : 'Tu stock alcanza para el tiempo que elegiste.'}</span></div>
+        <div class="pd-acc"><button class="btn claro" id="pjCrear" ${nPaq ? '' : 'disabled'}>${ico('compras', 18)}<span>Pasar a Compras</span></button></div></div>
+      ${Object.entries(grupos).map(([prov, rs]) => `<section class="panel pd-grupo"><div class="pd-gcab"><div><h2>${esc(nomProvP(prov))}</h2><p class="sub" style="margin:0">${rs.length} ${rs.length === 1 ? 'producto' : 'productos'} · ${S(rs.reduce((a, r) => a + r.paquetes * r.costoPaq, 0))}</p></div>
+          <button class="btn wsp" data-wspprov="${esc(prov)}">${icoWsp}<span>Pedir por WhatsApp</span></button></div>${rs.map(tarjeta).join('')}</section>`).join('')}
+      ${quietos.length ? `<div class="cuadre mal" style="margin:0 0 14px">Tienes ${S(plataQuieta)} en mercadería que no se vendió en ${dias} días (${quietos.map(r => esc(r.e.producto)).join(', ')}). No vuelvas a comprarla hasta que rote, o prueba bajarle el precio.</div>` : ''}
+      ${resto.length ? `<details class="panel pd-resto"><summary><b>No necesitas comprar</b> <span class="sub">${resto.length} ${resto.length === 1 ? 'producto' : 'productos'} con stock suficiente · tócalos si igual quieres pedir</span></summary>${resto.map(tarjeta).join('')}</details>` : ''}`;
+    const re = cambio => { guardarAjustePedido({ ...aj, ...cambio }); pintarPedido(ex).catch(e => aviso(textoError(e), true)); };
+    $('#pedido').querySelectorAll('[data-cubrir]').forEach(b => b.onclick = () => re({ cubrir: Number(b.dataset.cubrir) }));
+    $('#pedido').querySelectorAll('[data-seg]').forEach(b => b.onclick = () => re({ seguridad: Number(b.dataset.seg) }));
+    $('#pedido').querySelectorAll('[data-hist]').forEach(b => b.onclick = () => re({ historia: Number(b.dataset.hist) }));
     $('#pedido').querySelectorAll('[data-pq]').forEach(x => x.onchange = () => { filas[x.dataset.pq].paquetes = Math.max(0, Math.round(num(x.value))); setTimeout(pintar); });
-    $('#pjWsp').onclick = () => pedirPorWhatsApp(filas.filter(r => r.paquetes > 0)).catch(e => aviso(textoError(e), true));
+    $('#pedido').querySelectorAll('[data-mas]').forEach(b => b.onclick = () => { filas[b.dataset.mas].paquetes++; pintar(); });
+    $('#pedido').querySelectorAll('[data-menos]').forEach(b => b.onclick = () => { const r = filas[b.dataset.menos]; r.paquetes = Math.max(0, r.paquetes - 1); pintar(); });
+    $('#pedido').querySelectorAll('[data-wspprov]').forEach(b => b.onclick = () => pedirPorWhatsApp(grupos[b.dataset.wspprov], b.dataset.wspprov).catch(e => aviso(textoError(e), true)));
+    const abierto = $('#pedido .pd-resto'); if (abierto && P.restoAbierto) abierto.open = true; if (abierto) abierto.ontoggle = () => { P.restoAbierto = abierto.open; };
     $('#pjCrear').onclick = () => {
       lineasCompra = filas.filter(r => r.paquetes > 0).map(r => ({ presentacion_id: r.compra.id, cantidad: r.paquetes, costo: r.costoPaq > 0 ? String(r.costoPaq) : '' }));
       ir('compras').then(() => aviso('Pedido cargado. Revisa los costos con tu proveedor y registra la compra.'));
@@ -2850,12 +2901,12 @@ async function pintarPedido(ex) {
 }
 
 // Arma el pedido y lo abre en WhatsApp con el número del proveedor
-async function pedirPorWhatsApp(items) {
+async function pedirPorWhatsApp(items, provElegido) {
   if (!items.length) return;
   const [hist, alias] = await Promise.all([historialCostos().catch(() => []), q(sb.from('alias_compra').select('proveedor_id, texto, presentacion_id').like('texto', '#%')).catch(() => [])]);
   // Proveedor sugerido: a quien más le compraste estos productos últimamente
   const votos = {}; items.forEach(r => { const u = hist.filter(h => h.producto_id === r.e.producto_id).pop(); if (u) votos[u.proveedor_id] = (votos[u.proveedor_id] || 0) + 1; });
-  const sugerido = Object.entries(votos).sort((a, b) => b[1] - a[1])[0]?.[0] || C.proveedores.find(p => p.telefono)?.id || C.proveedores[0]?.id || '';
+  const sugerido = provElegido || Object.entries(votos).sort((a, b) => b[1] - a[1])[0]?.[0] || C.proveedores.find(p => p.telefono)?.id || C.proveedores[0]?.id || '';
   const hora = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false }));
   const saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
   const codigo = (r, prov) => alias.find(a => a.proveedor_id === prov && C.presentaciones.find(p => p.id === a.presentacion_id)?.producto_id === r.e.producto_id)?.texto.slice(1)
@@ -3688,13 +3739,41 @@ async function vStock(el) {
   const ex = await q(sb.from('v_existencias').select('*').eq('activo', true).order('producto'));
   const factorMax = pid => Math.max(1, ...C.presentaciones.filter(p => p.producto_id === pid).map(p => num(p.factor)));
   const valor = ex.reduce((a, e) => a + num(e.valor_total), 0), reponer = ex.filter(e => e.requiere_reposicion).length;
+  const P = await calcPedido(ex).catch(() => null);
+  const precioBase = await q(sb.from('v_precios_vigentes').select('producto_id, factor, precio')).catch(() => []);
+  const pv = id => num(precioBase.find(x => x.producto_id === id && num(x.factor) === 1)?.precio);
+  const valorVenta = ex.reduce((a, e) => a + Math.max(0, num(e.cantidad)) * pv(e.producto_id), 0);
+  const filaDe = id => P?.filas.find(r => r.e.producto_id === id);
+  const agotados = ex.filter(e => num(e.cantidad) <= 0).length, porAcabar = P ? P.filas.filter(r => r.stock > 0 && r.cobertura !== null && r.cobertura < P.aj.cubrir).length : reponer;
+  const coberturas = P ? P.filas.map(r => r.cobertura).filter(c => c !== null).sort((x, y) => x - y) : [], medCob = coberturas.length ? coberturas[Math.floor(coberturas.length / 2)] : null;
+  const TABS = [['stock', 'Mi stock'], ['pedido', 'Qué comprar'], ['conteo', 'Conteo'], ['ajustes', 'Ajustes y kardex']];
+  let tab = TABS.some(t => t[0] === local.leer('stockTab')) ? local.leer('stockTab') : 'stock';
+  const tarjetaP = e => { const f = factorMax(e.producto_id), c = num(e.cantidad), r = filaDe(e.producto_id), st = r ? estadoStock(r, P.aj) : { k: '', t: '' };
+    const meta = r ? Math.max(1, r.objetivo) : Math.max(1, num(e.stock_minimo) * 2), w = Math.min(100, Math.max(0, c / meta * 100));
+    return `<div class="sk-card ${st.k}" data-n="${esc(e.producto.toLowerCase())}" data-est="${st.k}" data-q="${r?.sinRotacion ? 'quieto' : ''}">
+      <div class="sk-cab"><b>${esc(e.producto)}</b>${st.t ? `<span class="chip ${st.k}">${st.t}</span>` : ''}</div>
+      <div class="sk-cant">${paqSueltos(c, f)}</div><small class="sub">${N(c)} unidades${r?.diario ? ` · vendes ~${N(r.diario, 1)}/día` : ''}</small>
+      <div class="sk-barra" title="Stock frente a lo que necesitas"><i style="width:${w}%"></i></div>
+      <div class="sk-pie"><span>Vale ${S(e.valor_total)}</span><span>${r?.paquetes ? `<button class="lnk" data-irpedido>Pedir ${r.paquetes}</button>` : ''} <button class="lnk" data-k="${e.producto_id}">Kardex</button></span></div></div>`; };
   el.innerHTML = `
-  <div class="cifras"><div class="cifra"><small>Valor del inventario (a costo)</small><b>${S(valor)}</b></div>
-    <div class="cifra"><small>Productos</small><b>${ex.length}</b></div><div class="cifra"><small>Por reponer</small><b>${reponer}</b></div></div>
-  <div id="vencimientos"></div>
-  <div id="conteo"></div>
-  <div id="pedido"></div>
-  <div class="panel"><h2>Existencias</h2><div class="scroll"><table>
+  <div class="sk-kpis">
+    <div class="an-card"><small>Tu inventario vale (a costo)</small><b>${S(valor)}</b><span class="cmp">${valorVenta > 0 ? `Si lo vendes todo: <b>${S(valorVenta)}</b> · ganarías ~${S(valorVenta - valor)}` : ''}</span></div>
+    <div class="an-card"><small>Por acabarse</small><b class="${porAcabar ? 'txt-aviso' : ''}">${porAcabar}</b><span class="cmp">te duran menos de ${P?.aj.cubrir ?? 7} días</span></div>
+    <div class="an-card"><small>Agotados</small><b class="${agotados ? 'txt-mal' : ''}">${agotados}</b><span class="cmp">de ${ex.length} productos</span></div>
+    <div class="an-card"><small>Tu stock te dura</small><b>${medCob === null ? '—' : `${Math.round(medCob)} días`}</b><span class="cmp">${medCob === null ? 'con unos días de ventas se calcula' : 'en el producto típico'}</span></div>
+  </div>
+  <div class="rep-tabs" role="tablist">${TABS.map(([k, t]) => `<button type="button" role="tab" data-stab="${k}" class="${k === tab ? 'on' : ''}">${t}${k === 'pedido' && P?.filas.some(r => r.paquetes > 0) ? ` <span class="chip">${P.filas.filter(r => r.paquetes > 0).length}</span>` : ''}</button>`).join('')}</div>
+  <div data-spane="stock">
+    <div class="sk-filtros"><input id="skBuscar" placeholder="Buscar producto" autocomplete="off">
+      <div class="seg-mini">${[['', 'Todos'], ['mal', 'Urgente'], ['aviso', 'Por acabarse'], ['ok', 'Bien'], ['quieto', 'No se mueven']].map(([k, t], i) => `<button type="button" data-skf="${k}" class="${i ? '' : 'on'}">${t}</button>`).join('')}</div></div>
+    <div class="sk-grid">${ex.slice().sort((x, y) => { const o = { mal: 0, aviso: 1, '': 2, ok: 3 }, a1 = filaDe(x.producto_id), b1 = filaDe(y.producto_id); return (o[a1 ? estadoStock(a1, P.aj).k : ''] - o[b1 ? estadoStock(b1, P.aj).k : '']) || x.producto.localeCompare(y.producto); }).map(tarjetaP).join('') || '<p class="sub">Sin productos.</p>'}</div>
+    <div class="sk-ley"><span><i class="mal"></i>Te dura menos de 3 días</span><span><i class="aviso"></i>Menos de ${P?.aj.cubrir ?? 7} días</span><span><i class="ok"></i>Alcanza</span><span>La barra compara tu stock con lo que necesitas para ${P?.aj.cubrir ?? 7} días + reserva.</span></div>
+    <div id="vencimientos"></div>
+  </div>
+  <div data-spane="pedido"><div id="pedido"></div></div>
+  <div data-spane="conteo"><div id="conteo"></div></div>
+  <div data-spane="ajustes">
+  <div class="panel"><h2>Existencias y costo promedio</h2><div class="scroll"><table>
     <tr><th>Producto</th><th class="n">Unidades</th><th class="n">Paquetes + sueltos</th><th class="n">Costo promedio</th><th class="n">Valor</th><th></th></tr>
     ${ex.map(e => { const f = factorMax(e.producto_id), c = num(e.cantidad);
       return `<tr><td>${esc(e.producto)} ${e.requiere_reposicion ? '<span class="chip mal">Reponer</span>' : ''}</td><td class="n">${N(c)}</td><td class="n">${f > 1 ? `${Math.floor(c / f)} + ${N(c % f)}` : ''}</td>
@@ -3710,10 +3789,19 @@ async function vStock(el) {
       <div><label>Cantidad</label><input type="number" id="aCant" min="1" step="1" value="1" inputmode="numeric"></div>
       <div class="oculto" id="aCuBox"><label>Costo c/u (si no había stock)</label><input type="number" id="aCu" min="0" step="0.01" inputmode="decimal"></div></div>
     <div class="fila" style="margin-top:8px"><div><label>Detalle</label><input id="aObs" placeholder="Ej.: cajetilla mojada"></div><div class="auto"><button class="btn" id="btnAjuste">Registrar ajuste</button></div></div>
-  </div>`;
+  </div></div>`;
+  const mostrarTab = () => { el.querySelectorAll('[data-stab]').forEach(b => b.classList.toggle('on', b.dataset.stab === tab)); el.querySelectorAll('[data-spane]').forEach(x => x.classList.toggle('oculto', x.dataset.spane !== tab)); };
+  const irTab = t => { tab = t; local.guardar('stockTab', t); mostrarTab(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  el.querySelectorAll('[data-stab]').forEach(b => b.onclick = () => irTab(b.dataset.stab));
+  el.querySelectorAll('[data-irpedido]').forEach(b => b.onclick = () => irTab('pedido'));
+  mostrarTab();
+  let filtro = '';
+  const filtrar = () => { const t = $('#skBuscar').value.trim().toLowerCase(); el.querySelectorAll('.sk-card').forEach(c => c.classList.toggle('oculto', (!!t && !c.dataset.n.includes(t)) || (filtro === 'quieto' ? c.dataset.q !== 'quieto' : !!filtro && c.dataset.est !== filtro))); };
+  $('#skBuscar').oninput = filtrar;
+  el.querySelectorAll('[data-skf]').forEach(b => b.onclick = () => { filtro = b.dataset.skf; el.querySelectorAll('[data-skf]').forEach(x => x.classList.toggle('on', x === b)); filtrar(); });
   pintarVencimientos().catch(() => { $('#vencimientos') && ($('#vencimientos').innerHTML = ''); });
   pintarConteo(ex, factorMax).catch(e => { $('#conteo').innerHTML = `<div class="panel"><h2>Conteo de inventario</h2><p class="sub">No se pudo cargar: ${esc(textoError(e))}</p></div>`; });
-  pintarPedido(ex).catch(e => { $('#pedido').innerHTML = `<div class="panel"><h2>Qué comprar</h2><p class="sub">No se pudo calcular: ${esc(textoError(e))}</p></div>`; });
+  pintarPedido(ex, P).catch(e => { $('#pedido').innerHTML = `<div class="panel"><h2>Qué comprar</h2><p class="sub">No se pudo calcular: ${esc(textoError(e))}</p></div>`; });
   const pintarMot = () => { $('#aMot').innerHTML = C.motivos.filter(m => m.tipo_aplicable === $('#aTipo').value).map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join(''); $('#aCuBox').classList.toggle('oculto', $('#aTipo').value !== 'AJUSTE_POSITIVO'); };
   $('#aTipo').onchange = pintarMot; pintarMot();
   $('#btnAjuste').onclick = async () => {

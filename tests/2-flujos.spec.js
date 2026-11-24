@@ -48,6 +48,7 @@ test('conteo de inventario: un faltante se registra como venta con "Lo vendí"',
   await abrirDemo(page);
   await page.evaluate(() => localStorage.removeItem('caja:conteo'));
   await irA(page, 'stock');
+  await page.locator('[data-stab="conteo"]').click();
   await page.locator('#cntEmpezar').click();
 
   // Contamos 5 sueltos menos de lo que dice el sistema en el primer producto
@@ -68,6 +69,7 @@ test('conteo ya registrado: "Fue venta" convierte el faltante en venta', async (
   await abrirDemo(page);
   await page.evaluate(() => localStorage.removeItem('caja:conteo'));
   await irA(page, 'stock');
+  await page.locator('[data-stab="conteo"]').click();
   const antes = await page.evaluate(async () => (await sb.from('ventas').select('id, origen').eq('origen', 'CONTEO')).data.length);
   const btn = page.locator('[data-fueventa]').first();
   await expect(btn).toBeVisible();
@@ -378,4 +380,25 @@ test('reportes: pestañas, rangos rápidos y estado de resultados que cuadra', a
   await expect(page.locator('.rep-prod')).toBeVisible();
   await page.locator('.rep-rap [data-p="otro"]').click();
   await expect(page.locator('#rFechas')).toBeVisible();
+});
+
+test('stock: tarjetas con semáforo, filtros y pedido por proveedor con +/−', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await page.evaluate(() => localStorage.removeItem('caja:stockTab'));
+  await irA(page, 'stock');
+  const n = await page.locator('.sk-card').count();
+  expect(n).toBeGreaterThan(0);
+  await page.locator('[data-skf="ok"]').click();
+  const visibles = await page.locator('.sk-card:not(.oculto)').count();
+  expect(visibles).toBeLessThanOrEqual(n);
+  await page.locator('[data-stab="pedido"]').click();
+  await expect(page.locator('.pd-res')).toBeVisible();
+  const item = page.locator('.pd-grupo .pd-item').first();
+  if (await item.count()) {
+    const antes = Number(await item.locator('[data-pq]').inputValue());
+    await item.locator('[data-mas]').click();
+    await expect(page.locator('.pd-grupo .pd-item').first().locator('[data-pq]')).toHaveValue(String(antes + 1));
+    await page.locator('[data-cubrir="15"]').click();
+    await expect(page.locator('[data-cubrir="15"]')).toHaveClass(/on/);
+  }
 });

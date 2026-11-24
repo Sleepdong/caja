@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-9FJcxGVWEWmQ6Iyg1YvnKd68EWPoq2l+M+4BhUBmt04='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vgMbZX8lSE2Z2SnyamAuNcPWeluWfY6JI5qBm6J95ZM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -117,7 +117,8 @@ tr:last-child td{border-bottom:0}
 .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 /* En celular: sin atajos de teclado y filas de tabla en una sola línea (la tabla se desliza de lado) */
-@media(hover:none) and (pointer:coarse),(max-width:700px){.atajos-tec{display:none!important}}
+/* Los atajos de teclado funcionan, pero su guía no se muestra (pedido del dueño) */
+.atajos-tec{display:none!important}
 @media(max-width:700px){.scroll th,.scroll td{white-space:nowrap}}
 /* Compra en celular: cada producto es una tarjeta (producto arriba; cantidad, costo e importe abajo) */
 @media(max-width:700px){
@@ -522,6 +523,10 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .pn-acciones .btn{display:inline-flex;align-items:center;gap:8px}
 .pn-acciones .btn svg{width:20px;height:20px}
 .pn-dona .pn-cab{margin-bottom:6px}
+.pn-per{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.pn-per button{border:0;background:var(--blanco);color:var(--gris);border-radius:999px;padding:9px 18px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.pn-per button.on{background:var(--texto);color:#0E0F1A}
+.pn-per .sub{font-size:13px;margin-left:4px}
 .seg-mini{display:inline-flex;background:var(--tono);border-radius:999px;padding:3px;gap:2px}
 .seg-mini button{border:0;background:transparent;color:var(--gris);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .seg-mini button.on{background:var(--texto);color:#0E0F1A}
@@ -1390,11 +1395,18 @@ function pintarDona(cont, d) {
 async function vPanel(el) {
   const h = hoy(), d = n => { const x = new Date(h + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
   const ayer = d(1), semana = d(7);
+  // Periodo de todo el Panel: hoy, últimos 7 días o el mes en curso (se recuerda en este equipo)
+  const per = ['hoy', 'sem', 'mes'].includes(local.leer('panelPer')) ? local.leer('panelPer') : 'hoy';
+  const desdeP = per === 'hoy' ? h : per === 'sem' ? d(6) : iniMes();
+  // Periodo anterior equivalente, para comparar: los 7 días previos o el mismo tramo del mes pasado
+  const mesAntIni = (() => { const x = new Date(iniMes() + 'T12:00:00-05:00'); x.setMonth(x.getMonth() - 1); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); })();
+  const mesAntFin = (() => { const ult = finMes(mesAntIni.slice(0, 7)); const dd = mesAntIni.slice(0, 8) + h.slice(8); return dd > ult ? ult : dd; })();
+  const prevIni = per === 'sem' ? d(13) : per === 'mes' ? mesAntIni : ayer, prevFin = per === 'sem' ? d(7) : per === 'mes' ? mesAntFin : ayer;
   const [dias, ventasHoy, lineasHoy, cobros, stock] = await Promise.all([
-    q(sb.from('v_resultados_diarios').select('*').gte('fecha', semana).lte('fecha', h)),
-    q(sb.from('ventas').select('id, fecha, origen, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', inicioHoy())),
-    q(sb.from('v_lineas_rentabilidad').select('*').eq('fecha', h)),
-    q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())),
+    q(sb.from('v_resultados_diarios').select('*').gte('fecha', [semana, prevIni, desdeP].sort()[0]).lte('fecha', h)),
+    q(sb.from('ventas').select('id, fecha, origen, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', desdeP + 'T00:00:00-05:00')),
+    q(sb.from('v_lineas_rentabilidad').select('*').gte('fecha', desdeP).lte('fecha', h)),
+    q(sb.from('movimientos_financieros').select('monto, metodo_pago_id, fecha').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', desdeP + 'T00:00:00-05:00')),
     q(sb.from('v_existencias').select('producto_id, producto, cantidad, stock_minimo, requiere_reposicion, costo_promedio').eq('activo', true)),
   ]);
   const con2fa = sb.auth.mfa.listFactors().then(r => (r.data?.totp || []).some(f => f.status === 'verified')).catch(() => true);
@@ -1417,15 +1429,21 @@ async function vPanel(el) {
   const urgentes = lotes.filter(l => l.dias <= 7);
   const dia = f => dias.find(x => x.fecha === f) || {};
   const H0 = dia(h), A = dia(ayer), SP = dia(semana);
+  const CAMPOS = ['ventas_netas', 'utilidad_bruta', 'utilidad_neta_estimada', 'costo_mercaderia_vendida', 'gastos_operativos', 'gastos_administrativos', 'gastos_financieros', 'otros_egresos'];
+  const sumar = (a, b) => Object.fromEntries(CAMPOS.map(k => [k, r2(dias.filter(x => x.fecha >= a && x.fecha <= b).reduce((t, x) => t + num(x[k]), 0))]));
+  const P0 = per === 'hoy' ? H0 : sumar(desdeP, h), PA = per === 'hoy' ? null : sumar(prevIni, prevFin);
+  const nPrev = per === 'hoy' ? null : await q(sb.from('ventas').select('id').eq('estado', 'EMITIDA').gte('fecha', prevIni + 'T00:00:00-05:00').lte('fecha', prevFin + 'T23:59:59-05:00')).then(x => x.length).catch(() => null);
+  const TXT = { hoy: { de: 'de hoy', en: 'hoy', cmp: 'ayer a esta hora' }, sem: { de: 'en 7 días', en: 'en 7 días', cmp: 'los 7 días anteriores' }, mes: { de: 'del mes', en: 'este mes', cmp: 'el mismo tramo del mes pasado' } }[per];
   const vn = x => num(x.ventas_netas), gb = x => num(x.utilidad_bruta), gn = x => num(x.utilidad_neta_estimada), cmv = x => num(x.costo_mercaderia_vendida);
   const gastos = x => num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos);
   const margen = x => vn(x) > 0 ? gb(x) / vn(x) * 100 : null;
   const margenNeto = x => vn(x) > 0 ? gn(x) / vn(x) * 100 : null;
-  const nVentas = ventasHoy.length, ticketProm = nVentas ? vn(H0) / nVentas : 0;
+  const nVentas = ventasHoy.length, ticketProm = nVentas ? vn(P0) / nVentas : 0;
+  const nHoy = ventasHoy.filter(v => v.fecha >= inicioHoy() || Date.parse(v.fecha) >= Date.parse(inicioHoy())).length;
 
   // Por hora
   // Las ventas registradas en el conteo ("Lo vendí") no tienen la hora real de la venta: no entran al análisis por hora
-  const porHora = {}; ventasHoy.filter(v => v.origen !== 'CONTEO').forEach(v => {
+  const porHora = {}; ventasHoy.filter(v => v.origen !== 'CONTEO' && Date.parse(v.fecha) >= Date.parse(inicioHoy())).forEach(v => {
     const hr = Number(new Date(v.fecha).toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false })) % 24;
     if (!Number.isFinite(hr)) return;
     const o = porHora[hr] ??= { v: 0, g: 0, n: 0 };
@@ -1479,6 +1497,7 @@ async function vPanel(el) {
     const dif = r2(hoyV - ref);
     if (hoyV === 0 && ref === 0) return `<span class="pn-cmp">${txt[0].toUpperCase() + txt.slice(1)}: sin ventas</span>`;
     if (hoyV === 0) return `<span class="pn-cmp">${txt[0].toUpperCase() + txt.slice(1)}: ${S(ref)}</span>`;
+    if (ref === 0) return `<span class="pn-cmp">${txt[0].toUpperCase() + txt.slice(1)}: sin ventas</span>`;
     if (Math.abs(dif) < 0.005) return `<span class="pn-cmp">Igual que ${txt}</span>`;
     return `<span class="pn-cmp ${dif > 0 ? 'sube' : 'baja'}">${dif > 0 ? '▲' : '▼'} ${S(Math.abs(dif))} ${dif > 0 ? 'más' : 'menos'} que ${txt}</span>`;
   };
@@ -1490,11 +1509,13 @@ async function vPanel(el) {
     <button class="btn claro" data-ir="stock">${ico('stock', 20)}<span>Contar</span></button>
     <button class="btn claro" data-ir="gastos">${ico('gastos', 20)}<span>Gasto</span></button>
   </div>
-  <section class="pn-kpis" aria-label="Indicadores de hoy, ${fechaHoy}">
-    <div class="pn-kpi"><small>Ventas de hoy</small><b>${S(vn(H0))}</b>${cmpS(vn(H0), ayerHora?.venta ?? null, 'ayer a esta hora')}</div>
-    <div class="pn-kpi"><small>Ganancia bruta <span class="pn-q" title="Ventas menos lo que te costó la mercadería que vendiste">?</span></small><b>${S(gb(H0))}</b><span class="pn-cmp">${margen(H0) === null ? 'Margen: aparece cuando vendas' : `Margen ${P(margen(H0))}: de cada S/ 10, te quedan ${S(margen(H0) / 10)}`}</span></div>
-    <div class="pn-kpi"><small>Número de ventas <span class="pn-q" title="Cuántas veces cobraste hoy. Ticket promedio = ventas ÷ número de ventas">?</span></small><b>${nVentas}</b><span class="pn-cmp">${nVentas ? `Ticket promedio ${S(ticketProm)}` : 'Aún no vendes hoy'}${ayerHora ? ` · ayer a esta hora: ${ayerHora.n}` : ''}</span></div>
-    <div class="pn-kpi"><small>Ganancia neta <span class="pn-q" title="Ganancia bruta menos tus gastos: lo que de verdad te queda">?</span></small><b>${S(gn(H0))}</b><span class="pn-cmp">${gastosMes ? `Gastos de hoy ${S(gastos(H0))} · antes de impuestos` : '<span class="chip mal">Sin gastos registrados: sobrestimada</span>'}</span></div>
+  <div class="pn-per" role="tablist" aria-label="Periodo del panel">${[['hoy', 'Hoy'], ['sem', '7 días'], ['mes', 'Este mes']].map(([k, n]) => `<button type="button" role="tab" aria-selected="${k === per}" class="${k === per ? 'on' : ''}" data-panelper="${k}">${n}</button>`).join('')}
+    <span class="sub">${per === 'hoy' ? fechaHoy : per === 'sem' ? `Del ${fd(desdeP).slice(0, 5)} al ${fd(h).slice(0, 5)}` : `Del 1 al ${Number(h.slice(8))} de ${new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', month: 'long' })}`}</span></div>
+  <section class="pn-kpis" aria-label="Indicadores ${TXT.de}">
+    <div class="pn-kpi"><small>Ventas ${TXT.de}</small><b>${S(vn(P0))}</b>${cmpS(vn(P0), per === 'hoy' ? ayerHora?.venta ?? null : vn(PA), TXT.cmp)}</div>
+    <div class="pn-kpi"><small>Ganancia bruta <span class="pn-q" title="Ventas menos lo que te costó la mercadería que vendiste">?</span></small><b>${S(gb(P0))}</b><span class="pn-cmp">${margen(P0) === null ? 'Margen: aparece cuando vendas' : `Margen ${P(margen(P0))}: de cada S/ 10, te quedan ${S(margen(P0) / 10)}`}</span></div>
+    <div class="pn-kpi"><small>Número de ventas <span class="pn-q" title="Cuántas veces cobraste. Ticket promedio = ventas ÷ número de ventas">?</span></small><b>${nVentas}</b><span class="pn-cmp">${nVentas ? `Ticket promedio ${S(ticketProm)}` : `Sin ventas ${TXT.en}`}${per === 'hoy' ? (ayerHora ? ` · ayer a esta hora: ${ayerHora.n}` : '') : nPrev !== null ? ` · ${TXT.cmp}: ${nPrev}` : ''}</span></div>
+    <div class="pn-kpi"><small>Ganancia neta <span class="pn-q" title="Ganancia bruta menos tus gastos: lo que de verdad te queda">?</span></small><b>${S(gn(P0))}</b><span class="pn-cmp">${gastosMes ? `Gastos ${TXT.de} ${S(gastos(P0))} · antes de impuestos` : '<span class="chip mal">Sin gastos registrados: sobrestimada</span>'}</span></div>
   </section>
   <div class="pn-grid">
     <div class="pn-s1">
@@ -1508,13 +1529,12 @@ async function vPanel(el) {
       ${pintarPendientes2(pendientes)}
     </div>
     <div class="pn-m">
-      <section class="panel pn-dona"><div class="pn-cab"><h2>¿A dónde va cada sol que vendes?</h2>
-        <div class="seg-mini" role="tablist" aria-label="Periodo"><button type="button" class="on" data-dona="hoy">Hoy</button><button type="button" data-dona="sem">7 días</button><button type="button" data-dona="mes">Este mes</button></div></div>
+      <section class="panel pn-dona"><div class="pn-cab"><h2>¿A dónde va cada sol que vendes?</h2><span class="sub">${TXT.en[0].toUpperCase() + TXT.en.slice(1)}</span></div>
         <div id="gDona"></div></section>
-      <section class="panel"><div class="pn-cab"><h2>Hoy, hora por hora</h2><span class="sub">${mejorHora !== undefined ? `Mejor hora: ${mejorHora}:00 (${S(porHora[mejorHora].v)})` : ''}</span></div><div id="gHoras"></div></section>
-      <section class="panel"><div class="pn-cab"><h2>Últimos 7 días</h2><div class="leyenda" style="margin:0"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div></div><div id="g7"></div>
+      ${per === 'hoy' ? '' : '<!--'}<section class="panel"><div class="pn-cab"><h2>Hoy, hora por hora</h2><span class="sub">${mejorHora !== undefined ? `Mejor hora: ${mejorHora}:00 (${S(porHora[mejorHora].v)})` : ''}</span></div><div id="gHoras"></div></section>${per === 'hoy' ? '' : '-->'}
+      <section class="panel"><div class="pn-cab"><h2>${per === 'mes' ? 'Día por día del mes' : 'Últimos 7 días'}</h2><div class="leyenda" style="margin:0"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div></div><div id="g7"></div>
         <button class="lnk" data-ir="analisis" style="margin-top:10px">Ver el análisis completo →</button></section>
-      <section class="panel"><h2>Qué te dejó más ganancia hoy</h2>${top.length ? `<div class="scroll"><table><tr><th>Producto</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">Unidades</th><th class="n">Venta</th></tr>
+      <section class="panel"><h2>Qué te dejó más ganancia ${TXT.en}</h2>${top.length ? `<div class="scroll"><table><tr><th>Producto</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">Unidades</th><th class="n">Venta</th></tr>
         ${top.map(([k, o]) => `<tr><td>${esc(nomProd[k] || '')}</td><td class="n"><b>${S(o.v - o.k)}</b></td><td class="n">${o.v > 0 ? P((o.v - o.k) / o.v * 100) : '—'}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td></tr>`).join('')}</table></div>`
         : '<p class="vacio">Cuando vendas, aquí verás qué producto rinde más.</p>'}</section>
       ${alertas.length ? `<section class="panel alerta" id="alertaPrecios"><h2>${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo (${P(umbral())})</h2>
@@ -1522,7 +1542,7 @@ async function vPanel(el) {
         <button class="btn" style="margin-top:12px" data-ir="catalogo">Ajustar precios</button></section>` : ''}
     </div>
     <div class="pn-s2">
-      <section class="panel"><h2>Cómo te pagaron hoy</h2>
+      <section class="panel"><h2>Cómo te pagaron ${TXT.en}</h2>
         ${totMedios ? `<div class="barra-medio" role="img" aria-label="Reparto por medio de pago">${medios(MEDIOS_VER).filter(m => porMedio[m.id] > 0).map(m => `<div style="width:${porMedio[m.id] / totMedios * 100}%;background:${COLOR_MEDIO[m.codigo]}" title="${esc(m.nombre)}"></div>`).join('')}</div>
         <table>${medios(MEDIOS_VER).filter(m => porMedio[m.id] > 0).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${P(num(porMedio[m.id]) / totMedios * 100)}</td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Aún no hay cobros hoy.</p>'}
       </section>
@@ -1545,13 +1565,13 @@ async function vPanel(el) {
   const fechaLarga = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
   const lineasRes = [
     `*${EMPRESA}*`, `Caja, ${fechaLarga}`,
-    nVentas ? `💰 Vendiste *${S(vn(H0))}* en ${nVentas} ${nVentas === 1 ? 'venta' : 'ventas'}${vVar === null ? '' : ` (${vVar >= 0 ? '▲' : '▼'} ${P(Math.abs(vVar))} vs. ayer a esta hora)`}` : '💰 Hoy no registraste ventas',
-    ...(nVentas ? [`📈 Ganancia bruta *${S(gb(H0))}*${margen(H0) === null ? '' : `, margen ${P(margen(H0))}`}`] : []),
+    nHoy ? `💰 Vendiste *${S(vn(H0))}* en ${nHoy} ${nHoy === 1 ? 'venta' : 'ventas'}${vVar === null ? '' : ` (${vVar >= 0 ? '▲' : '▼'} ${P(Math.abs(vVar))} vs. ayer a esta hora)`}` : '💰 Hoy no registraste ventas',
+    ...(nHoy ? [`📈 Ganancia bruta *${S(gb(H0))}*${margen(H0) === null ? '' : `, margen ${P(margen(H0))}`}`] : []),
     `🧾 Gastos ${S(gastos(H0))}`,
     `✅ Ganancia neta *${S(gn(H0))}*`,
     ...(meta ? [avance >= 100 ? `🎯 Meta de ${S(meta)} cumplida (${P(avance)})` : `🎯 Meta de ${S(meta)}: llevas ${P(avance)}`] : []),
-    ...(totMedios ? ['Cobraste: ' + Object.entries(porMedio).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${nomMedio[k] || 'Otro'} ${S(v)}`).join(', ')] : []),
-    ...(top.length ? [`🏆 Lo que más te dejó: ${nomProd[top[0][0]] || ''} (${S(top[0][1].v - top[0][1].k)})`] : []),
+    ...(per === 'hoy' && totMedios ? ['Cobraste: ' + Object.entries(porMedio).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${nomMedio[k] || 'Otro'} ${S(v)}`).join(', ')] : []),
+    ...(per === 'hoy' && top.length ? [`🏆 Lo que más te dejó: ${nomProd[top[0][0]] || ''} (${S(top[0][1].v - top[0][1].k)})`] : []),
     ...(reponer.length ? [`⚠️ Por reponer: ${reponer.slice(0, 5).map(r => `${r.producto} (quedan ${N(r.cantidad)})`).join(', ')}${reponer.length > 5 ? ` y ${reponer.length - 5} más` : ''}`] : []),
     ...(alertas.length ? [`🔻 ${alertas.length === 1 ? '1 precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo`] : []),
     ...(urgentes.length ? [`⏳ Por vencer: ${urgentes.slice(0, 4).map(l => `${l.producto} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : l.dias + ' d'})`).join(', ')}`] : []),
@@ -1572,29 +1592,21 @@ async function vPanel(el) {
   };
   $('#resCopiar').onclick = async () => { try { await navigator.clipboard.writeText(txtRes); aviso('Resumen copiado'); } catch { aviso('No se pudo copiar', true); } };
   $('#resCompartir') && ($('#resCompartir').onclick = () => navigator.share({ text: txtRes }).catch(() => {}));
-  // Dona: hoy o últimos 7 días (mismos números de los indicadores y de Reportes)
-  const sumaDias = fs => fs.map(dia).reduce((a, x) => ({ venta: a.venta + vn(x), merc: a.merc + cmv(x), gasto: a.gasto + gastos(x) }), { venta: 0, merc: 0, gasto: 0 });
-  let diasMes = null; // se piden solo si eliges "Este mes"
-  const dona = async per => { el.querySelectorAll('[data-dona]').forEach(b => b.classList.toggle('on', b.dataset.dona === per));
-    if (per === 'mes') {
-      try { diasMes ??= await q(sb.from('v_resultados_diarios').select('*').gte('fecha', iniMes()).lte('fecha', h)); }
-      catch (e) { $('#gDona').innerHTML = `<p class="sub">No se pudo cargar el mes: ${esc(textoError(e))}</p>`; return; }
-      const t = diasMes.reduce((a, x) => ({ venta: a.venta + vn(x), merc: a.merc + cmv(x), gasto: a.gasto + gastos(x) }), { venta: 0, merc: 0, gasto: 0 });
-      const nom = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', month: 'long' });
-      return pintarDona($('#gDona'), { ...t, vacio: `No hubo ventas en ${nom}`, nota: `Del 1 al ${Number(h.slice(8))} de ${nom}. Los gastos fijos del mes (como las comisiones del banco) entran el último día.` });
-    }
-    pintarDona($('#gDona'), per === 'hoy' ? { venta: vn(H0), merc: cmv(H0), gasto: gastos(H0), vacio: 'Todavía no vendes hoy' } : { ...sumaDias(ult7), vacio: 'No hubo ventas en los últimos 7 días' }); };
-  el.querySelectorAll('[data-dona]').forEach(b => b.onclick = () => dona(b.dataset.dona));
-  dona(vn(H0) > 0 || !dias.some(x => vn(x) > 0) ? 'hoy' : 'sem');
+  // Dona: sigue el periodo del Panel (mismos números de los indicadores y de Reportes)
+  const nomMesP = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', month: 'long' });
+  pintarDona($('#gDona'), { venta: vn(P0), merc: cmv(P0), gasto: gastos(P0), vacio: per === 'hoy' ? 'Todavía no vendes hoy' : per === 'sem' ? 'No hubo ventas en los últimos 7 días' : `No hubo ventas en ${nomMesP}`,
+    nota: per === 'mes' ? 'Los gastos fijos del mes (como las comisiones del banco) entran el último día.' : '' });
+  el.querySelectorAll('[data-panelper]').forEach(b => b.onclick = () => { local.guardar('panelPer', b.dataset.panelper); ir('panel'); });
   const ventasConteo = ventasHoy.filter(v => v.origen === 'CONTEO'), montoConteo = r2(ventasConteo.reduce((a, v) => a + v.venta_detalles.reduce((b, l) => b + num(l.subtotal), 0), 0));
-  if (mejorHora === undefined) $('#gHoras').innerHTML = `<div class="dona-vacia"><p><b>${montoConteo ? 'Tus ventas de hoy no tienen hora' : 'Todavía no hay ventas hoy'}</b></p><p class="sub" style="margin:0">${montoConteo
+  if (!$('#gHoras')) {} else if (mejorHora === undefined) $('#gHoras').innerHTML = `<div class="dona-vacia"><p><b>${montoConteo ? 'Tus ventas de hoy no tienen hora' : 'Todavía no hay ventas hoy'}</b></p><p class="sub" style="margin:0">${montoConteo
       ? `Vendiste ${S(montoConteo)}, pero se ${ventasConteo.length === 1 ? 'registró' : 'registraron'} en el conteo de inventario, sin la hora real. Cuando registres ventas en <b>Vender</b>, aquí verás a qué hora vendes más.`
       : 'Aquí verás a qué hora vendes más, para saber cuándo tener el mostrador listo.'}</p></div>`;
   else barras($('#gHoras'), rangoH.map(x => x + 'h'), [{ nombre: 'Venta', color: COL_VENTA, valores: rangoH.map(x => porHora[x]?.v || 0) }],
     { alto: 200, titulo: 'Ventas por hora de hoy', tituloTip: i => `${rangoH[i]}:00 a ${rangoH[i] + 1}:00 · ${porHora[rangoH[i]]?.n || 0} ventas` });
-  barras($('#g7'), ult7.map(nomDia), [
-    { nombre: 'Venta', color: COL_VENTA, valores: ult7.map(f => vn(dia(f))) },
-    { nombre: 'Ganancia', color: COL_GAN, valores: ult7.map(f => gb(dia(f))) }], { alto: 200, titulo: 'Venta y ganancia de los últimos 7 días' });
+  const fechasG = per === 'mes' ? (() => { const out = []; for (let x = new Date(iniMes() + 'T12:00:00-05:00'); x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }) <= h; x.setDate(x.getDate() + 1)) out.push(x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' })); return out; })() : ult7;
+  barras($('#g7'), fechasG.map(f => per === 'mes' ? String(Number(f.slice(8))) : nomDia(f)), [
+    { nombre: 'Venta', color: COL_VENTA, valores: fechasG.map(f => vn(dia(f))) },
+    { nombre: 'Ganancia', color: COL_GAN, valores: fechasG.map(f => gb(dia(f))) }], { alto: 200, titulo: per === 'mes' ? 'Venta y ganancia de cada día del mes' : 'Venta y ganancia de los últimos 7 días' });
   el.querySelectorAll('[data-bajar]').forEach(b => b.onclick = () => $('#' + b.dataset.bajar)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   pintarBoletas();
 }

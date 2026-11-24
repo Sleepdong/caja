@@ -402,3 +402,15 @@ test('stock: tarjetas con semáforo, filtros y pedido por proveedor con +/−', 
     await expect(page.locator('[data-cubrir="15"]')).toHaveClass(/on/);
   }
 });
+
+test('menú lateral por secciones: grupos con pistas, navega y se puede achicar', async ({ page, errores }) => {
+  await abrirDemo(page);
+  const lat = page.locator('#tabs.lateral');
+  if (!(await lat.isVisible())) return; // en celular se usa la barra de abajo
+  await expect(lat.locator('.nav-gt').first()).toHaveText(/Tu día/i);
+  await lat.locator('[data-v="reportes"]').click();
+  await expect(page.locator('#pagina h1')).toHaveText('Reportes');
+  await expect(lat.locator('[data-v="reportes"]')).toHaveClass(/on/);
+  const plegar = page.locator('#navPlegar');
+  if (await plegar.isVisible()) { await plegar.click(); await expect(page.locator('body')).toHaveClass(/nav-plegada/); await page.locator('#navPlegar').click(); }
+});

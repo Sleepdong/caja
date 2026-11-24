@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-qHRKDS92gNpTon4lsiKTLtWEkjLRJP6WfxaXgUabePY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-aV8RTiplddgWhjkZlSIqWB61uzRa1oSjw1Be/gisarw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -910,6 +910,43 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .btn.rotulo:hover{background:var(--brillo);color:#fff;filter:brightness(1.1)}.btn.wsp:hover{background:#3BE07A;color:#06260F}.btn.peligro:hover{background:#FF7A8A3a}
 .btn:disabled,.btn:disabled:hover{opacity:.45;cursor:not-allowed;filter:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== Menú lateral por secciones (computadora y tablet) ===== */
+@media(min-width:701px){
+  #app{display:grid;grid-template-columns:var(--lat,252px) minmax(0,1fr);grid-template-rows:auto auto auto 1fr;grid-template-areas:"top top" "nav red" "nav pag" "nav vis";min-height:100vh}
+  #app>.top{grid-area:top}#sinRed{grid-area:red}#app>.pagina{grid-area:pag;width:100%;max-width:1240px;justify-self:center}#app>main{grid-area:vis;width:100%;max-width:1240px;justify-self:center;min-width:0}
+  .tabs.lateral{grid-area:nav;position:sticky;top:66px;align-self:start;height:calc(100vh - 66px);display:flex;flex-direction:column;gap:10px;padding:12px 12px 14px 16px;margin:0;max-width:none;overflow-y:auto;overflow-x:hidden;background:transparent;border-right:1px solid var(--linea)}
+  .tabs.lateral .nav-g{display:flex;flex-direction:column;gap:2px}
+  .tabs.lateral .nav-gt{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gris);opacity:.75;padding:0 10px 4px}
+  .tabs.lateral button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border-radius:14px;padding:7px 10px;color:var(--tinta2);font-weight:500;white-space:normal}
+  .tabs.lateral button svg{flex:0 0 auto;opacity:.8}
+  .tabs.lateral .nav-t{display:flex;flex-direction:column;min-width:0}
+  .tabs.lateral .nav-t b{font-size:14px;font-weight:600;color:inherit}
+  .tabs.lateral .nav-t small{font-size:11.5px;color:var(--gris);font-weight:400;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tabs.lateral button:hover{background:var(--blanco);color:var(--texto)}
+  .tabs.lateral button.on{background:var(--texto);color:#0E0F1A;box-shadow:none}
+  .tabs.lateral button.on small{color:#0E0F1Aa6}.tabs.lateral button.on svg{opacity:1}
+  .tabs.lateral button[data-v="vender"]:not(.on){background:#7B5CFF26;color:var(--texto)}
+  .tabs.lateral .nav-pie{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:10px;border-top:1px solid var(--linea)}
+  .tabs.lateral .nav-plegar{color:var(--gris);font-size:18px;justify-content:flex-start}
+  .tabs.lateral .nav-plegar .nav-t small{font-size:12.5px}
+  body.nav-plegada{--lat:78px}
+  body.nav-plegada .tabs.lateral .nav-t,body.nav-plegada .tabs.lateral .nav-gt{display:none}
+  body.nav-plegada .tabs.lateral button{justify-content:center;padding:10px}
+  body.nav-plegada .tabs.lateral .nav-g{padding-bottom:8px;border-bottom:1px solid var(--linea)}
+  #pagina,main{padding-left:28px;padding-right:28px}
+}
+/* Tablet: el menú se achica solo a íconos */
+@media(min-width:701px) and (max-width:1100px){
+  #app{--lat:78px}.tabs.lateral .nav-t,.tabs.lateral .nav-gt,.tabs.lateral .nav-plegar{display:none}
+  .tabs.lateral button{justify-content:center;padding:10px}.tabs.lateral .nav-g{padding-bottom:8px;border-bottom:1px solid var(--linea)}
+}
+/* Hoja "Más" del celular, por secciones */
+.mas-grid{display:flex!important;flex-direction:column;gap:14px}
+.mas-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mas-g .nav-gt{grid-column:1/-1;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gris)}
+.mas-g button{display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;text-align:left;padding:12px!important}
+.mas-g button span{display:flex;flex-direction:column}.mas-g button b{font-size:14px}.mas-g button small{font-size:11.5px;color:var(--gris);font-weight:400;line-height:1.25}
+.mas-g button.on small{color:#0E0F1Aa6}
 </style>
 </head>
 <body>
@@ -943,7 +980,7 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
     <button class="perfil" id="btnPerfil" aria-haspopup="dialog" aria-label="Tu perfil"><span class="perfil-txt"><b id="usuario"></b><small class="cargo-txt">Gerente General</small></span><span class="avatar" data-avatar></span></button>
   </div>
   <div id="sinRed" class="oculto" role="status">Sin internet. Puedes seguir vendiendo: las ventas se guardan en este equipo y se suben solas al volver la conexión.</div>
-  <nav class="tabs" id="tabs" aria-label="Secciones"></nav>
+  <nav class="tabs lateral" id="tabs" aria-label="Secciones"></nav>
   <header class="pagina" id="pagina"></header>
   <main id="vista"></main>
   <nav class="nav-movil" id="navMovil" aria-label="Secciones"></nav>
@@ -1217,6 +1254,15 @@ const ICONOS = {
 const icoTip = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>';
 const ico = (k, t = 20) => `<svg width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[k]}</svg>`;
 const NAV_MOVIL = ['vender', 'panel', 'stock', 'ventas'];
+const GRUPOS_NAV = [
+  ['Tu día', [['panel', 'Cómo va tu negocio'], ['vender', 'Cobrar una venta'], ['ventas', 'Lo vendido y los fiados'], ['caja', 'Tu efectivo y tus cuentas']]],
+  ['Mercadería', [['stock', 'Cuánto tienes y qué pedir'], ['compras', 'Lo que le compras al proveedor'], ['catalogo', 'Precios y márgenes']]],
+  ['Resultados', [['gastos', 'Lo que pagas para operar'], ['reportes', 'Estado de resultados y Excel'], ['analisis', 'Gráficos y hallazgos']]],
+  ['SUNAT', [['boletas', 'Boletas por emitir']]],
+];
+const GRUPOS_SOCIO = [['Tu turno', [['turno', 'Empieza y cierra tu turno'], ['vender', 'Cobrar una venta'], ['misventas', 'Hoy, 7 días y el mes'], ['existencias', 'Cuánto queda']]]];
+const gruposNav = () => esSocio() ? GRUPOS_SOCIO : GRUPOS_NAV;
+const pistaNav = k => gruposNav().flatMap(g => g[1]).find(x => x[0] === k)?.[1] || (k === 'cuenta' ? 'Seguridad y contraseña' : '');
 const navMovil = () => esSocio() ? ['turno', 'vender', 'misventas', 'existencias'] : NAV_MOVIL;
 const PAGINAS = {
   panel: () => [`Hola, ${primerNombre()}`, 'Así va tu negocio hoy.'],
@@ -1237,14 +1283,18 @@ const PAGINAS = {
 };
 const primerNombre = () => (local.leer('perfil')?.nombre || '').trim().split(/\s+/)[0] || 'Luis';
 function pintarTabs() {
-  $('#tabs').innerHTML = Object.entries(vistas()).map(([k, [t]]) => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}" ${k === vistaActual ? 'aria-current="page"' : ''}>${ico(k, 17)}<span>${t}</span></button>`).join('');
-  $('#tabs').querySelectorAll('button').forEach(b => b.onclick = () => ir(b.dataset.v));
+  // Menú lateral por secciones (computadora). Cada sección con una pista de para qué sirve.
+  const Vs = vistas(), item = k => Vs[k] ? `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}" ${k === vistaActual ? 'aria-current="page"' : ''} title="${esc(Vs[k][0] + ': ' + pistaNav(k))}">${ico(k, 19)}<span class="nav-t"><b>${Vs[k][0]}</b><small>${esc(pistaNav(k))}</small></span></button>` : '';
+  $('#tabs').innerHTML = gruposNav().map(([g, its]) => `<div class="nav-g"><span class="nav-gt">${g}</span>${its.map(([k]) => item(k)).join('')}</div>`).join('')
+    + `<div class="nav-pie">${item('cuenta')}<button class="nav-plegar" id="navPlegar" title="${document.body.classList.contains('nav-plegada') ? 'Mostrar el menú completo' : 'Achicar el menú'}">${document.body.classList.contains('nav-plegada') ? '»' : '«'}<span class="nav-t"><small>${document.body.classList.contains('nav-plegada') ? 'Mostrar textos' : 'Achicar menú'}</small></span></button></div>`;
+  $('#tabs').querySelectorAll('button[data-v]').forEach(b => b.onclick = () => ir(b.dataset.v));
+  $('#navPlegar').onclick = () => { const on = !document.body.classList.contains('nav-plegada'); document.body.classList.toggle('nav-plegada', on); local.guardar('navPlegada', on); pintarTabs(); };
   const V = vistas(), NM = navMovil(), enMas = !NM.includes(vistaActual);
   $('#navMovil').innerHTML = NM.map(k => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}" ${k === vistaActual ? 'aria-current="page"' : ''}>${ico(k, 23)}<span>${V[k][0]}</span></button>`).join('')
     + (esSocio() ? '' : `<button id="navMas" class="${enMas ? 'on' : ''}" aria-haspopup="dialog">${ico(enMas ? vistaActual : 'mas', 23)}<span>${enMas ? V[vistaActual][0] : 'Más'}</span></button>`);
   $('#navMovil').querySelectorAll('[data-v]').forEach(b => b.onclick = () => ir(b.dataset.v));
   $('#navMas') && ($('#navMas').onclick = () => abrirHoja('#hojaMas'));
-  $('#masGrid').innerHTML = Object.keys(V).filter(k => !NM.includes(k)).map(k => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}">${ico(k, 24)}<span>${V[k][0]}</span></button>`).join('');
+  $('#masGrid').innerHTML = [...gruposNav().map(([g, its]) => [g, its.map(x => x[0])]), ['Tu cuenta', ['cuenta']]].map(([g, ks]) => { const r = ks.filter(k => V[k] && !NM.includes(k)); return r.length ? `<div class="mas-g"><span class="nav-gt">${g}</span>${r.map(k => `<button data-v="${k}" class="${k === vistaActual ? 'on' : ''}">${ico(k, 22)}<span><b>${V[k][0]}</b><small>${esc(pistaNav(k))}</small></span></button>`).join('')}</div>` : ''; }).join('');
   $('#masGrid').querySelectorAll('[data-v]').forEach(b => b.onclick = () => ir(b.dataset.v));
   const [t, d] = PAGINAS[vistaActual]();
   $('#pagina').innerHTML = `<h1>${esc(t)}</h1><p>${esc(d)}</p>`;
@@ -5534,6 +5584,7 @@ async function entrar(session) {
     }
     $('#usuario').textContent = perfil.nombre; pintarPerfil();
     $('#fechaHoy').textContent = new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
+    document.body.classList.toggle('nav-plegada', !!local.leer('navPlegada'));
     $('#ingreso').classList.add('oculto'); $('#app').classList.remove('oculto');
     ultimaActividad = Date.now();
     await cargarCatalogos();

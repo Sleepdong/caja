@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-vgMbZX8lSE2Z2SnyamAuNcPWeluWfY6JI5qBm6J95ZM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-J6Hq+x0CpdpwwEve74y3S1mfGZpeTJuP8agQTbJN51s='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -503,6 +503,37 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .pend-item:first-of-type{border-top:0}.pend-item>div{flex:1;min-width:0}.pend-item b{display:block;font-size:14.5px}.pend-item small{color:var(--gris);font-size:12.5px}
 .pendientes details summary{cursor:pointer;color:var(--gris);font-size:13.5px;padding-top:8px}
 .periodos{display:flex;gap:8px;flex-wrap:wrap}
+.an-top{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.an-aviso{background:#FFC8571a;box-shadow:inset 0 0 0 1px #FFC85744;border-radius:16px;padding:12px 16px;margin-bottom:14px;font-size:14px;color:var(--tinta2)}.an-aviso b{color:var(--ambar)}
+.an-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.an-card{background:var(--blanco);border-radius:20px;padding:16px 18px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.an-card small{color:var(--gris);font-size:13px}.an-card>b{font-size:26px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.an-card .cmp{font-size:12.5px;color:var(--gris)}
+.an-spark{margin-top:auto;padding-top:8px}.spark{width:100%;height:34px;display:block}
+.an-cab{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:6px}.an-cab>div:first-child{flex:1 1 320px}
+.an-proy{background:linear-gradient(140deg,#7B5CFF33,#1E9E7C26);border-radius:18px;padding:12px 16px;min-width:230px}
+.an-proy small{display:block;color:var(--tinta2);font-size:12.5px}.an-proy b{display:block;font-size:26px;letter-spacing:-.03em}.an-proy span{display:block;color:var(--gris);font-size:12px;margin-top:2px}
+.an-proy.vacia{background:var(--tono)}
+.an-dato{font-size:14px;margin:4px 0 10px;color:var(--tinta2)}.an-dato b{color:var(--texto)}
+.calor-ley{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:12px;color:var(--gris);margin-top:6px}
+.calor-ley i{width:90px;height:8px;border-radius:99px;background:linear-gradient(90deg,#7B6CFF29,#7B6CFF)}
+.an-card ~ * .rejilla,.grafico .rejilla{stroke-opacity:.5}
+.celda{cursor:pointer;transition:stroke .1s}.celda:hover{stroke:#F3F2FA;stroke-width:1.5}
+.ticket-res{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.ticket-res div{background:var(--tono);border-radius:14px;padding:9px 10px}.ticket-res small{display:block;color:var(--gris);font-size:11.5px;line-height:1.3}.ticket-res b{font-size:16px}
+.cuad-t{font-weight:600;fill:var(--tinta2)!important;font-size:12px!important}.et-p{fill:var(--texto)!important;font-size:11.5px!important}
+.punto-p,.bar-p,.bin{cursor:pointer}.punto-p:hover{fill-opacity:1}
+.par-ley{margin:8px 0 0;padding-left:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 14px;font-size:13px}.par-ley small{color:var(--gris)}
+.cuad-ley{display:grid;gap:6px;margin-top:8px;font-size:13px}.cuad-ley small{color:var(--gris)}
+.cas-v{fill:var(--texto)!important;font-size:12px;font-weight:600}
+.cob{display:grid;gap:9px}.cob-f{display:grid;grid-template-columns:minmax(0,130px) 1fr 66px;gap:10px;align-items:center;font-size:13.5px}
+.cob-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cob-b{position:relative;height:14px;background:var(--tono);border-radius:99px;overflow:hidden}
+.cob-b i{position:absolute;top:0;bottom:0;left:0}.cob-b .z1,.cob-ej .z1{background:#FF7A8A26}.cob-b .z2,.cob-ej .z2{background:#FFC8571f}
+.cob-b b{position:relative;display:block;height:100%;border-radius:99px}.cob-b b.ok{background:var(--menta)}.cob-b b.aviso{background:var(--ambar)}.cob-b b.mal{background:var(--coral)}
+.cob-d{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px}.cob-d.mal{color:var(--coral)}.cob-d.aviso{color:var(--ambar)}
+.cob-ej{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--gris);margin-top:4px}.cob-ej i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-2px}
+@media(max-width:600px){.ticket-res{grid-template-columns:1fr}.an-proy{width:100%}}
 .chip-per{background:var(--tono);color:var(--texto);border:1px solid transparent;border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
 .chip-per.on{background:var(--texto);color:var(--papel);font-weight:600}.chip-per:focus-visible{outline:2px solid var(--violeta);outline-offset:2px}
 .an-kpi{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
@@ -4352,6 +4383,154 @@ async function pintarBoletas() {
     if (await registrarBoleta({ ventas: [v], dia: v.dia, consolidada: false })) (enApartado ? ir('boletas') : pintarBoletas());
   });
 }
+// ============ GRÁFICOS ESTADÍSTICOS DEL ANÁLISIS (SVG propio, con tooltip) ============
+const AN_COL = { venta: '#7B6CFF', gan: '#1E9E7C', banda: '#7B6CFF', estrella: '#1E9E7C', volumen: '#7A73D9', nicho: '#C9822A', revisar: '#76758F' };
+function anTip(cont) {
+  const t = document.createElement('div'); t.className = 'tip'; cont.style.position = 'relative'; cont.appendChild(t);
+  return { ver(html, x, y) { t.innerHTML = html; t.style.left = x + 'px'; t.style.top = y + 'px'; t.classList.add('ver'); }, ocultar() { t.classList.remove('ver'); } };
+}
+const anAncho = (cont, min = 280, max = 760) => Math.max(min, Math.min(max, Math.round(cont.clientWidth || 640)));
+const pasoEje = max => { const r = max / 4, e = 10 ** Math.floor(Math.log10(r || 1)), f = r / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * e; };
+const sEje = v => v >= 1000 ? N(v / 1000, 1) + ' mil' : N(v);
+function anVacio(cont, titulo, texto) { cont.innerHTML = `<div class="dona-vacia"><p><b>${esc(titulo)}</b></p><p class="sub" style="margin:0">${texto}</p></div>`; }
+// Mini tendencia para las tarjetas
+function sparkline(vals, color, alto = 34) {
+  const v = vals.map(x => Number.isFinite(x) ? x : null), ok = v.filter(x => x !== null);
+  if (ok.length < 2) return '';
+  const W = 160, min = Math.min(...ok), max = Math.max(...ok), rg = max - min || 1, x = i => i / (v.length - 1) * W, y = n => alto - 3 - (n - min) / rg * (alto - 6);
+  let d = '', ab = false; v.forEach((n, i) => { if (n === null) { ab = false; return; } d += (ab ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(n).toFixed(1); ab = true; });
+  const ult = v.length - 1 - [...v].reverse().findIndex(n => n !== null);
+  return `<svg class="spark" viewBox="0 0 ${W} ${alto}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="${x(ult)}" cy="${y(v[ult])}" r="2.6" fill="${color}"/></svg>`;
+}
+// Tendencia: venta diaria, promedio móvil de 7 días y banda de variación normal (±1 desviación de los últimos 7 días)
+function grafTendencia(cont, fechas, serie, etiqueta, largo) {
+  const W = anAncho(cont, 300, 900), H = 250, m = { t: 14, r: 12, b: 28, l: 52 }, iw = W - m.l - m.r, ih = H - m.t - m.b, n = serie.length;
+  const mm = serie.map((_, i) => i >= 6 ? serie.slice(i - 6, i + 1).reduce((a, b) => a + b, 0) / 7 : null);
+  const de = serie.map((_, i) => { if (i < 6) return null; const w = serie.slice(i - 6, i + 1), mu = mm[i]; return Math.sqrt(w.reduce((a, b) => a + (b - mu) ** 2, 0) / 6); });
+  const max = Math.max(1, ...serie, ...mm.map((v, i) => v === null ? 0 : v + de[i])), paso = pasoEje(max), tope = Math.ceil(max / paso) * paso;
+  const x = i => m.l + (n === 1 ? iw / 2 : iw * i / (n - 1)), y = v => m.t + ih - Math.max(0, v) / tope * ih, bw = Math.max(2, Math.min(18, iw / n * .55));
+  let g = '';
+  for (let v = 0; v <= tope + 1e-9; v += paso) g += `<line class="rejilla" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="eje" x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${sEje(v)}</text>`;
+  const idx = mm.map((v, i) => v === null ? null : i).filter(i => i !== null);
+  if (idx.length > 1) g += `<path d="M${idx.map(i => `${x(i).toFixed(1)},${y(mm[i] + de[i]).toFixed(1)}`).join('L')}L${idx.slice().reverse().map(i => `${x(i).toFixed(1)},${y(Math.max(0, mm[i] - de[i])).toFixed(1)}`).join('L')}Z" fill="${AN_COL.banda}" opacity=".16"/>`;
+  serie.forEach((v, i) => { if (v > 0) g += `<rect x="${(x(i) - bw / 2).toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(m.t + ih - y(v)).toFixed(1)}" rx="3" fill="${AN_COL.venta}" opacity=".55"/>`; });
+  if (idx.length > 1) g += `<path d="M${idx.map(i => `${x(i).toFixed(1)},${y(mm[i]).toFixed(1)}`).join('L')}" fill="none" stroke="#F3F2FA" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const cada = Math.ceil(n / Math.max(4, Math.floor(iw / 70)));
+  fechas.forEach((f, i) => { if (i % cada === 0 || i === n - 1) g += `<text class="eje" x="${x(i)}" y="${H - 8}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${esc(etiqueta(f))}</text>`; });
+  g += `<line class="cruz" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--gris)" stroke-dasharray="3 3" opacity="0"/><rect class="captura" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/>`;
+  cont.innerHTML = `<div class="grafico"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Venta diaria con promedio de 7 días y banda de variación">${g}</svg></div>`;
+  const tip = anTip(cont.querySelector('.grafico')), sv = cont.querySelector('svg'), cruz = cont.querySelector('.cruz');
+  cont.querySelector('.captura').onmousemove = e => { const r = sv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W, i = Math.max(0, Math.min(n - 1, Math.round((px - m.l) / (iw / Math.max(1, n - 1)))));
+    cruz.setAttribute('x1', x(i)); cruz.setAttribute('x2', x(i)); cruz.setAttribute('opacity', 1);
+    tip.ver(`${esc(largo(fechas[i]))}<br>Vendiste: <b>${S(serie[i])}</b>${mm[i] !== null ? `<br>Promedio 7 días: <b>${S(mm[i])}</b><br>Rango normal: ${S(Math.max(0, mm[i] - de[i]))} a ${S(mm[i] + de[i])}` : ''}`, x(i) / W * r.width, y(Math.max(serie[i], mm[i] || 0)) / H * r.height); };
+  cont.querySelector('.captura').onmouseleave = () => { tip.ocultar(); cruz.setAttribute('opacity', 0); };
+}
+// Mapa de calor: día de la semana × hora
+function grafCalor(cont, celdas, horas) {
+  const DSL = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'], ord = [1, 2, 3, 4, 5, 6, 0];
+  const W = anAncho(cont, 300, 760), m = { t: 8, r: 6, b: 26, l: 38 }, cw = (W - m.l - m.r) / horas.length, ch = Math.min(30, Math.max(20, cw * .9)), H = m.t + ch * 7 + m.b;
+  const max = Math.max(...ord.flatMap(d => horas.map(h => celdas[d][h].v)), 0.01);
+  let g = '';
+  ord.forEach((d, r) => { g += `<text class="eje" x="${m.l - 6}" y="${m.t + r * ch + ch / 2 + 4}" text-anchor="end">${DSL[r]}</text>`;
+    horas.forEach((h, c) => { const o = celdas[d][h], a = o.v > 0 ? .16 + .84 * (o.v / max) : 0;
+      g += `<rect class="celda" data-d="${d}" data-h="${h}" x="${(m.l + c * cw + 1).toFixed(1)}" y="${(m.t + r * ch + 1).toFixed(1)}" width="${(cw - 2).toFixed(1)}" height="${(ch - 2).toFixed(1)}" rx="4" fill="${o.v > 0 ? AN_COL.venta : 'var(--tono)'}" fill-opacity="${o.v > 0 ? a.toFixed(2) : 1}"/>`; }); });
+  const cada = Math.ceil(horas.length / Math.max(4, Math.floor((W - m.l) / 46)));
+  horas.forEach((h, c) => { if (c % cada === 0) g += `<text class="eje" x="${m.l + c * cw + cw / 2}" y="${H - 8}" text-anchor="middle">${h}h</text>`; });
+  cont.innerHTML = `<div class="grafico"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mapa de calor de ventas por día y hora">${g}</svg></div>
+    <div class="calor-ley"><span>Menos</span><i></i><span>Más venta</span></div>`;
+  const tip = anTip(cont.querySelector('.grafico')), sv = cont.querySelector('svg'), DL = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  cont.querySelectorAll('.celda').forEach(c => { c.onmouseenter = () => { const o = celdas[c.dataset.d][c.dataset.h], r = sv.getBoundingClientRect(), b = c.getBBox();
+    tip.ver(`${DL[c.dataset.d]} de ${c.dataset.h}:00 a ${Number(c.dataset.h) + 1}:00<br>${o.n ? `<b>${S(o.v)}</b> en ${o.n} ${o.n === 1 ? 'venta' : 'ventas'}<br>${o.dias > 1 ? `Promedio por ${DL[c.dataset.d]}: ${S(o.v / o.dias)}` : ''}` : 'Sin ventas'}`, (b.x + b.width / 2) / W * r.width, b.y / H * r.height); };
+    c.onmouseleave = () => tip.ocultar(); });
+}
+// Distribución del tamaño de las ventas: histograma + caja (cuartiles)
+function grafTicket(cont, vals) {
+  const v = vals.slice().sort((a, b) => a - b), n = v.length, q = p => { const i = (n - 1) * p, lo = Math.floor(i), hi = Math.ceil(i); return v[lo] + (v[hi] - v[lo]) * (i - lo); };
+  const q1 = q(.25), q2 = q(.5), q3 = q(.75), iqr = q3 - q1, lim = q3 + 1.5 * iqr, atipicos = v.filter(x => x > lim);
+  const tope = Math.max(v[n - 1], 1), nb = Math.min(12, Math.max(5, Math.ceil(Math.sqrt(n)))), ancho = tope / nb, bins = Array.from({ length: nb }, (_, i) => ({ a: i * ancho, b: (i + 1) * ancho, n: 0 }));
+  v.forEach(x => bins[Math.min(nb - 1, Math.floor(x / ancho))].n++);
+  const W = anAncho(cont, 300, 760), H = 230, m = { t: 10, r: 12, b: 58, l: 36 }, iw = W - m.l - m.r, ih = H - m.t - m.b - 30, maxN = Math.max(...bins.map(b => b.n));
+  const x = s => m.l + s / tope * iw, y = c => m.t + ih - c / maxN * ih;
+  let g = '';
+  bins.forEach((b, i) => { if (b.n) g += `<rect class="bin" data-i="${i}" x="${(x(b.a) + 1).toFixed(1)}" y="${y(b.n).toFixed(1)}" width="${Math.max(1, x(b.b) - x(b.a) - 2).toFixed(1)}" height="${(m.t + ih - y(b.n)).toFixed(1)}" rx="3" fill="${AN_COL.venta}" opacity=".75"/>`; });
+  g += `<line class="rejilla" x1="${m.l}" x2="${W - m.r}" y1="${m.t + ih}" y2="${m.t + ih}"/>`;
+  const by = m.t + ih + 22;
+  g += `<line x1="${x(v[0])}" x2="${x(Math.min(lim, v[n - 1]))}" y1="${by}" y2="${by}" stroke="var(--gris)" stroke-width="1.5"/>
+    <rect x="${x(q1)}" y="${by - 9}" width="${Math.max(2, x(q3) - x(q1))}" height="18" rx="4" fill="${AN_COL.venta}" fill-opacity=".3" stroke="${AN_COL.venta}"/>
+    <line x1="${x(q2)}" x2="${x(q2)}" y1="${by - 9}" y2="${by + 9}" stroke="#F3F2FA" stroke-width="2.5"/>`;
+  atipicos.forEach(a => g += `<circle cx="${x(a)}" cy="${by}" r="3.5" fill="none" stroke="${AN_COL.nicho}" stroke-width="1.5"/>`);
+  [0, tope / 2, tope].forEach(s => g += `<text class="eje" x="${x(s)}" y="${H - 8}" text-anchor="${s === 0 ? 'start' : s === tope ? 'end' : 'middle'}">${S(s)}</text>`);
+  cont.innerHTML = `<div class="grafico"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Distribución del monto de cada venta">${g}</svg></div>
+    <div class="ticket-res"><div><small>La mitad de tus ventas es de menos de</small><b>${S(q2)}</b></div><div><small>Lo típico (la mitad del medio)</small><b>${S(q1)} a ${S(q3)}</b></div><div><small>Ventas mucho más grandes de lo común</small><b>${atipicos.length}</b></div></div>`;
+  const tip = anTip(cont.querySelector('.grafico')), sv = cont.querySelector('svg');
+  cont.querySelectorAll('.bin').forEach(r => { r.onmouseenter = () => { const b = bins[r.dataset.i], rc = sv.getBoundingClientRect(), bb = r.getBBox(); tip.ver(`De ${S(b.a)} a ${S(b.b)}<br><b>${b.n} ${b.n === 1 ? 'venta' : 'ventas'}</b> (${P(b.n / n * 100)})`, (bb.x + bb.width / 2) / W * rc.width, bb.y / H * rc.height); }; r.onmouseleave = () => tip.ocultar(); });
+  return { q1, q2, q3, atipicos: atipicos.length };
+}
+// Mapa de productos: rotación (unidades por día) × margen; tamaño = ganancia
+function grafProductos(cont, items, corteRot, corteMg) {
+  const W = anAncho(cont, 300, 760), H = 310, m = { t: 16, r: 16, b: 40, l: 48 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const maxR = Math.max(...items.map(o => o.rot)) * 1.15 || 1, mgs = items.map(o => o.m), minM = Math.floor(Math.min(...mgs, corteMg) - 6), maxM = Math.ceil(Math.max(...mgs, corteMg) + 6), maxG = Math.max(...items.map(o => Math.max(0, o.g)), 1);
+  const x = r => m.l + r / maxR * iw, y = v => m.t + ih - (v - minM) / (maxM - minM) * ih, rad = g => 6 + 16 * Math.sqrt(Math.max(0, g) / maxG);
+  const cuad = o => o.rot >= corteRot ? (o.m >= corteMg ? 'estrella' : 'volumen') : (o.m >= corteMg ? 'nicho' : 'revisar');
+  let g = `<rect x="${x(corteRot)}" y="${m.t}" width="${W - m.r - x(corteRot)}" height="${y(corteMg) - m.t}" fill="${AN_COL.estrella}" opacity=".07"/>`;
+  g += `<line x1="${x(corteRot)}" x2="${x(corteRot)}" y1="${m.t}" y2="${m.t + ih}" stroke="var(--gris)" stroke-dasharray="4 4" opacity=".6"/><line x1="${m.l}" x2="${W - m.r}" y1="${y(corteMg)}" y2="${y(corteMg)}" stroke="var(--gris)" stroke-dasharray="4 4" opacity=".6"/>`;
+  [['Estrellas', W - m.r - 6, m.t + 14, 'end'], ['Volumen', W - m.r - 6, m.t + ih - 6, 'end'], ['Nicho', m.l + 6, m.t + 14, 'start'], ['Revisar', m.l + 6, m.t + ih - 6, 'start']].forEach(([t, a, b, an]) => g += `<text class="eje cuad-t" x="${a}" y="${b}" text-anchor="${an}">${t}</text>`);
+  items.slice().sort((a, b) => b.g - a.g).forEach((o, i) => { g += `<circle class="punto-p" data-i="${items.indexOf(o)}" cx="${x(o.rot).toFixed(1)}" cy="${y(o.m).toFixed(1)}" r="${rad(o.g).toFixed(1)}" fill="${AN_COL[cuad(o)]}" fill-opacity=".8" stroke="var(--blanco)" stroke-width="2"/>`; });
+  const puestas = [];
+  items.slice().sort((a, b) => b.g - a.g).slice(0, 6).forEach(o => { const lx = x(o.rot) + rad(o.g) + 4, ly = y(o.m) + 4, txt = o.nom.length > 16 ? o.nom.slice(0, 15) + '…' : o.nom, ww = txt.length * 6.2;
+    const der = lx + ww > W - m.r, ax = der ? x(o.rot) - rad(o.g) - 4 : lx;
+    if (puestas.some(p => Math.abs(p.y - ly) < 13 && Math.abs(p.x - ax) < Math.max(p.w, ww))) return;
+    puestas.push({ x: ax, y: ly, w: ww }); g += `<text class="eje et-p" x="${ax.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${der ? 'end' : 'start'}">${esc(txt)}</text>`; });
+  for (let k = 0; k <= 4; k++) { const r = maxR / 1.15 * k / 4; g += `<text class="eje" x="${x(r)}" y="${m.t + ih + 14}" text-anchor="middle">${r < 10 ? r.toFixed(1) : Math.round(r)}</text>`; }
+  [minM, Math.round((minM + maxM) / 2), maxM].forEach(v => g += `<text class="eje" x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v}%</text>`);
+  g += `<text class="eje" x="${m.l + iw / 2}" y="${H - 4}" text-anchor="middle">Rotación: unidades que vendes por día →</text><text class="eje" transform="translate(11 ${m.t + ih / 2}) rotate(-90)" text-anchor="middle">Margen →</text>`;
+  cont.innerHTML = `<div class="grafico"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mapa de productos por rotación y margen">${g}</svg></div>
+    <div class="cuad-ley">${[['estrella', 'Estrellas', 'se venden mucho y dejan buen margen: nunca te quedes sin ellas'], ['volumen', 'Volumen', 'rotan mucho con poco margen: revisa su precio'], ['nicho', 'Nicho', 'buen margen pero rotan poco: exhíbelos más'], ['revisar', 'Revisar', 'poca rotación y poco margen: compra menos']].map(([k, t, d]) => `<div><span class="punto" style="background:${AN_COL[k]}"></span><b>${t}</b> <small>${d} (${items.filter(o => cuad(o) === k).length})</small></div>`).join('')}</div>`;
+  const tip = anTip(cont.querySelector('.grafico')), sv = cont.querySelector('svg');
+  cont.querySelectorAll('.punto-p').forEach(c => { c.onmouseenter = () => { const o = items[c.dataset.i], r = sv.getBoundingClientRect(); tip.ver(`<b>${esc(o.nom)}</b><br>${N(o.rot, 1)} und. por día · margen ${P(o.m)}<br>Ganancia: <b>${S(o.g)}</b>`, Number(c.getAttribute('cx')) / W * r.width, (Number(c.getAttribute('cy')) - Number(c.getAttribute('r'))) / H * r.height); }; c.onmouseleave = () => tip.ocultar(); });
+  return cuad;
+}
+// Pareto 80/20: ganancia por producto (barras) y acumulado (línea)
+function grafPareto(cont, items) {
+  const tot = items.reduce((a, o) => a + Math.max(0, o.g), 0), n = items.length;
+  const W = anAncho(cont, 300, 760), H = 220, m = { t: 14, r: 40, b: 26, l: 12 }, iw = W - m.l - m.r, ih = H - m.t - m.b, bw = iw / n;
+  const maxG = Math.max(...items.map(o => o.g), 1), yB = v => m.t + ih - Math.max(0, v) / maxG * ih, yP = p => m.t + ih - p / 100 * ih;
+  let acum = 0; const pts = items.map((o, i) => { acum += Math.max(0, o.g); return { i, p: tot ? acum / tot * 100 : 0 }; });
+  const corte = pts.findIndex(p => p.p >= 80);
+  let g = `<line class="rejilla" x1="${m.l}" x2="${W - m.r}" y1="${yP(80)}" y2="${yP(80)}" stroke-dasharray="4 4"/><text class="eje" x="${W - m.r + 4}" y="${yP(80) + 4}">80%</text><text class="eje" x="${W - m.r + 4}" y="${yP(100) + 4}">100%</text>`;
+  items.forEach((o, i) => { const cls = i <= corte ? 'A' : pts[i].p <= 95 ? 'B' : 'C';
+    g += `<rect class="bar-p" data-i="${i}" x="${(m.l + i * bw + bw * .15).toFixed(1)}" y="${yB(o.g).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${(m.t + ih - yB(o.g)).toFixed(1)}" rx="3" fill="${cls === 'A' ? AN_COL.gan : cls === 'B' ? AN_COL.volumen : AN_COL.revisar}"/>`;
+    g += `<text class="eje" x="${(m.l + i * bw + bw / 2).toFixed(1)}" y="${m.t + ih + 16}" text-anchor="middle">${i + 1}</text>`; });
+  g += `<path d="M${pts.map(p => `${(m.l + p.i * bw + bw / 2).toFixed(1)},${yP(p.p).toFixed(1)}`).join('L')}" fill="none" stroke="#F3F2FA" stroke-width="2"/>`;
+  pts.forEach(p => g += `<circle cx="${(m.l + p.i * bw + bw / 2).toFixed(1)}" cy="${yP(p.p).toFixed(1)}" r="3" fill="#F3F2FA"/>`);
+  cont.innerHTML = `<div class="grafico"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pareto de ganancia por producto">${g}</svg></div>
+    <ol class="par-ley">${items.map((o, i) => `<li><span class="punto" style="background:${i <= corte ? AN_COL.gan : pts[i].p <= 95 ? AN_COL.volumen : AN_COL.revisar}"></span>${esc(o.nom)} <small>${S(o.g)} · ${P(pts[i].p)} acum.</small></li>`).join('')}</ol>`;
+  const tip = anTip(cont.querySelector('.grafico')), sv = cont.querySelector('svg');
+  cont.querySelectorAll('.bar-p').forEach(r => { r.onmouseenter = () => { const o = items[r.dataset.i], rc = sv.getBoundingClientRect(), bb = r.getBBox(); tip.ver(`<b>${esc(o.nom)}</b><br>Ganancia ${S(o.g)} (${P(tot ? o.g / tot * 100 : 0)})<br>Acumulado: ${P(pts[r.dataset.i].p)}`, (bb.x + bb.width / 2) / W * rc.width, bb.y / H * rc.height); }; r.onmouseleave = () => tip.ocultar(); });
+  return { nA: corte + 1, n };
+}
+// Cascada: de la venta a la ganancia
+function grafCascada(cont, pasos) {
+  const W = anAncho(cont, 300, 760), H = 240, m = { t: 22, r: 10, b: 40, l: 10 }, iw = W - m.l - m.r, ih = H - m.t - m.b, bw = iw / pasos.length;
+  const max = Math.max(...pasos.map(p => Math.abs(p.v)), 1), y = v => m.t + ih - v / max * ih;
+  let g = '', nivel = 0;
+  pasos.forEach((p, i) => { const tot = p.tipo === 'total', a = tot ? 0 : nivel, b = tot ? p.v : nivel + p.v; if (!tot) nivel = b; else nivel = p.v;
+    const top = y(Math.max(a, b)), alto = Math.max(2, Math.abs(y(a) - y(b))), col = tot ? (p.v >= 0 ? AN_COL.gan : 'var(--coral)') : p.v < 0 ? 'var(--coral)' : AN_COL.venta;
+    g += `<rect x="${(m.l + i * bw + bw * .18).toFixed(1)}" y="${top.toFixed(1)}" width="${(bw * .64).toFixed(1)}" height="${alto.toFixed(1)}" rx="4" fill="${i === 0 ? AN_COL.venta : col}" opacity="${tot || i === 0 ? 1 : .85}"/>
+      <text class="cas-v" x="${(m.l + i * bw + bw / 2).toFixed(1)}" y="${(top - 6).toFixed(1)}" text-anchor="middle">${p.v < 0 ? '−' : ''}${S(Math.abs(p.v))}</text>
+      <text class="eje" x="${(m.l + i * bw + bw / 2).toFixed(1)}" y="${H - 22}" text-anchor="middle">${esc(p.t[0])}</text><text class="eje" x="${(m.l + i * bw + bw / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${esc(p.t[1] || '')}</text>`;
+    if (i < pasos.length - 1) g += `<line x1="${(m.l + i * bw + bw * .82).toFixed(1)}" x2="${(m.l + (i + 1) * bw + bw * .18).toFixed(1)}" y1="${y(nivel).toFixed(1)}" y2="${y(nivel).toFixed(1)}" stroke="var(--gris)" stroke-dasharray="3 3"/>`; });
+  cont.innerHTML = `<div class="grafico"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cascada de la venta a la ganancia">${g}</svg></div>`;
+}
+// Cobertura del inventario: barras horizontales con zonas de riesgo
+function grafCobertura(cont, inv) {
+  const filas = inv.filter(e => e.cob !== null).slice(0, 12);
+  if (!filas.length) return anVacio(cont, 'Aún no hay ventas para calcular', 'Cuando vendas, aquí verás cuántos días te dura cada producto.');
+  const tope = Math.max(14, Math.min(60, Math.ceil(Math.max(...filas.map(e => e.cob)) / 7) * 7));
+  cont.innerHTML = `<div class="cob">${filas.map(e => { const d = Math.max(0, e.cob), w = Math.min(100, d / tope * 100), k = d < 3 ? 'mal' : d < 7 ? 'aviso' : 'ok';
+    return `<div class="cob-f"><span class="cob-n">${esc(e.producto)}</span><div class="cob-b"><i class="z1" style="width:${3 / tope * 100}%"></i><i class="z2" style="left:${3 / tope * 100}%;width:${4 / tope * 100}%"></i><b class="${k}" style="width:${Math.max(2, w)}%"></b></div><span class="cob-d ${k}">${d >= tope ? `+${tope}` : Math.round(d) <= 1 ? '~1' : Math.round(d)} días</span></div>`; }).join('')}
+    <div class="cob-ej"><span><i class="z1"></i>Menos de 3 días: reponer ya</span><span><i class="z2"></i>3 a 7 días: planifica la compra</span></div></div>`;
+}
 // ---------- ANÁLISIS: inteligencia de negocio con reglas de suficiencia de datos ----------
 // Principios: comparar periodos equivalentes, no mostrar estadística sin datos suficientes, cada hallazgo con evidencia.
 const MADUREZ = [
@@ -4439,41 +4618,78 @@ async function vAnalisis(el) {
   if (nDiasHist >= 28) { const pr = sem.map(a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null), val = pr.map((v, i) => [v, i]).filter(x => x[0] != null && sem[x[1]].length >= 3).sort((a, b) => b[0] - a[0]);
     if (val.length >= 2 && val[0][0] > val[val.length - 1][0] * 1.3) H_.push({ t: `Los ${DS[val[0][1]]} vendes más`, d: `Promedio ${S(val[0][0])} los ${DS[val[0][1]]} frente a ${S(val[val.length - 1][0])} los ${DS[val[val.length - 1][1]]} (al menos 3 semanas de cada día).`, i: 'Saber qué día vendes más te ayuda a reponer y atender a tiempo.', a: `Asegura stock completo antes de cada ${DS[val[0][1]]}.` }); }
   const varK = (a, b) => compara ? variacion(a, b, 'vs. periodo anterior') : '<div class="cmp">Sin periodo anterior comparable</div>';
+  // ---- Series diarias del periodo (para las mini tendencias de las tarjetas)
+  const diasP = []; for (let f = ini; f <= fin; f = diaMas(f, 1)) diasP.push(f);
+  const dRow = Object.fromEntries(cur.map(x => [x.fecha, x])), diaDe = f => new Date(f).toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+  const nPorDia = {}; ventas.forEach(v => { const k = diaDe(v.fecha); nPorDia[k] = (nPorDia[k] || 0) + 1; });
+  const spV = diasP.map(f => num(dRow[f]?.ventas_netas)), spG = diasP.map(f => num(dRow[f]?.utilidad_bruta));
+  const spM = diasP.map(f => num(dRow[f]?.ventas_netas) > 0 ? num(dRow[f].utilidad_bruta) / num(dRow[f].ventas_netas) * 100 : null);
+  const spN = diasP.map(f => nPorDia[f] || 0), spT = diasP.map((f, i) => spN[i] ? spV[i] / spN[i] : null), spO = diasP.map(f => num(dRow[f]?.utilidad_bruta) - gastosDe(dRow[f] ? [dRow[f]] : []));
+  // ---- Mapa de calor día × hora (sin ventas del conteo: no tienen hora real)
+  const celdas = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => ({ v: 0, n: 0, ds: new Set() })));
+  const conHora = ventas.filter(v => v.origen !== 'CONTEO');
+  conHora.forEach(v => { const t = new Date(v.fecha), d = new Date(diaDe(v.fecha) + 'T12:00:00-05:00').getDay(),
+    h = Number(t.toLocaleString('en-US', { timeZone: 'America/Lima', hour: 'numeric', hour12: false })) % 24, o = celdas[d][h];
+    o.v += (v.venta_detalles || []).reduce((a, l) => a + num(l.subtotal), 0); o.n++; o.ds.add(diaDe(v.fecha)); });
+  celdas.forEach(r => r.forEach(o => { o.dias = o.ds.size; }));
+  const hUsadas = celdas.flatMap(r => r.map((o, h) => o.n ? h : null)).filter(h => h !== null);
+  const hIni = Math.min(7, ...hUsadas), hFin = Math.max(21, ...hUsadas), horasR = Array.from({ length: hFin - hIni + 1 }, (_, k) => hIni + k);
+  const mejorCelda = celdas.flatMap((r, d) => r.map((o, h) => ({ d, h, ...o }))).sort((a, b) => b.v - a.v)[0];
+  const bloques = [['mañana', 6, 12], ['tarde', 12, 18], ['noche', 18, 24]].map(([t, a, b]) => ({ t, v: celdas.reduce((s2, r) => s2 + r.slice(a, b).reduce((x, o) => x + o.v, 0), 0) })), totBloq = bloques.reduce((a, b) => a + b.v, 0);
+  const DLARGO = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  // ---- Tamaño de cada venta
+  const tickets = ventas.map(v => (v.venta_detalles || []).reduce((a, l) => a + num(l.subtotal), 0)).filter(x => x > 0);
+  // ---- Productos: rotación × margen, y Pareto
+  const items = lista.filter(o => o.u > 0 && o.m != null).map(o => ({ nom: o.nom, rot: o.u / diasBase, m: o.m, g: o.g }));
+  const medRot = (() => { const r = items.map(o => o.rot).sort((a, b) => a - b); return r.length ? (r.length % 2 ? r[(r.length - 1) / 2] : (r[r.length / 2 - 1] + r[r.length / 2]) / 2) : 0; })();
+  const parItems = lista.filter(o => o.g > 0).map(o => ({ nom: o.nom, g: o.g }));
+  const parVista = parItems.length > 12 ? [...parItems.slice(0, 11), { nom: `Otros (${parItems.length - 11})`, g: parItems.slice(11).reduce((a, o) => a + o.g, 0) }] : parItems;
+  // ---- Proyección del mes en curso (con la venta diaria de los días calendario transcurridos)
+  const mesIni = H.slice(0, 8) + '01', diaN = Number(H.slice(8)), diasMesT = Number(diaMas(diaMas(mesIni, 32).slice(0, 8) + '01', -1).slice(8));
+  const vMes = []; for (let f = mesIni; f <= H; f = diaMas(f, 1)) vMes.push(num(diasAll.find(x => x.fecha === f)?.ventas_netas));
+  const acumMes = r2(vMes.reduce((a, b) => a + b, 0)), estMes = estad(vMes), restan = diasMesT - diaN, conVentaMes = vMes.filter(x => x > 0).length;
+  const proy = estMes && diaN >= 7 && conVentaMes >= 5 ? { c: acumMes + estMes.media * restan, a: Math.max(acumMes, acumMes + estMes.media * restan - 1.28 * estMes.de * Math.sqrt(restan)), b: acumMes + estMes.media * restan + 1.28 * estMes.de * Math.sqrt(restan) } : null;
+  const nomMes = new Date(H + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', month: 'long' });
+  const kpi = (t, val, cmp, sp, col, ayuda) => `<div class="an-card"><small>${t}${ayuda ? ` <span class="pn-q" title="${esc(ayuda)}">?</span>` : ''}</small><b>${val}</b>${cmp}${sp ? `<div class="an-spark">${sp}</div>` : ''}</div>`;
   el.innerHTML = `
-  <div class="periodos" role="tablist" aria-label="Periodo">${[['7', '7 días'], ['30', '30 días'], ['90', '90 días'], ['mes', 'Este mes']].map(([k, t]) => `<button role="tab" aria-selected="${k === per}" class="chip-per ${k === per ? 'on' : ''}" data-per="${k}">${t}</button>`).join('')}</div>
-  <p class="sub" style="margin:8px 0 14px">Del ${fd(ini)} al ${fd(fin)} · ${nV} ${nV === 1 ? 'venta' : 'ventas'} en ${diasPerVenta} ${diasPerVenta === 1 ? 'día' : 'días'} con venta${compara ? ` · se compara con ${fd(pIni)}–${fd(pFin)}` : ''}.</p>
-  ${nDiasHist < 14 ? `<div class="cuadre mal" style="margin-bottom:14px"><b>Aún hay pocos datos (${nDiasHist} ${nDiasHist === 1 ? 'día' : 'días'} con ventas).</b> Las cifras son reales, pero todavía no reflejan un comportamiento estable: no saques conclusiones de tendencia hasta tener al menos 2 semanas.</div>` : ''}
-  <div class="cifras an-kpi">
-    <div class="cifra"><small>Ventas netas</small><b>${S(kc.v)}</b>${varK(kc.v, kp.v)}</div>
-    <div class="cifra"><small>Ganancia bruta</small><b>${S(kc.g)}</b>${varK(kc.g, kp.g)}</div>
-    <div class="cifra"><small>Margen bruto</small><b>${kc.m == null ? '—' : P(kc.m)}</b><div class="cmp">${kc.m == null ? '' : `De cada S/ 10 vendidos te quedan ${S(kc.m / 10)}`}</div></div>
-    <div class="cifra"><small>Ganancia operativa</small><b>${S(kc.op)}</b><div class="cmp">${hayGastos ? `Gastos: ${S(kc.ga)}` : '<span class="chip mal">Sin gastos registrados</span>'}</div></div>
-    <div class="cifra"><small>Ventas</small><b>${nV}</b>${compara ? variacion(nV, nP, 'vs. periodo anterior') : ''}</div>
-    <div class="cifra"><small>Ticket promedio</small><b>${S(tk)}</b>${compara && nP ? variacion(tk, tkP, 'vs. periodo anterior') : ''}</div>
+  <div class="an-top"><div class="periodos" role="tablist" aria-label="Periodo">${[['7', '7 días'], ['30', '30 días'], ['90', '90 días'], ['mes', 'Este mes']].map(([k, t]) => `<button role="tab" aria-selected="${k === per}" class="chip-per ${k === per ? 'on' : ''}" data-per="${k}">${t}</button>`).join('')}</div>
+  <p class="sub" style="margin:0">Del ${fd(ini)} al ${fd(fin)} · ${nV} ${nV === 1 ? 'venta' : 'ventas'} en ${diasPerVenta} ${diasPerVenta === 1 ? 'día' : 'días'} con venta${compara ? ` · se compara con ${fd(pIni)}–${fd(pFin)}` : ''}</p></div>
+  ${nDiasHist < 14 ? `<div class="an-aviso"><b>Aún hay pocos datos (${nDiasHist} ${nDiasHist === 1 ? 'día' : 'días'} con ventas).</b> Las cifras son reales, pero todavía no muestran un comportamiento estable. Los gráficos se activan solos cuando hay datos suficientes.</div>` : ''}
+  <div class="an-kpis">
+    ${kpi('Ventas netas', S(kc.v), varK(kc.v, kp.v), sparkline(spV, AN_COL.venta))}
+    ${kpi('Ganancia bruta', S(kc.g), varK(kc.g, kp.g), sparkline(spG, AN_COL.gan), 'Ventas menos el costo de lo vendido')}
+    ${kpi('Margen bruto', kc.m == null ? '—' : P(kc.m), `<div class="cmp">${kc.m == null ? '' : `De cada S/ 10 te quedan ${S(kc.m / 10)}`}</div>`, sparkline(spM, '#F3F2FA'))}
+    ${kpi('Ganancia operativa', S(kc.op), `<div class="cmp">${hayGastos ? `Gastos: ${S(kc.ga)}` : '<span class="chip mal">Sin gastos registrados</span>'}</div>`, sparkline(spO, AN_COL.gan), 'Ganancia bruta menos gastos')}
+    ${kpi('Ventas', N(nV), compara ? variacion(nV, nP, 'vs. periodo anterior') : '', sparkline(spN, AN_COL.venta))}
+    ${kpi('Ticket promedio', S(tk), compara && nP ? variacion(tk, tkP, 'vs. periodo anterior') : '', sparkline(spT, AN_COL.nicho), 'Venta promedio por cada cobro')}
   </div>
   <section class="panel"><h2>Hallazgos</h2>
     ${H_.length ? `<div class="hallazgos">${H_.map(h => `<article class="hallazgo ${h.nivel || ''}"><h3>${h.t}</h3><dl><dt>Qué muestran los datos</dt><dd>${h.d}</dd><dt>Por qué importa</dt><dd>${h.i}</dd><dt>Qué hacer</dt><dd>${h.a}</dd></dl></article>`).join('')}</div>`
       : '<p class="sub">Todavía no hay hallazgos con evidencia suficiente. Aparecen solos a medida que registras ventas, compras y gastos.</p>'}
   </section>
-  <section class="panel"><h2>Evolución de las ventas</h2>
-    <p class="sub">Venta neta por día, en soles${fechas.length >= 14 ? ', con el promedio de los últimos 7 días para ver la tendencia sin el ruido diario' : ''}.${est && est.n >= 14 ? ` En tus últimos ${est.n} días con venta: promedio ${S(est.media)}, mediana ${S(est.mediana)}, desviación ${S(est.de)} (variación ${P(est.cv)}).` : ''}</p>
-    ${fechas.length >= 14 ? `<div class="leyenda"><span style="--c:${COL_VENTA}">Venta del día</span><span style="--c:#F3F2FA">Promedio 7 días</span></div>` : ''}
+  <section class="panel"><div class="an-cab"><div><h2>Tendencia de tus ventas</h2>
+    <p class="sub">Barras: lo que vendiste cada día. Línea blanca: promedio de 7 días. Franja: tu rango normal (promedio ± 1 desviación); un día fuera de la franja fue atípico.</p></div>
+    ${proy ? `<div class="an-proy"><small>A este ritmo cierras ${nomMes} en</small><b>${S(proy.c)}</b><span>Probablemente entre ${S(proy.a)} y ${S(proy.b)} · llevas ${S(acumMes)}</span></div>`
+      : `<div class="an-proy vacia"><small>Proyección de ${nomMes}</small><span>Se calcula desde el día 7 del mes con al menos 5 días de venta</span></div>`}</div>
     <div id="gTend"></div></section>
   <div class="cols dos">
-    <section class="panel"><h2>Ganancia por producto</h2><p class="sub">Ordenado por la ganancia bruta que te deja en el periodo (no por lo que vendes).</p>
-      ${lista.length ? `<div class="por-grupo">${lista.map(o => `<div class="pg-fila"><div class="pg-cab"><b>${esc(o.nom)}</b><span>${S(o.g)} · margen ${o.m == null ? '—' : P(o.m)}</span></div>
-        <div class="barra-pct"><i style="width:${gTot > 0 ? Math.max(2, o.g / gTot * 100) : 0}%"></i></div>
-        <small>${N(o.u)} unidades · ${o.paquete.u ? `${P(o.paquete.u / o.u * 100)} en paquete` : 'todo suelto'}${o.suelto.v && o.paquete.v ? ` · margen suelto ${P((o.suelto.v - o.suelto.c) / o.suelto.v * 100)}, paquete ${P((o.paquete.v - o.paquete.c) / o.paquete.v * 100)}` : ''}</small></div>`).join('')}</div>` : '<p class="sub">Sin ventas en el periodo.</p>'}
-    </section>
-    <section class="panel"><h2>De la venta a la ganancia</h2><p class="sub">Dónde se va cada sol que vendes en el periodo.</p>
-      <div class="cascada">${[['Ventas netas', kc.v, 'v'], ['Costo de lo vendido', -suma(cur, 'costo_mercaderia_vendida'), 'c'], ['Ganancia bruta', kc.g, 'r'], ['Gastos', -kc.ga, 'c'], ['Ganancia operativa', kc.op, 'r']].map(([t, v, k]) => `<div class="cas-fila ${k}"><span>${t}</span><div class="cas-barra"><i style="width:${kc.v > 0 ? Math.min(100, Math.abs(v) / kc.v * 100) : 0}%"></i></div><b>${S(v)}</b></div>`).join('')}</div>
-      ${hayGastos ? '' : '<p class="sub" style="margin-top:10px">Sin gastos registrados, la ganancia operativa es igual a la bruta y está sobrestimada.</p>'}
-    </section>
+    <section class="panel"><h2>¿Cuándo vendes más?</h2><p class="sub">Cada cuadro es un día de la semana a una hora. Mientras más intenso, más vendiste ahí.</p>
+      ${conHora.length >= 15 && mejorCelda?.v > 0 ? `<p class="an-dato">Tu mejor momento: <b>${DLARGO[mejorCelda.d]} de ${mejorCelda.h}:00 a ${mejorCelda.h + 1}:00</b>. ${totBloq ? bloques.map(b => `${b.t[0].toUpperCase() + b.t.slice(1)} ${P(b.v / totBloq * 100)}`).join(' · ') : ''}</p>` : ''}
+      <div id="gCalor"></div></section>
+    <section class="panel"><h2>¿De cuánto es cada venta?</h2><p class="sub">Cuántas ventas hiciste de cada tamaño. La caja de abajo marca dónde está la mitad del medio; la raya blanca, la venta típica (mediana).</p>
+      <div id="gTicket"></div></section>
   </div>
-  <section class="panel"><h2>Inventario: cuánto te dura</h2><p class="sub">Valor de tu stock al costo: <b>${S(valorInv)}</b>. Los días de cobertura usan tu venta promedio por día con venta del periodo (${diasPerVenta} ${diasPerVenta === 1 ? 'día' : 'días'})${diasPerVenta < 7 ? ' — con tan pocos días es solo una referencia' : ''}.</p>
-    <div class="scroll"><table><tr><th>Producto</th><th class="n">Le alcanza para</th><th class="n">Stock</th><th class="n">Vende por día</th><th class="n">Valor</th></tr>
-      ${inv.map(e => `<tr><td>${esc(e.producto)}</td><td class="n">${e.cob == null ? '<span class="chip">Sin ventas</span>' : `<span class="chip ${e.cob < 3 ? 'mal' : e.cob < 7 ? '' : 'ok'}">${Math.round(e.cob) <= 1 ? '~1 día' : Math.round(e.cob) + ' días'}</span>`}</td>
-        <td class="n">${N(e.cantidad)}</td><td class="n">${e.vendio ? N(e.diario, 1) : '—'}</td><td class="n">${S(e.valor_total)}</td></tr>`).join('')}</table></div></section>
+  <div class="cols dos">
+    <section class="panel"><h2>Mapa de tus productos</h2><p class="sub">A la derecha, los que más rotan; arriba, los de mejor margen. El tamaño del círculo es la ganancia que te dejan. Las líneas punteadas son tu rotación típica y tu margen promedio.</p>
+      <div id="gProd"></div></section>
+    <section class="panel"><h2>La regla 80/20</h2><p class="sub">Tus productos de más a menos ganancia, y la línea del acumulado. Los verdes son los pocos que sostienen la mayor parte de tu ganancia.</p>
+      <div id="gPareto"></div><p class="an-dato" id="txtPareto"></p></section>
+  </div>
+  <div class="cols dos">
+    <section class="panel"><h2>De la venta a la ganancia</h2><p class="sub">Cómo cada sol vendido se convierte en ganancia en el periodo.</p><div id="gCasc"></div>
+      ${hayGastos ? '' : '<p class="sub" style="margin-top:6px">Sin gastos registrados, la ganancia operativa es igual a la bruta y está sobrestimada.</p>'}</section>
+    <section class="panel"><h2>¿Cuántos días te dura el stock?</h2><p class="sub">Stock al costo: <b>${S(valorInv)}</b>. Calculado con tu venta promedio de ${diasPerVenta} ${diasPerVenta === 1 ? 'día' : 'días'} con venta${diasPerVenta < 7 ? ' (todavía es solo una referencia)' : ''}.</p><div id="gCob"></div></section>
+  </div>
   ${nDiasHist >= 28 ? `<section class="panel"><h2>Venta promedio por día de la semana</h2><p class="sub">Promedio de cada día de la semana en todo tu historial con ventas.</p><div id="gSem"></div></section>` : ''}
   <section class="panel"><h2>Qué tan confiable es el análisis</h2><p class="sub">Cada análisis necesita un mínimo de días con ventas para no confundir el azar con un patrón. Llevas <b>${nDiasHist}</b>.</p>
     <div class="madurez">${MADUREZ.map(([t, req, qq]) => { const ok = nDiasHist >= req; return `<div class="mad-fila ${ok ? 'ok' : ''}"><div><b>${t}</b><small>${qq}</small></div><div class="mad-barra"><i style="width:${Math.min(100, nDiasHist / req * 100)}%"></i></div><span>${ok ? 'Listo' : `${nDiasHist}/${req} días`}</span></div>`; }).join('')}</div>
@@ -4481,8 +4697,14 @@ async function vAnalisis(el) {
   el.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { local.guardar('anPeriodo', b.dataset.per); ir('analisis'); });
   const nomF = f => new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', day: 'numeric', month: 'short' }).replace('.', '');
   const largo = f => new Date(f + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
-  if (fechas.length >= 14) lineas($('#gTend'), fechas.map(nomF), [{ nombre: 'Venta del día', color: COL_VENTA, valores: serie, ancho: 1.5, opaco: .55, puntos: fechas.length <= 31 }, { nombre: 'Promedio 7 días', color: '#F3F2FA', valores: mm7, ancho: 2.5 }], { titulo: 'Venta diaria y promedio de 7 días', tituloTip: i => largo(fechas[i]) });
-  else barras($('#gTend'), fechas.map(nomF), [{ nombre: 'Venta', color: COL_VENTA, valores: serie }], { titulo: 'Venta diaria', tituloTip: i => largo(fechas[i]) });
+  if (fechas.length >= 7) grafTendencia($('#gTend'), fechas, serie, nomF, largo); else anVacio($('#gTend'), 'Aún no hay suficientes días', 'La tendencia aparece cuando tengas al menos 7 días de historial en el periodo.');
+  if (conHora.length >= 15) grafCalor($('#gCalor'), celdas, horasR); else anVacio($('#gCalor'), `Llevas ${conHora.length} ${conHora.length === 1 ? 'venta' : 'ventas'} con hora`, 'Con 15 ventas registradas en Vender el mapa empieza a mostrar tus horas fuertes.');
+  if (tickets.length >= 15) grafTicket($('#gTicket'), tickets); else anVacio($('#gTicket'), `Llevas ${tickets.length} ${tickets.length === 1 ? 'venta' : 'ventas'}`, 'Con 15 ventas ya se puede ver cómo se reparten tus montos.');
+  if (items.length >= 3 && nV >= 10) grafProductos($('#gProd'), items, medRot, kc.m ?? 0); else anVacio($('#gProd'), 'Faltan productos o ventas', 'Se necesitan al menos 3 productos vendidos y 10 ventas en el periodo.');
+  if (parVista.length >= 3) { const r = grafPareto($('#gPareto'), parVista); $('#txtPareto').innerHTML = `<b>${r.nA} de ${parItems.length}</b> ${parItems.length === 1 ? 'producto genera' : 'productos generan'} el 80% de tu ganancia. Cuídalos: que nunca falten.`; }
+  else anVacio($('#gPareto'), 'Faltan productos con ganancia', 'Se necesitan al menos 3 productos que te dejen ganancia en el periodo.');
+  grafCascada($('#gCasc'), [{ t: ['Ventas', 'netas'], v: kc.v, tipo: 'total' }, { t: ['Costo de', 'lo vendido'], v: -suma(cur, 'costo_mercaderia_vendida') }, { t: ['Ganancia', 'bruta'], v: kc.g, tipo: 'total' }, { t: ['Gastos', ''], v: -kc.ga }, { t: ['Ganancia', 'operativa'], v: kc.op, tipo: 'total' }]);
+  grafCobertura($('#gCob'), inv);
   if ($('#gSem')) { const ord = [1, 2, 3, 4, 5, 6, 0]; barras($('#gSem'), ord.map(i => DS[i]), [{ nombre: 'Promedio', color: COL_VENTA, valores: ord.map(i => sem[i].length ? r2(sem[i].reduce((a, b) => a + b, 0) / sem[i].length) : 0) }], { titulo: 'Venta promedio por día de la semana', tituloTip: i => `${DS[ord[i]]} · ${sem[ord[i]].length} días` }); }
 }
 async function vBoletas(el) {

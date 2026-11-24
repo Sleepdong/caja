@@ -6,7 +6,7 @@ test('KPIs del periodo coinciden con un cálculo independiente', async ({ page, 
   await abrirDemo(page);
   await page.evaluate(() => local.guardar('anPeriodo', '30'));
   await irA(page, 'analisis');
-  const k = page.locator('.an-kpi .cifra');
+  const k = page.locator('.an-kpis .an-card');
   const ref = await page.evaluate(async () => {
     const H = hoy(), ini = new Date(Date.parse(H + 'T12:00:00-05:00') - 29 * 864e5).toISOString().slice(0, 10);
     const d = (await sb.from('v_resultados_diarios').select('*').gte('fecha', ini).lte('fecha', H)).data;
@@ -14,19 +14,19 @@ test('KPIs del periodo coinciden con un cálculo independiente', async ({ page, 
     const n = (await sb.from('ventas').select('id').eq('estado', 'EMITIDA').gte('fecha', ini + 'T00:00:00-05:00').lte('fecha', H + 'T23:59:59.999-05:00')).data.length;
     return { v: r2(v), g: r2(g), n, t: r2(v / n) };
   });
-  expect(soles(await k.nth(0).locator('b').innerText())).toBeCloseTo(ref.v, 2);
-  expect(soles(await k.nth(1).locator('b').innerText())).toBeCloseTo(ref.g, 2);
-  expect(Number(await k.nth(4).locator('b').innerText())).toBe(ref.n);
-  expect(soles(await k.nth(5).locator('b').innerText())).toBeCloseTo(ref.t, 2);
+  expect(soles(await k.nth(0).locator('> b').innerText())).toBeCloseTo(ref.v, 2);
+  expect(soles(await k.nth(1).locator('> b').innerText())).toBeCloseTo(ref.g, 2);
+  expect(Number(await k.nth(4).locator('> b').innerText())).toBe(ref.n);
+  expect(soles(await k.nth(5).locator('> b').innerText())).toBeCloseTo(ref.t, 2);
 });
 
 test('la ganancia por producto coincide con la vista de rentabilidad', async ({ page, errores }) => {
   await abrirDemo(page);
   await page.evaluate(() => local.guardar('anPeriodo', '30'));
   await irA(page, 'analisis');
-  const primero = page.locator('.pg-fila').first();
-  const nombre = (await primero.locator('.pg-cab b').innerText()).trim();
-  const mostrado = soles((await primero.locator('.pg-cab span').innerText()).split('·')[0]);
+  const primero = page.locator('.par-ley li').first();
+  const nombre = (await primero.evaluate(e => e.childNodes[1].textContent)).trim();
+  const mostrado = soles((await primero.locator('small').innerText()).split('·')[0]);
   const ref = await page.evaluate(async nom => {
     const H = hoy(), ini = new Date(Date.parse(H + 'T12:00:00-05:00') - 29 * 864e5).toISOString().slice(0, 10);
     const l = (await sb.from('v_lineas_rentabilidad').select('*').gte('fecha', ini).lte('fecha', H)).data;
@@ -120,4 +120,25 @@ test('Panel: la dona reparte las ventas en mercadería, gastos y ganancia neta, 
   await expect(page.locator('.pn-kpi').first()).toContainText('Ventas en 7 días');
   await page.locator('[data-panelper="hoy"]').click();
   await expect(page.locator('#gHoras')).toHaveCount(1);
+});
+
+test('Análisis: gráficos estadísticos con datos coherentes', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await page.evaluate(() => localStorage.setItem('caja:anPeriodo', '"30"'));
+  await irA(page, 'analisis');
+  // Tarjetas con mini tendencia, tendencia con banda, mapa de calor, distribución, mapa de productos, Pareto, cascada y cobertura
+  await expect(page.locator('.an-card .spark').first()).toBeVisible();
+  for (const id of ['#gTend', '#gCalor', '#gTicket', '#gProd', '#gPareto', '#gCasc', '#gCob']) await expect(page.locator(`${id} svg, ${id} .cob, ${id} .dona-vacia`).first()).toBeVisible();
+  await expect(page.locator('.an-dato').first()).not.toContainText('undefined');
+  // El mapa de calor suma lo mismo que las ventas con hora del periodo
+  const celdas = await page.locator('#gCalor .celda').count();
+  expect(celdas % 7).toBe(0);
+  // Pareto: el último acumulado es 100 %
+  const ult = await page.locator('.par-ley li').last().innerText();
+  expect(ult).toContain('100% acum.');
+  // La cascada termina en la ganancia operativa de la tarjeta
+  const sol = t => Number(t.replace(/[^\d.\-−]/g, '').replace('−', '-'));
+  const op = sol(await page.locator('.an-card').nth(3).locator('> b').innerText());
+  const cas = sol(await page.locator('#gCasc .cas-v').last().textContent());
+  expect(cas).toBeCloseTo(op, 2);
 });

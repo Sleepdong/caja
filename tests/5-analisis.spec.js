@@ -73,3 +73,21 @@ test('Panel: las ventas del conteo no entran al gráfico por hora', async ({ pag
   await irA(page, 'panel');
   await expect(page.locator('#gHoras')).toBeVisible();
 });
+
+test('Caja: total = efectivo + otros medios, igual que Reportes y que lo cobrado hoy del Panel', async ({ page, errores }) => {
+  await abrirDemo(page);
+  const sol = t => Number(t.replace(/[^\d.\-−]/g, '').replace('−', '-'));
+  const esperado = await page.evaluate(async () => {
+    const s = (await sb.from('v_saldos_cuentas').select('*')).data;
+    const c = (await sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())).data;
+    return { total: Math.round(s.reduce((a, x) => a + Number(x.saldo), 0) * 100) / 100, hoy: Math.round(c.reduce((a, x) => a + Number(x.monto), 0) * 100) / 100 };
+  });
+  await irA(page, 'caja');
+  const total = sol(await page.locator('.tot-n').innerText());
+  const partes = await page.locator('.tot-cab b').allInnerTexts();
+  expect(total).toBeCloseTo(esperado.total, 2);
+  expect(sol(partes[0]) + sol(partes[1])).toBeCloseTo(total, 2);
+  const filas = await page.locator('.tot-fila b').allInnerTexts();
+  expect(filas.reduce((a, t) => a + sol(t), 0)).toBeCloseTo(sol(partes[1]), 2);
+  if (esperado.hoy) await expect(page.locator('.tot-caja')).toContainText(new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2 }).format(esperado.hoy));
+});

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-Lkp8N73IAVnaUv180lgucbnS1QLCFJvDK8j4YVDKOM0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-GgqJ8f+NUEylvaHhbut3c4jokuF+qrZ0OMFQ8ZVUSRA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -374,6 +374,22 @@ main{padding:22px 24px 36px}
 .cifra small{color:var(--gris);font-weight:500}
 .cifra b{font-size:24px;font-weight:650;letter-spacing:-.04em;color:var(--texto)}
 .cifra .sube{color:var(--menta)}.cifra .baja{color:var(--coral)}
+/* Caja: total del dinero y su reparto */
+.tot-caja{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.35fr);gap:28px;align-items:stretch;margin-bottom:18px}
+.tot-caja .tot-k{display:block;color:var(--gris);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.tot-caja .tot-n{display:block;font-size:46px;font-weight:700;letter-spacing:-.045em;line-height:1.1;margin:6px 0 4px;font-variant-numeric:tabular-nums}
+.tot-barra{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--tono);margin:14px 0 10px;gap:2px}
+.tot-barra div{height:100%}
+.tot-ley{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--gris)}
+.tot-grupos{display:grid;gap:12px}
+.tot-grupo{background:var(--tono);border-radius:18px;padding:14px 16px}
+.tot-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tot-cab span{font-weight:600}
+.tot-cab b{font-size:22px;font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.tot-fila{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 0 0;margin-top:8px;border-top:1px solid var(--linea);font-size:14px}
+.tot-fila b{font-weight:600;font-variant-numeric:tabular-nums}
+.tot-grupo small,.tot-fila small{color:var(--gris);font-size:12px}
+@media (max-width:760px){.tot-caja{grid-template-columns:1fr;gap:18px}.tot-caja .tot-n{font-size:38px}}
 .resumen-dia div{border:0;background:var(--blanco);border-radius:18px}
 label{color:var(--gris);font-weight:500}
 input,select,textarea{border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:var(--r-s);padding:11px 13px}
@@ -1746,18 +1762,46 @@ async function devolverVenta(ventaId, doc) {
 
 // ============ CAJA ============
 async function vCaja(el) {
-  const [ses, saldos, ultimas] = await Promise.all([
+  const [ses, saldos, ultimas, cobrosHoy] = await Promise.all([
     pintarEstadoCaja(), q(sb.from('v_saldos_cuentas').select('*')),
     q(sb.from('v_caja_sesiones').select('*').order('abierta_en', { ascending: false }).limit(12)),
+    // Mismo cálculo que el Panel ("Cobraste hoy"): cobros de ventas menos reembolsos, desde las 00:00 de hoy
+    q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())).catch(() => []),
   ]);
   const enCaja = num(saldos.find(s => s.cuenta_id === C.caja?.id)?.saldo);
+  // Total de caja = suma de todas las cuentas (lo mismo que Reportes → "Dinero disponible hoy")
+  const medioDe = id => C.metodos.find(m => m.cuenta_financiera_id === id);
+  const colorCta = id => { if (id === C.caja?.id) return COLOR_MEDIO.EFECTIVO; const m = medioDe(id); if (m && COLOR_MEDIO[m.codigo]) return COLOR_MEDIO[m.codigo];
+    const n = String(saldos.find(x => x.cuenta_id === id)?.nombre || ''); return /yape/i.test(n) ? COLOR_MEDIO.YAPE : /plin/i.test(n) ? COLOR_MEDIO.PLIN : COLOR_MEDIO.TARJETA_DEBITO; };
+  const hoyCta = {}; cobrosHoy.forEach(c => { const cta = C.metodos.find(m => m.id === c.metodo_pago_id)?.cuenta_financiera_id; if (cta) hoyCta[cta] = r2((hoyCta[cta] || 0) + num(c.monto)); });
+  const totalCaja = r2(saldos.reduce((a, x) => a + num(x.saldo), 0)), otras = saldos.filter(x => x.cuenta_id !== C.caja?.id);
+  const totalOtras = r2(otras.reduce((a, x) => a + num(x.saldo), 0)), cobradoHoy = r2(Object.values(hoyCta).reduce((a, b) => a + b, 0));
+  const notaHoy = id => hoyCta[id] ? `<small>hoy +${S(hoyCta[id])} en ventas</small>` : '';
+  // La barra reparte solo el dinero a favor (una cuenta en negativo no ocupa espacio)
+  const barra = saldos.filter(x => num(x.saldo) > 0), basePos = barra.reduce((a, x) => a + num(x.saldo), 0);
+  const montoCta = v => num(v) < 0 ? `<b style="color:var(--coral)">${S(v)}</b>` : `<b>${S(v)}</b>`;
+  const resumenCaja = `<div class="panel tot-caja">
+    <div><small class="tot-k">Total de caja</small><b class="tot-n">${S(totalCaja)}</b>
+      <p class="sub" style="margin:0">Todo el dinero del negocio: efectivo más Yape, Plin y la cuenta de la empresa.</p>
+      ${basePos > 0 ? `<div class="tot-barra" role="img" aria-label="Reparto del dinero por cuenta">${barra.map(x => `<div style="width:${num(x.saldo) / basePos * 100}%;background:${colorCta(x.cuenta_id)}" title="${esc(x.nombre)}"></div>`).join('')}</div>
+      <div class="tot-ley">${barra.map(x => `<span><span class="punto" style="background:${colorCta(x.cuenta_id)}"></span>${esc(x.nombre)} ${P(num(x.saldo) / basePos * 100)}</span>`).join('')}</div>` : ''}
+      ${saldos.some(x => num(x.saldo) < 0) ? `<p class="sub" style="margin:10px 0 0"><span style="color:var(--coral)">Ojo:</span> ${saldos.filter(x => num(x.saldo) < 0).map(x => esc(x.nombre)).join(', ')} está en negativo y resta del total. Pasa dinero a esa cuenta o registra el aporte que falta.</p>` : ''}
+      <p class="sub" style="margin:12px 0 0">${cobradoHoy ? `Hoy cobraste <b>${S(cobradoHoy)}</b> en ventas.` : 'Hoy todavía no cobras ventas.'}</p></div>
+    <div class="tot-grupos">
+      <div class="tot-grupo"><div class="tot-cab"><span><span class="punto" style="background:${COLOR_MEDIO.EFECTIVO}"></span>Efectivo</span>${montoCta(enCaja)}</div>
+        <small>${esc(C.caja?.nombre || 'Caja principal')} · ${ses ? 'caja abierta' : 'caja cerrada'}${hoyCta[C.caja?.id] ? ` · hoy +${S(hoyCta[C.caja?.id])} en ventas` : ''}</small></div>
+      <div class="tot-grupo"><div class="tot-cab"><span>Otros medios de pago</span>${montoCta(totalOtras)}</div>
+        ${otras.map(x => `<div class="tot-fila"><span><span class="punto" style="background:${colorCta(x.cuenta_id)}"></span>${esc(x.nombre)} ${notaHoy(x.cuenta_id)}</span>${montoCta(x.saldo)}</div>`).join('') || '<small>No tienes otras cuentas.</small>'}</div>
+    </div></div>`;
+  // En la caja abierta: apertura + entradas − salidas debe dar lo que hay; si no, se muestra la diferencia (aportes, pases, etc.)
+  const otrosMovCaja = actualDe => actualDe ? r2(enCaja - num(actualDe.monto_apertura ?? ses?.monto_apertura) - num(actualDe.entradas) - num(actualDe.salidas)) : 0;
   const actual = ses ? ultimas.find(u => u.sesion_id === ses.id) : null;
   const ctas = C.cuentas.map(c => ({ value: c.id, label: c.nombre }));
   const pend = pendientesCola(), ultArq = arqueos.leer()[0];
   const hace = f => { const m = Math.round((Date.now() - Date.parse(f)) / 60000); return m < 60 ? `hace ${Math.max(1, m)} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `el ${fh(f)}`; };
   el.innerHTML = `
   ${pend.n ? `<div class="aviso-barra"><p><b>${pend.n} ${pend.n === 1 ? 'venta hecha' : 'ventas hechas'} sin internet por ${S(pend.total)} no ${pend.n === 1 ? 'se ha subido' : 'se han subido'}.</b> ${ses ? 'Se suben solas cuando hay conexión.' : 'No se pueden subir con la caja cerrada: ábrela y súbelas.'}</p><button class="btn rotulo" id="btnSubirCola">${ses ? 'Subir ahora' : 'Abrir caja y subirlas'}</button></div>` : ''}
-  <div class="cifras">${saldos.map(s => `<div class="cifra"><small>${esc(s.nombre)}</small><b>${S(s.saldo)}</b></div>`).join('')}</div>
+  ${resumenCaja}
   <div class="panel contar-ahora"><div class="envio-cab"><div><h2>¿Cuánto efectivo tienes de verdad?</h2>
     <p class="sub" style="margin:0">Cuenta billetes y monedas cuando quieras y compáralo con lo que dice el sistema (${S(enCaja)}). Si no cuadra, la app te ayuda a registrar por qué.${ultArq ? ` Último conteo ${hace(ultArq.fecha)}: ${Math.abs(num(ultArq.dif)) < 0.005 ? 'cuadró' : (ultArq.dif > 0 ? 'sobraban ' : 'faltaban ') + S(Math.abs(ultArq.dif))}.` : ''}</p></div>
     <button class="btn rotulo" id="btnContarAhora">Contar el dinero ahora</button></div></div>
@@ -1765,9 +1809,11 @@ async function vCaja(el) {
     <div class="panel">${ses ? `
       <h2>Caja abierta</h2><p class="sub">Desde ${fh(ses.abierta_en)} con ${S(ses.monto_apertura)}.</p>
       ${diaLima(ses.abierta_en) < hoy() ? `<div class="cuadre mal"><b>Esta caja sigue abierta desde el ${fd(diaLima(ses.abierta_en))}.</b> Ciérrala con lo que tienes ahora y abre una nueva para hoy: así cada día cuadra por separado.</div>` : ''}
-      <table><tr><td>Entró en efectivo</td><td class="n">${S(actual?.entradas)}</td></tr><tr><td>Salió en efectivo</td><td class="n">${S(Math.abs(num(actual?.salidas)))}</td></tr>
-        <tr><td>Cobrado con Yape y Plin (no entra a la caja)</td><td class="n">${S(actual?.cobros_otros_medios)}</td></tr>
-        <tr><td><b>Debe haber en la caja</b></td><td class="n"><b>${S(enCaja)}</b></td></tr></table>
+      <table><tr><td>Abriste con</td><td class="n">${S(actual?.monto_apertura ?? ses.monto_apertura)}</td></tr>
+        <tr><td>+ Entró en efectivo</td><td class="n">${S(actual?.entradas)}</td></tr><tr><td>− Salió en efectivo</td><td class="n">${S(Math.abs(num(actual?.salidas)))}</td></tr>
+        ${Math.abs(otrosMovCaja(actual)) >= 0.005 ? `<tr><td>${otrosMovCaja(actual) > 0 ? '+' : '−'} Otros movimientos del efectivo</td><td class="n">${S(Math.abs(otrosMovCaja(actual)))}</td></tr>` : ''}
+        <tr><td><b>Debe haber en la caja</b></td><td class="n"><b>${S(enCaja)}</b></td></tr>
+        <tr><td class="sub">Cobrado con Yape y Plin en esta caja (no entra al efectivo)</td><td class="n sub">${S(actual?.cobros_otros_medios)}</td></tr></table>
       <h3>Cerrar caja</h3>
       <div class="fila"><div><label>Efectivo que cuentas</label><input type="number" id="contado" inputmode="decimal" step="0.10" min="0"></div>
         <div><label>Observación (si no cuadra)</label><input id="obsCierre"></div></div>

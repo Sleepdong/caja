@@ -200,7 +200,7 @@
       let tot = 0;
       c.lineas.forEach((l, i) => { const imp = r2(l.cantidad * l.costo_unitario); tot += imp;
         compDet.push({ id: c.id + 'd' + i, compra_id: c.id, linea: i + 1, presentacion_id: l.presentacion_id, cantidad: l.cantidad, factor_conversion: FAC[l.producto_id], costo_unitario: l.costo_unitario, fecha_vencimiento: l.vence || null, importe_neto: imp, igv_monto: 0,
-          costo_total: imp, cantidad_base: l.cantidad * FAC[l.producto_id], costo_unitario_base: +(l.costo_unitario / FAC[l.producto_id]).toFixed(6), compras: { proveedor_id: c.proveedor_id, fecha_emision: c.dia, fecha_ingreso: iso(c.ms), estado: 'REGISTRADA' } }); });
+          costo_total: imp, cantidad_base: l.cantidad * FAC[l.producto_id], costo_unitario_base: +(l.costo_unitario / FAC[l.producto_id]).toFixed(6), compras: { id: c.id, proveedor_id: c.proveedor_id, fecha_emision: c.dia, fecha_ingreso: iso(c.ms), estado: 'REGISTRADA' } }); });
       tot = r2(tot);
       const prov = proveedores.find(p => p.id === c.proveedor_id);
       compTot.push({ compra_id: c.id, proveedor_id: c.proveedor_id, proveedor: prov.razon_social, fecha_emision: c.dia, fecha_ingreso: iso(c.ms), serie: c.serie, numero: c.numero, condicion: c.condicion,

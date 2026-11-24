@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-5v4MHNHqwu61/3Tpijl517LPscqNSLsYu3SM+piCFqc='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-OAoEGlwbkeXjxdVYkskfK1/w6rIxDaGcJnDQITQuhQw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -134,7 +134,7 @@ tr:last-child td{border-bottom:0}
   #tLineas tr:not(.pista) td:nth-child(4)::before{content:'Importe'}
   #tLineas tr:not(.pista) td:nth-child(4){align-self:end;padding-bottom:12px;font-weight:600}
   #tLineas tr:not(.pista) td:nth-child(5):empty{display:none}
-  #tLineas tr:not(.pista) td:nth-child(5){grid-column:1/-1;text-align:right}
+  #tLineas tr:not(.pista) td:nth-child(5){grid-column:auto;align-self:end;padding-bottom:6px}
   #tLineas tr.pista{display:block}#tLineas tr.pista td{display:block;white-space:normal;padding:0 0 8px;border:0}
   #tLineas .vence-lin{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 }
@@ -659,6 +659,41 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .md .md-prev .flecha{color:var(--gris);margin:0 6px}
 .md .md-error{color:var(--coral);font-size:13px;margin-top:8px}
 .md .md-info{color:var(--gris);font-size:13px;margin:6px 0 0}
+/* Compras: diseño en dos columnas con resumen fijo */
+.compra-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start;margin-bottom:18px}
+.compra-grid>.panel{margin-bottom:0}
+.compra-res{position:sticky;top:84px}
+.compra-res .res-filas div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--linea);font-size:14px}
+.compra-res .res-filas span{color:var(--gris)}
+.compra-res .res-filas b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.compra-res .res-total{margin:14px 0 4px}
+.compra-res .res-total b{font-size:34px}
+.compra-res .seg-pago{grid-template-columns:1fr}
+.compra-res #btnComprar{width:100%;margin-top:16px}
+.compra-res #venceC{width:100%}
+.escanear-zona{display:flex;align-items:center;gap:14px;width:100%;text-align:left;margin:14px 0 4px;padding:16px 18px;border:1.5px dashed var(--tono2);border-radius:18px;background:transparent;color:var(--texto);font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+.escanear-zona:hover{border-color:var(--violeta);background:#7B5CFF14}
+.escanear-zona b{display:block;font-size:15px}
+.escanear-zona small{display:block;color:var(--gris);font-size:13px;margin-top:2px}
+.escanear-zona .ez-ic{flex:0 0 44px;height:44px;border-radius:14px;background:var(--brillo);color:#fff;display:grid;place-items:center}
+.compra-sep{display:flex;align-items:center;gap:12px;color:var(--gris);font-size:12.5px;margin:16px 0 4px}
+.compra-sep::before,.compra-sep::after{content:"";flex:1;height:1px;background:var(--linea)}
+.paso-c{display:flex;align-items:center;gap:10px;margin:18px 0 10px}
+.paso-c h3{margin:0;font-size:15px;font-weight:600}
+.paso-n{width:24px;height:24px;border-radius:50%;background:var(--tono2);color:var(--texto);display:grid;place-items:center;font-size:12.5px;font-weight:700}
+.acc-prov{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.acc-prov button{border:0;background:var(--tono);color:var(--tinta2);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.acc-prov button:hover{background:var(--tono2);color:var(--texto)}
+.acc-prov #repetirCompra{background:#7B5CFF26;color:var(--texto)}
+.t-lineas td select{min-width:220px}
+.stepper{display:inline-flex;align-items:center;background:var(--tono);border-radius:12px;overflow:hidden}
+.stepper button{border:0;background:transparent;color:var(--texto);width:34px;height:40px;font-size:18px;cursor:pointer}
+.stepper button:hover{background:var(--tono2)}
+#tLineas .stepper{display:flex;width:128px}#tLineas .stepper input{flex:1;min-width:0;width:auto!important;text-align:center;border:0!important;background:transparent!important;box-shadow:none!important;padding:8px 2px!important}
+.quitar-x{border:0;background:var(--tono);color:var(--gris);width:32px;height:32px;border-radius:50%;font-size:18px;line-height:1;cursor:pointer}
+.quitar-x:hover{background:#FF7A8A33;color:var(--coral)}
+@media (max-width:980px){.compra-grid{grid-template-columns:1fr}.compra-res{position:static}}
+@media (max-width:700px){#tLineas .stepper{width:100%}#tLineas tr:not(.pista){grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.9fr) auto!important}#tLineas tr:not(.pista) td:last-child{align-self:end;padding-bottom:4px}}
 /* Compras: al contado / a crédito */
 .pago-comp{margin-top:16px}
 .pago-comp .md-lbl,.md-lbl{display:block;color:var(--gris);font-size:12.5px;font-weight:600;margin:12px 0 6px}
@@ -1990,11 +2025,11 @@ let lineasCompra = [];
 // ============ PRECIOS DE PROVEEDORES ============
 // Historial de costos por producto y proveedor (solo compras vigentes).
 async function historialCostos() {
-  const filas = await todo(() => sb.from('compra_detalles').select('presentacion_id, costo_unitario, costo_unitario_base, compras!inner(proveedor_id, fecha_emision, fecha_ingreso, estado)').eq('compras.estado', 'REGISTRADA'));
+  const filas = await todo(() => sb.from('compra_detalles').select('presentacion_id, cantidad, costo_unitario, costo_unitario_base, compras!inner(id, proveedor_id, fecha_emision, fecha_ingreso, estado)').eq('compras.estado', 'REGISTRADA'));
   return filas.map(f => {
     const pr = C.presentaciones.find(p => p.id === f.presentacion_id);
     return { presentacion_id: f.presentacion_id, producto_id: pr?.producto_id, proveedor_id: f.compras.proveedor_id, fecha: f.compras.fecha_emision, orden: f.compras.fecha_ingreso,
-      costo: num(f.costo_unitario), base: num(f.costo_unitario_base) };
+      costo: num(f.costo_unitario), base: num(f.costo_unitario_base), cantidad: num(f.cantidad), compra_id: f.compras.id || f.compras.fecha_ingreso };
   }).filter(f => f.producto_id).sort((a, b) => (a.fecha + a.orden).localeCompare(b.fecha + b.orden));
 }
 const paqueteDe = id => C.presentaciones.filter(p => p.producto_id === id).sort((a, b) => num(b.factor) - num(a.factor))[0];
@@ -2106,20 +2141,23 @@ async function vCompras(el) {
   if (!lineasCompra.length) lineasCompra = [{ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }];
   const tarjeta = medios(MEDIOS_COMPRA)[0];
   el.innerHTML = `
-  <div class="panel"><h2>Nueva compra</h2><p class="sub">Se paga con ${esc(tarjeta?.nombre || 'la tarjeta de débito')}. El stock sube en cuanto la registras.</p>
-    <div class="fila" style="margin-bottom:14px"><div class="auto"><button class="btn rotulo" id="btnEscanear">Escanear factura</button></div>
-      <div><p class="sub" style="margin:0">Toma una foto de la factura o boleta (con su código QR), o elige su PDF, y la app llena la compra por ti.<span class="solo-pc"> En la laptop también puedes <b>arrastrar el archivo</b> sobre esta pantalla.</span></p></div></div>
+  <div class="compra-grid">
+  <div class="panel compra-main"><h2>Nueva compra</h2><p class="sub">El stock sube en cuanto la registras.</p>
+    <button type="button" class="escanear-zona" id="btnEscanear">
+      <span class="ez-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg></span>
+      <span><b>Escanear factura o boleta</b><small>Foto con el código QR o el PDF: la app llena todo por ti.<span class="solo-pc"> También puedes arrastrar el archivo aquí.</span></small></span></button>
     <input type="file" id="fotoFactura" accept="image/*,application/pdf" class="oculto">
     <div id="escaneo"></div>
-    <div class="fila">
-      <div style="flex:2 1 220px"><label>Proveedor</label><select id="prov"><option value="">Elige un proveedor</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div>
-      <div class="auto"><button class="btn claro" id="nuevoProv">Nuevo proveedor</button></div>
-      <div class="auto"><button class="btn claro" id="btnEscProv">Escanear proveedor</button><input type="file" id="fotoProv" accept="image/*,application/pdf" class="oculto"></div>
-      <div><label>Fecha</label><input type="date" id="fComp" value="${hoy()}"></div>
-    </div>
-    <div class="scroll" style="margin-top:14px"><table id="tLineas"></table></div>
-    <button class="btn claro mini" id="masLinea" style="margin-top:8px">Agregar producto</button>
-    <details class="extra" style="margin-top:14px"><summary>Comprobante, IGV y flete</summary>
+    <div class="compra-sep"><span>o regístrala a mano</span></div>
+    <div class="paso-c"><span class="paso-n">1</span><h3>Proveedor y fecha</h3></div>
+    <div class="fila prov-fila">
+      <div style="flex:3 1 240px"><label for="prov">Proveedor</label><select id="prov"><option value="">Elige un proveedor</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div>
+      <div style="flex:1 1 150px"><label for="fComp">Fecha</label><input type="date" id="fComp" value="${hoy()}"></div></div>
+    <div class="md-chips acc-prov"><button type="button" id="nuevoProv">+ Nuevo proveedor</button><button type="button" id="btnEscProv">Escanear RUC del proveedor</button><button type="button" id="repetirCompra" class="oculto"></button><input type="file" id="fotoProv" accept="image/*,application/pdf" class="oculto"></div>
+    <div class="paso-c"><span class="paso-n">2</span><h3>Productos</h3></div>
+    <div class="scroll"><table id="tLineas" class="t-lineas"></table></div>
+    <button type="button" class="btn claro mini" id="masLinea" style="margin-top:10px">+ Agregar producto</button>
+    <details class="extra" style="margin-top:16px"><summary>Comprobante, IGV y flete</summary>
       <div class="fila" style="margin-top:10px">
         <div><label>Comprobante</label><select id="tc">${C.tiposComp.filter(t => ['00', '01', '03', '12'].includes(t.codigo_sunat)).map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('')}</select></div>
         <div><label>Serie</label><input id="serie" placeholder="F001"></div><div><label>Número</label><input id="numero"></div></div>
@@ -2129,18 +2167,22 @@ async function vCompras(el) {
       <div class="fila" style="margin-top:8px"><div><label>Flete u otro costo del mismo proveedor</label><input type="number" id="adic" min="0" step="0.10" value="0" inputmode="decimal"></div>
 </div>
     </details>
+  </div>
+  <aside class="panel compra-res" aria-label="Resumen de la compra"><h2>Resumen</h2>
+    <div class="res-filas" id="resFilas"></div>
+    <div class="total res-total"><span>Total</span><b id="totC">S/ 0.00</b></div>
     <div class="pago-comp"><span class="md-lbl">¿Cómo pagas?</span>
       <div class="seg-pago" role="radiogroup" aria-label="Cómo pagas">
-        <button type="button" role="radio" aria-checked="true" class="on" data-cond="CONTADO"><b>Al contado</b><small>Hoy, con la tarjeta de la empresa</small></button>
+        <button type="button" role="radio" aria-checked="true" class="on" data-cond="CONTADO"><b>Al contado</b><small>Hoy, con ${esc(tarjeta?.nombre || 'la tarjeta de la empresa')}</small></button>
         <button type="button" role="radio" aria-checked="false" data-cond="CREDITO"><b>A crédito</b><small>El proveedor me fía, pago después</small></button></div>
       <input type="hidden" id="cond" value="CONTADO">
       <div class="oculto" id="venceBox"><span class="md-lbl">¿Hasta cuándo tienes para pagar?</span>
-        <div class="fila" style="align-items:center"><div style="flex:0 1 200px"><input type="date" id="venceC" value="${masDias(15)}"></div>
-          <div class="md-chips" style="margin:0">${[7, 15, 30].map(n => `<button type="button" data-plazo="${n}" class="${n === 15 ? 'on' : ''}">${n} días</button>`).join('')}</div></div>
+        <input type="date" id="venceC" value="${masDias(15)}">
+        <div class="md-chips" style="margin-top:8px">${[7, 15, 30].map(n => `<button type="button" data-plazo="${n}" class="${n === 15 ? 'on' : ''}">${n} días</button>`).join('')}</div>
         <p class="sub" style="margin:8px 0 0" id="venceTxt"></p></div>
     </div>
-    <div class="total" style="margin-top:16px"><span>Total de la compra</span><b id="totC">S/ 0.00</b></div>
-    <button class="btn rotulo cobrar" id="btnComprar" style="max-width:340px">Registrar compra</button>
+    <button class="btn rotulo cobrar" id="btnComprar">Registrar compra</button>
+  </aside>
   </div>
   ${panelProveedores(hist)}
   ${porPagar.length ? `<div class="panel"><h2>Por pagar</h2><p class="sub">Compras a crédito y gastos que aún debes.</p><div class="scroll"><table>
@@ -2159,16 +2201,36 @@ async function vCompras(el) {
   const pintarLineas = () => {
     $('#tLineas').innerHTML = `<tr><th>Producto</th><th class="n">Cantidad</th><th class="n">Costo c/u</th><th class="n">Importe</th><th></th></tr>
       ${lineasCompra.map((l, i) => `<tr><td style="min-width:200px"><select data-lp="${i}">${comprables.map(p => `<option value="${p.id}" ${p.id === l.presentacion_id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select></td>
-        <td class="n"><input style="width:80px" type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}"></td>
+        <td class="n"><div class="stepper"><button type="button" data-menos="${i}" aria-label="Uno menos">−</button><input type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}" aria-label="Cantidad"><button type="button" data-mas="${i}" aria-label="Uno más">+</button></div></td>
         <td class="n"><input style="width:100px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" placeholder="0.00" data-lu="${i}"></td>
-        <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button class="quitar" data-ld="${i}">Quitar</button>` : ''}</td></tr>${pistaCosto(hist, $('#prov').value, l.presentacion_id, l.costo)}${vence(l.presentacion_id) ? `<tr class="pista"><td colspan="5"><label class="vence-lin">Vence el <input type="date" data-lv="${i}" value="${esc(l.vence || '')}" min="${hoy()}"></label> <span class="sub">Así la app te avisa antes de que se te venza.</span></td></tr>` : ''}`).join('')}`;
+        <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button type="button" class="quitar-x" data-ld="${i}" aria-label="Quitar producto" title="Quitar">×</button>` : ''}</td></tr>${pistaCosto(hist, $('#prov').value, l.presentacion_id, l.costo)}${vence(l.presentacion_id) ? `<tr class="pista"><td colspan="5"><label class="vence-lin">Vence el <input type="date" data-lv="${i}" value="${esc(l.vence || '')}" min="${hoy()}"></label> <span class="sub">Así la app te avisa antes de que se te venza.</span></td></tr>` : ''}`).join('')}`;
     const t = $('#tLineas');
     t.querySelectorAll('[data-lp]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lp].presentacion_id = x.value; setTimeout(pintarLineas); });
     t.querySelectorAll('[data-lc]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lc].cantidad = num(x.value); setTimeout(pintarLineas); });
     t.querySelectorAll('[data-lu]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lu].costo = x.value; setTimeout(pintarLineas); });
     t.querySelectorAll('[data-ld]').forEach(x => x.onclick = () => { lineasCompra.splice(x.dataset.ld, 1); pintarLineas(); });
+    t.querySelectorAll('[data-mas]').forEach(x => x.onclick = () => { lineasCompra[x.dataset.mas].cantidad = num(lineasCompra[x.dataset.mas].cantidad) + 1; pintarLineas(); });
+    t.querySelectorAll('[data-menos]').forEach(x => x.onclick = () => { const l = lineasCompra[x.dataset.menos]; l.cantidad = Math.max(0, num(l.cantidad) - 1); pintarLineas(); });
     t.querySelectorAll('[data-lv]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lv].vence = x.value; });
     $('#totC').textContent = S(totalC());
+    resumenCompra();
+  };
+  // Resumen a la derecha: siempre a la vista con el total
+  const resumenCompra = () => {
+    const tasa = num($('#igv').value), sub = r2(lineasCompra.reduce((a, l) => a + r2(num(l.cantidad) * num(l.costo)), 0));
+    const igv = r2(lineasCompra.reduce((a, l) => a + r2(r2(num(l.cantidad) * num(l.costo)) * tasa), 0)), flete = num($('#adic').value);
+    const conCant = lineasCompra.filter(l => num(l.cantidad) > 0), sinCosto = conCant.filter(l => l.costo === '').length;
+    const pv = C.proveedores.find(x => x.id == $('#prov').value);
+    const fila = (a, b, cls = '') => `<div class="${cls}"><span>${a}</span><b>${b}</b></div>`;
+    $('#resFilas').innerHTML = fila('Proveedor', pv ? esc(pv.razon_social) : '<span class="txt-mal">Falta elegir</span>')
+      + fila('Productos', `${conCant.length} ${conCant.length === 1 ? 'línea' : 'líneas'} · ${N(conCant.reduce((a, l) => a + num(l.cantidad), 0))} paq.`)
+      + (sinCosto ? fila('Sin costo', `<span class="txt-mal">${sinCosto} ${sinCosto === 1 ? 'producto' : 'productos'}</span>`) : '')
+      + fila('Subtotal', S(sub)) + (igv ? fila('IGV 18 %', S(igv)) : '') + (flete ? fila('Flete', S(flete)) : '');
+    // Repetir la última compra a este proveedor
+    const rep = $('#repetirCompra'), ult = pv ? hist.filter(h => h.proveedor_id === pv.id).pop() : null;
+    if (ult && ult.compra_id) { const n = hist.filter(h => h.compra_id === ult.compra_id).length;
+      rep.textContent = `Repetir su última compra (${fd(ult.fecha)}, ${n} ${n === 1 ? 'producto' : 'productos'})`; rep.classList.remove('oculto'); rep.dataset.compra = ult.compra_id; }
+    else rep.classList.add('oculto');
   };
   $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => setTimeout(pintarLineas));
   // Al contado / a crédito: a la vista, junto al total
@@ -2187,6 +2249,14 @@ async function vCompras(el) {
     $('#venceC').value = d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); pintarCond(); });
   $('#venceC').oninput = pintarCond; $('#fComp').addEventListener('change', pintarCond);
   pintarCond();
+  $('#repetirCompra').onclick = async () => {
+    const ls = hist.filter(h => h.compra_id === $('#repetirCompra').dataset.compra && comprables.some(p => p.id === h.presentacion_id));
+    if (!ls.length) return aviso('No encontré productos de esa compra', true);
+    const tieneDatos = lineasCompra.some(l => l.costo !== '');
+    if (tieneDatos && !(await dialogo('¿Reemplazar los productos?', [{ type: 'info', html: '<p class="sub" style="margin:0">Se cambian los productos que ya escribiste por los de su última compra. Luego puedes ajustar cantidades y costos.</p>' }], 'Reemplazar'))) return;
+    lineasCompra = ls.map(h => ({ presentacion_id: h.presentacion_id, cantidad: h.cantidad || 1, costo: String(h.costo) }));
+    pintarLineas(); aviso('Listo: revisa cantidades y costos antes de registrar');
+  };
   $('#masLinea').onclick = () => { lineasCompra.push({ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }); pintarLineas(); };
   $('#nuevoProv').onclick = async () => {
     const v = await dialogo('Nuevo proveedor', [{ label: 'Nombre o razón social', required: true }, { label: 'RUC (opcional)', ph: '11 dígitos' }, { label: 'Teléfono (opcional)' }]);

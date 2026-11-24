@@ -299,3 +299,21 @@ test('compras: elegir "A crédito" a la vista, con plazo rápido', async ({ page
   await expect(page.locator('#venceBox')).toBeHidden();
   await expect(page.locator('#cond')).toHaveValue('CONTADO');
 });
+
+test('compras: repetir la última compra del proveedor, botones +/− y resumen con el total', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'compras');
+  await expect(page.locator('#resFilas')).toContainText('Falta elegir');
+  await page.locator('#prov').selectOption({ index: 1 });
+  await expect(page.locator('#repetirCompra')).toBeVisible();
+  await page.locator('#repetirCompra').click();
+  const n = await page.locator('#tLineas [data-lc]').count();
+  expect(n).toBeGreaterThan(0);
+  const antes = await page.locator('#tLineas [data-lc]').first().inputValue();
+  await page.locator('#tLineas [data-mas="0"]').click();
+  await expect(page.locator('#tLineas [data-lc]').first()).toHaveValue(String(Number(antes) + 1));
+  await page.locator('#tLineas [data-menos="0"]').click();
+  await expect(page.locator('#tLineas [data-lc]').first()).toHaveValue(antes);
+  await expect(page.locator('#resFilas')).toContainText(`${n} ${n === 1 ? 'línea' : 'líneas'}`);
+  await expect(page.locator('#totC')).not.toHaveText('S/ 0.00');
+});

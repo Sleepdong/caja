@@ -269,3 +269,19 @@ test('gastos fijos: se registran solos al pasar fin de mes y nunca dos veces', a
   await irA(page, 'gastos');
   await expect(page.locator('#fijos')).toContainText('PRUEBA.FIJA');
 });
+
+test('mover dinero: elegir cuenta, monto rápido y detalle, y registrar', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'caja');
+  await page.locator('#btnAporte').click();
+  const md = page.locator('.md');
+  await expect(md.locator('.acc .btn:not(.claro)')).toBeDisabled();
+  await md.locator('[data-sumar="50"]').click();
+  await md.locator('[data-det]').first().click();
+  await expect(md.locator('.md-prev')).toContainText('→');
+  await md.locator('[data-modo="pasar"]').click();
+  await expect(md.locator('[data-a]')).toHaveCount(await md.locator('[data-de]').count());
+  await md.locator('[data-det]').first().click();
+  await md.locator('.acc .btn:not(.claro)').click();
+  await expect(md).toBeHidden();
+});

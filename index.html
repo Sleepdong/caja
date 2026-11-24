@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-8ovO644RN89EYTps5t26UvZiG0vpbcZNRzTiBX7UpPg='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-tH396QNYRUqEA+m5z1blnlw2VUQcPS1m5QfuFfojLc0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -632,6 +632,33 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 /* Hojas y diálogos */
 .velo{background:#05060Dcc;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .velo.hoja-velo{align-items:flex-end}
+/* Mover dinero */
+.md{width:min(600px,100%);padding:22px 22px 0;max-height:92vh}
+.md .acc{position:sticky;bottom:0;background:var(--blanco);margin:16px -22px 0;padding:14px 22px 18px;border-top:1px solid var(--linea)}
+.md .acc .btn:not(.claro){flex:1}
+.md .md-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--tono);border-radius:999px;padding:4px;margin:0 0 18px}
+.md .md-tabs button{border:0;background:transparent;color:var(--gris);border-radius:999px;padding:9px 6px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.md .md-tabs button.on{background:var(--texto);color:#0E0F1A}
+.md .md-lbl{display:block;color:var(--gris);font-size:12.5px;font-weight:600;margin:12px 0 6px}
+.md .md-ctas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+@media (max-width:520px){.md .md-ctas{grid-template-columns:repeat(2,1fr)}}
+.md .md-cta{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:14px;padding:9px 10px;font:inherit;font-size:13px;cursor:pointer;min-width:0}
+.md .md-cta>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.md .md-cta small{color:var(--gris);font-size:12px;font-variant-numeric:tabular-nums}
+.md .md-cta.on{border-color:var(--violeta);background:var(--tono2)}
+.md .md-cta:disabled{opacity:.35;cursor:not-allowed}
+.md .md-monto{display:flex;align-items:center;gap:8px;background:var(--tono);border-radius:16px;padding:6px 14px}
+.md .md-monto span{font-size:22px;color:var(--gris);font-weight:600}
+.md .md-monto input{border:0;background:transparent;font-size:26px;font-weight:700;letter-spacing:-.03em;padding:6px 0;width:100%;color:var(--texto);box-shadow:none}
+.md .md-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.md .md-chips button{border:0;background:var(--tono);color:var(--tinta2);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.md .md-chips button:hover,.md .md-chips button.on{background:var(--tono2);color:var(--texto)}
+.md .md-prev{margin-top:16px;background:var(--tono);border-radius:14px;padding:12px 14px;font-size:14px}
+.md .md-prev div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.md .md-prev b{font-variant-numeric:tabular-nums}
+.md .md-prev .flecha{color:var(--gris);margin:0 6px}
+.md .md-error{color:var(--coral);font-size:13px;margin-top:8px}
+.md .md-info{color:var(--gris);font-size:13px;margin:6px 0 0}
 @media(min-width:900px){.velo.hoja-velo{align-items:center}}
 .dialogo,.hoja{background:var(--blanco);color:var(--texto);border-radius:28px;box-shadow:0 0 0 1px var(--linea)}
 .hp-cab small{color:var(--violeta)}
@@ -1761,6 +1788,86 @@ async function devolverVenta(ventaId, doc) {
 }
 
 // ============ CAJA ============
+// ============ MOVER DINERO (aporte, retiro, pase entre cuentas) ============
+const colorCuenta = (id, nombre) => { if (id === C.caja?.id) return COLOR_MEDIO.EFECTIVO; const m = C.metodos.find(x => x.cuenta_financiera_id === id);
+  if (m && COLOR_MEDIO[m.codigo]) return COLOR_MEDIO[m.codigo]; return /yape/i.test(nombre || '') ? COLOR_MEDIO.YAPE : /plin/i.test(nombre || '') ? COLOR_MEDIO.PLIN : COLOR_MEDIO.TARJETA_DEBITO; };
+const MD_TEXTOS = {
+  aporte: { tab: 'Poner', titulo: 'Poner dinero en el negocio', cuenta: '¿A qué cuenta entra?', ok: 'Poner',
+    info: 'Dinero que entra al negocio y no es una venta: tu capital, un préstamo o un saldo que la cuenta ya tenía.',
+    detalles: ['Saldo que ya tenía la cuenta', 'Capital del dueño', 'Préstamo', 'Para dar vuelto'] },
+  retiro: { tab: 'Sacar', titulo: 'Sacar dinero del negocio', cuenta: '¿De qué cuenta sale?', ok: 'Sacar',
+    info: 'Dinero que sale del negocio y no es una compra ni un gasto: para ti o para pagar algo personal.',
+    detalles: ['Para uso personal', 'Retiro de ganancias', 'Pago de deuda personal', 'Devolución de préstamo'] },
+  pasar: { tab: 'Pasar', titulo: 'Pasar dinero entre cuentas', cuenta: 'Sale de', ok: 'Pasar',
+    info: 'El dinero sigue siendo del negocio, solo cambia de lugar. El total de caja no cambia.',
+    detalles: ['Depósito del efectivo al banco', 'Retiro del banco a la caja', 'Yape a la cuenta de la empresa', 'Plin a la cuenta de la empresa'] },
+};
+async function moverDinero(modo = 'aporte') {
+  const saldos = await q(sb.from('v_saldos_cuentas').select('*'));
+  const ctas = C.cuentas.map(c => ({ id: c.id, nombre: c.nombre, saldo: num(saldos.find(x => x.cuenta_id === c.id)?.saldo) }));
+  if (!ctas.length) return aviso('No tienes cuentas creadas', true);
+  const st = { modo, de: ctas[0].id, a: (ctas.find(c => c.id !== C.caja?.id) || ctas[1] || ctas[0]).id, monto: '', detalle: '' };
+  if (modo === 'aporte') st.de = (ctas.find(c => c.id !== C.caja?.id) || ctas[0]).id;
+  return new Promise(res => {
+    const v = document.createElement('div'); v.className = 'velo';
+    document.body.appendChild(v);
+    const cerrar = r => { v.remove(); document.removeEventListener('keydown', esc_); res(r); };
+    const esc_ = e => { if (e.key === 'Escape') cerrar(false); };
+    document.addEventListener('keydown', esc_);
+    v.onclick = e => { if (e.target === v) cerrar(false); };
+    const cta = id => ctas.find(c => c.id === id);
+    const tarjetas = (sel, campo, bloquear) => `<div class="md-ctas">${ctas.map(c => `<button type="button" class="md-cta ${c.id === sel ? 'on' : ''}" data-${campo}="${esc(c.id)}" ${c.id === bloquear ? 'disabled' : ''}>
+      <span><span class="punto" style="background:${colorCuenta(c.id, c.nombre)}"></span>${esc(c.nombre)}</span><small style="${c.saldo < 0 ? 'color:var(--coral)' : ''}">${S(c.saldo)}</small></button>`).join('')}</div>`;
+    const pintar = () => {
+      const t = MD_TEXTOS[st.modo], m = r2(st.monto), o = cta(st.de), d = cta(st.a), sale = st.modo !== 'aporte';
+      if (st.modo === 'pasar' && st.a === st.de) st.a = (ctas.find(c => c.id !== st.de) || {}).id;
+      const fila = (c, delta) => `<div><span><span class="punto" style="background:${colorCuenta(c.id, c.nombre)}"></span>${esc(c.nombre)}</span><span>${S(c.saldo)}<span class="flecha">→</span><b style="${c.saldo + delta < -0.005 ? 'color:var(--coral)' : ''}">${S(r2(c.saldo + delta))}</b></span></div>`;
+      const falta = sale && m > 0 && m > o.saldo + 0.005;
+      v.innerHTML = `<form class="dialogo md" novalidate><h3>${esc(t.titulo)}</h3>
+        <div class="md-tabs" role="tablist">${Object.entries(MD_TEXTOS).map(([k, x]) => `<button type="button" role="tab" class="${k === st.modo ? 'on' : ''}" data-modo="${k}">${esc(x.tab)}</button>`).join('')}</div>
+        <p class="md-info">${esc(t.info)}</p>
+        <span class="md-lbl">${esc(t.cuenta)}</span>${tarjetas(st.de, 'de')}
+        ${st.modo === 'pasar' ? `<span class="md-lbl">Entra a</span>${tarjetas(st.a, 'a', st.de)}` : ''}
+        <span class="md-lbl">Monto</span>
+        <div class="md-monto"><span>S/</span><input id="mdMonto" type="number" inputmode="decimal" step="0.10" min="0" placeholder="0.00" value="${esc(st.monto)}"></div>
+        <div class="md-chips">${[10, 20, 50, 100, 200].map(n => `<button type="button" data-sumar="${n}">+${n}</button>`).join('')}${sale && o.saldo > 0 ? `<button type="button" data-todo>Todo (${S(o.saldo)})</button>` : ''}${st.monto !== '' ? '<button type="button" data-limpiar>Borrar</button>' : ''}</div>
+        ${falta ? `<p class="md-error">${esc(o.nombre)} solo tiene ${S(o.saldo)}. Si sigues, quedará en negativo.</p>` : ''}
+        <span class="md-lbl">Detalle</span>
+        <input id="mdDet" placeholder="Escribe o elige uno" value="${esc(st.detalle)}" maxlength="120">
+        <div class="md-chips">${t.detalles.map(x => `<button type="button" class="${x === st.detalle ? 'on' : ''}" data-det="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+        ${m > 0 ? `<div class="md-prev">${st.modo === 'aporte' ? fila(o, m) : st.modo === 'retiro' ? fila(o, -m) : fila(o, -m) + fila(d, m)}</div>` : ''}
+        <div class="acc"><button type="button" class="btn claro" data-x>Cancelar</button><button class="btn" ${m > 0 && st.detalle.trim() ? '' : 'disabled'}>${esc(t.ok)}${m > 0 ? ' ' + S(m) : ''}</button></div></form>`;
+      const f = v.querySelector('form'), inp = f.querySelector('#mdMonto'), det = f.querySelector('#mdDet'), btnOk = f.querySelector('.acc .btn:not(.claro)');
+      // Escribir no repinta (no se pierde el foco); solo actualiza el botón y la vista previa al salir
+      inp.oninput = () => { st.monto = inp.value; btnOk.disabled = !(r2(st.monto) > 0 && st.detalle.trim()); btnOk.textContent = t.ok + (r2(st.monto) > 0 ? ' ' + S(r2(st.monto)) : ''); };
+      inp.onchange = () => pintar();
+      det.oninput = () => { st.detalle = det.value; btnOk.disabled = !(r2(st.monto) > 0 && st.detalle.trim()); };
+      f.querySelector('[data-x]').onclick = () => cerrar(false);
+      f.querySelectorAll('[data-modo]').forEach(b => b.onclick = () => { st.modo = b.dataset.modo; st.detalle = ''; pintar(); });
+      f.querySelectorAll('[data-de]').forEach(b => b.onclick = () => { st.de = b.dataset.de; pintar(); });
+      f.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { st.a = b.dataset.a; pintar(); });
+      f.querySelectorAll('[data-sumar]').forEach(b => b.onclick = () => { st.monto = String(r2(num(st.monto) + Number(b.dataset.sumar))); pintar(); });
+      f.querySelector('[data-todo]') && (f.querySelector('[data-todo]').onclick = () => { st.monto = String(r2(o.saldo)); pintar(); });
+      f.querySelector('[data-limpiar]') && (f.querySelector('[data-limpiar]').onclick = () => { st.monto = ''; pintar(); });
+      f.querySelectorAll('[data-det]').forEach(b => b.onclick = () => { st.detalle = b.dataset.det; pintar(); });
+      f.onsubmit = async e => {
+        e.preventDefault(); st.monto = inp.value; st.detalle = det.value;
+        const monto = r2(st.monto), desc = st.detalle.trim();
+        if (!(monto > 0)) return aviso('Escribe el monto', true);
+        if (!desc) return aviso('Escribe o elige un detalle', true);
+        if (st.modo === 'pasar' && st.de === st.a) return aviso('Elige dos cuentas distintas', true);
+        btnOk.disabled = true;
+        const r = st.modo === 'aporte' ? await rpc('registrar_aporte', { p_cuenta_id: st.de, p_monto: monto, p_descripcion: desc }, `Aporte registrado: ${S(monto)} a ${o.nombre}`)
+          : st.modo === 'retiro' ? await rpc('registrar_retiro', { p_cuenta_id: st.de, p_monto: monto, p_descripcion: desc }, `Retiro registrado: ${S(monto)} de ${o.nombre}`)
+          : await rpc('transferir_entre_cuentas', { p_origen_id: st.de, p_destino_id: st.a, p_monto: monto, p_descripcion: desc }, `Pasaste ${S(monto)} de ${o.nombre} a ${d.nombre}`);
+        if (r.ok) cerrar(true); else btnOk.disabled = false;
+      };
+      if (st.monto === '') inp.focus();
+    };
+    pintar();
+  });
+}
+
 async function vCaja(el) {
   const [ses, saldos, ultimas, cobrosHoy] = await Promise.all([
     pintarEstadoCaja(), q(sb.from('v_saldos_cuentas').select('*')),
@@ -1862,18 +1969,10 @@ async function vCaja(el) {
     const r = await rpc('cerrar_caja', { p_sesion_id: ses.id, p_monto_contado: r2($('#contado').value), p_observaciones: $('#obsCierre').value || null });
     if (r.ok) { aviso(num(r.data.diferencia) === 0 ? 'Caja cerrada. Cuadró exacto.' : `Caja cerrada con diferencia de ${S(r.data.diferencia)}`); ir('caja'); }
   };
-  $('#btnAporte').onclick = async () => {
-    const v = await dialogo('Poner dinero en el negocio', [{ label: 'Cuenta', type: 'select', options: ctas }, { label: 'Monto', type: 'number', required: true }, { label: 'Detalle', required: true }]);
-    if (v && (await rpc('registrar_aporte', { p_cuenta_id: v[0], p_monto: r2(v[1]), p_descripcion: v[2] }, 'Aporte registrado')).ok) ir('caja');
-  };
-  $('#btnRetiro').onclick = async () => {
-    const v = await dialogo('Sacar dinero del negocio', [{ label: 'Cuenta', type: 'select', options: ctas }, { label: 'Monto', type: 'number', required: true }, { label: 'Detalle', required: true }]);
-    if (v && (await rpc('registrar_retiro', { p_cuenta_id: v[0], p_monto: r2(v[1]), p_descripcion: v[2] }, 'Retiro registrado')).ok) ir('caja');
-  };
-  $('#btnTransf').onclick = async () => {
-    const v = await dialogo('Pasar dinero entre cuentas', [{ label: 'Sale de', type: 'select', options: ctas }, { label: 'Entra a', type: 'select', options: ctas, value: ctas[1]?.value }, { label: 'Monto', type: 'number', required: true }, { label: 'Detalle', required: true, value: 'Depósito del efectivo al banco' }], 'Pasar dinero');
-    if (v && (await rpc('transferir_entre_cuentas', { p_origen_id: v[0], p_destino_id: v[1], p_monto: r2(v[2]), p_descripcion: v[3] }, 'Movimiento registrado')).ok) ir('caja');
-  };
+  const mover = modo => moverDinero(modo).then(ok => ok && ir('caja')).catch(e => aviso(textoError(e), true));
+  $('#btnAporte').onclick = () => mover('aporte');
+  $('#btnRetiro').onclick = () => mover('retiro');
+  $('#btnTransf').onclick = () => mover('pasar');
 }
 
 // ============ COMPRAS ============

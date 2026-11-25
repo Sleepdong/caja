@@ -412,7 +412,11 @@ test('botón circular: despliega todas las secciones, navega y se cierra', async
   await fab.click();
   await expect(page.locator('#menuFab')).toBeVisible();
   await expect(fab).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#menuFab .mf-gt').first()).toHaveText(/Tu día/i);
+  // Las 12 secciones salen en abanico y la ayuda dice dónde estás
+  await expect(page.locator('#menuFab .mf-b')).toHaveCount(12);
+  await expect(page.locator('#mfInfo')).toContainText('Panel');
+  await page.locator('#menuFab [data-v="stock"]').hover();
+  await expect(page.locator('#mfInfo')).toContainText('qué pedir');
   await page.locator('#menuFab [data-v="reportes"]').click();
   await expect(page.locator('#pagina h1')).toHaveText('Reportes');
   await expect(fab).toHaveAttribute('aria-expanded', 'false');

@@ -145,7 +145,7 @@
       const ve = VENCE[prov + '-' + n];
       return { presentacion_id: pid + 'c', producto_id: pid, cantidad: cant, costo_unitario: costoCompra(pid, prov, dia), vence: ve === undefined ? null : diaMenos(ve < 0 ? ve : -ve) };
     }).filter(l => l.cantidad > 0);
-    compras.push({ id: 'cp' + k, proveedor_id: prov, dia, ms: enLima(dia, 9, 30), serie: { pv1: 'F001', pv2: 'F002', pv3: 'B001' }[prov], numero: String(1200 + k * 37), condicion: k === 4 ? 'CREDITO' : 'CONTADO', lineas });
+    compras.push({ id: 'cp' + k, proveedor_id: prov, dia, ms: enLima(dia, 9, 30), serie: { pv1: 'F001', pv2: 'F002', pv3: 'B001' }[prov], numero: String(1200 + k * 37), condicion: [2, 4, 5].includes(k) ? 'CREDITO' : 'CONTADO', lineas });
   });
 
   // ---------- 5. Vistas derivadas (se recalculan tras cada venta) ----------
@@ -212,7 +212,7 @@
       tot = r2(tot);
       const prov = proveedores.find(p => p.id === c.proveedor_id);
       compTot.push({ compra_id: c.id, proveedor_id: c.proveedor_id, proveedor: prov.razon_social, fecha_emision: c.dia, fecha_ingreso: iso(c.ms), serie: c.serie, numero: c.numero, condicion: c.condicion,
-        fecha_vencimiento: c.condicion === 'CREDITO' ? diaMenos(-13) : null, estado: 'REGISTRADA', importe_lineas: tot, igv: 0, total: tot, importe_devuelto: 0, pagos_netos: c.condicion === 'CREDITO' ? 0 : tot,
+        fecha_vencimiento: c.condicion === 'CREDITO' ? diaMenos({ cp2: 3, cp4: -13, cp5: -4 }[c.id] ?? -13) : null, estado: 'REGISTRADA', importe_lineas: tot, igv: 0, total: tot, importe_devuelto: 0, pagos_netos: c.condicion === 'CREDITO' ? 0 : tot,
         saldo: c.condicion === 'CREDITO' ? tot : 0, costo_inventario: tot });
       if (c.condicion === 'CONTADO') movFin.push({ id: uid('mf'), fecha: iso(c.ms), tipo: 'PAGO_COMPRA', monto: -tot, metodo_pago_id: 2, cuenta_financiera_id: 'cf2', descripcion: 'Compra ' + c.serie + '-' + c.numero });
     });

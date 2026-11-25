@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-+CNzaTjTtgePuJOGAjtsAQIxTUIb0L13ST2rVv9m+Fo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-2DHMmJ7Z8PKyn5ezPkmg9C0ujVtDzjw6iXooeSlBGiA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1025,6 +1025,21 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
   #aviso{bottom:calc(92px + env(safe-area-inset-bottom))}
 }
 #app.oculto .dock,#app.oculto .dock-hoja{display:none}
+/* Calendario de pagos a proveedores */
+.pg-cal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 12px}
+.pg-t{background:var(--tono);border-radius:14px;padding:10px 12px;border-top:3px solid #ffffff22}
+.pg-t small{display:block;color:var(--gris);font-size:11.5px}.pg-t b{display:block;font-size:18px;letter-spacing:-.02em;margin:2px 0}.pg-t span{display:block;font-size:11.5px;color:var(--gris);line-height:1.25}
+.pg-t.mal{border-top-color:var(--coral)}.pg-t.mal b{color:var(--coral)}.pg-t.aviso{border-top-color:var(--ambar)}.pg-t.aviso b{color:var(--ambar)}
+.pg-t.cero{opacity:.55}
+.pg-lista>div{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #ffffff10}
+.pg-lista small{display:block;color:var(--gris);font-size:11.5px}
+/* Descuadres de caja del mes */
+.dq{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:10px}
+.dq-g{background:var(--tono);border-radius:14px;padding:12px 14px}
+.dq-g>b{display:block;font-size:15px}.dq-g>span{display:block;font-size:12.5px;color:var(--gris);margin-top:6px}
+.dq-barra{height:8px;border-radius:99px;background:#FF7A8A40;overflow:hidden;margin-top:8px}.dq-barra i{display:block;height:100%;background:var(--menta);border-radius:99px}
+.dq-n{display:flex;gap:14px;margin-top:8px;font-size:13px;font-weight:600}.dq-n .mal{color:var(--coral)}.dq-n .ok{color:var(--menta)}
+@media(max-width:700px){.pg-cal{gap:6px}.pg-t{padding:8px 9px}.pg-t b{font-size:15px}.pg-t span{display:none}}
 </style>
 </head>
 <body>
@@ -1118,6 +1133,38 @@ const hoy = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Li
 const diasAtras = n => { const x = new Date(hoy() + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
 const inicioHoy = () => hoy() + 'T00:00:00-05:00';
 const iniMes = () => hoy().slice(0, 8) + '01';
+// Deudas con proveedores ordenadas por cuándo vencen
+const diasPara = f => f ? Math.round((Date.parse(f + 'T00:00:00-05:00') - Date.parse(hoy() + 'T00:00:00-05:00')) / 864e5) : null;
+function calendarioPagos(porPagar) {
+  const l = porPagar.filter(p => num(p.saldo) > 0).map(p => ({ ...p, d: diasPara(p.fecha_vencimiento) })).sort((a, b) => (a.d ?? 9999) - (b.d ?? 9999));
+  const suma = f => r2(l.filter(f).reduce((a, p) => a + num(p.saldo), 0));
+  return { l, total: suma(() => true), vencido: suma(p => p.d !== null && p.d < 0), semana: suma(p => p.d !== null && p.d >= 0 && p.d <= 7), luego: suma(p => p.d === null || p.d > 7) };
+}
+const cuandoVence = d => d === null ? 'sin fecha' : d < 0 ? `venció hace ${-d} ${d === -1 ? 'día' : 'días'}` : d === 0 ? 'vence hoy' : d === 1 ? 'vence mañana' : `vence en ${d} días`;
+const chipPago = d => `<span class="chip ${d !== null && d < 0 ? 'mal' : d !== null && d <= 7 ? 'aviso' : ''}">${cuandoVence(d)}</span>`;
+const tarjetasPagos = c => `<div class="pg-cal">
+  <div class="pg-t mal ${c.vencido ? '' : 'cero'}"><small>Vencido</small><b>${S(c.vencido)}</b><span>Págalo ya y cuida tu crédito</span></div>
+  <div class="pg-t aviso ${c.semana ? '' : 'cero'}"><small>Próximos 7 días</small><b>${S(c.semana)}</b><span>Separa este dinero</span></div>
+  <div class="pg-t ${c.luego ? '' : 'cero'}"><small>Más adelante</small><b>${S(c.luego)}</b><span>Aún tienes tiempo</span></div></div>`;
+async function pintarPagosPanel() {
+  const caja = $('#pagosPanel'); if (!caja) return;
+  let pp; try { pp = await q(sb.from('v_cuentas_por_pagar').select('*')); } catch { caja.innerHTML = ''; return; }
+  const c = calendarioPagos(pp); if (!c.l.length) { caja.innerHTML = ''; return; }
+  caja.innerHTML = `<section class="panel"><div class="pn-cab"><h2>Pagos a proveedores</h2><span class="sub">Debes ${S(c.total)}</span></div>${tarjetasPagos(c)}
+    <div class="pg-lista">${c.l.slice(0, 4).map(p => `<div><span><b>${esc(p.proveedor)}</b><small>${p.fecha_vencimiento ? 'Pagar hasta el ' + fd(p.fecha_vencimiento) : 'Sin fecha de pago'}</small></span>${chipPago(p.d)}<b>${S(p.saldo)}</b></div>`).join('')}</div>
+    <button class="lnk" data-ir-pagos style="margin-top:10px">Pagar en Compras →</button></section>`;
+  caja.querySelector('[data-ir-pagos]').onclick = () => ir('compras');
+}
+// Descuadres de caja del mes: cuántos cierres cuadraron y cuánto faltó o sobró
+function resumenDescuadres(ses) {
+  const c = ses.filter(s => s.diferencia != null); if (!c.length) return '';
+  const nom = s => C.cajaTurno && s.cuenta_financiera_id === C.cajaTurno.id ? 'Turnos del socio' : 'Tu caja';
+  const g = {}; c.forEach(s => { const o = g[nom(s)] ??= { n: 0, ok: 0, falta: 0, sobra: 0 }; const d = num(s.diferencia); o.n++; if (Math.abs(d) < 0.005) o.ok++; else if (d < 0) o.falta = r2(o.falta - d); else o.sobra = r2(o.sobra + d); });
+  const neto = r2(c.reduce((a, s) => a + num(s.diferencia), 0));
+  return `<div class="panel" id="descuadres"><h2>Descuadres de este mes</h2><p class="sub" style="margin:0">Cada cierre compara lo que contaste con lo que debía haber. ${neto < -0.005 ? `En total te faltan <b>${S(-neto)}</b>: revisa vueltos y gastos que no se anotaron.` : neto > 0.005 ? `En total sobran <b>${S(neto)}</b>: puede ser una venta que no se registró.` : 'En total, todo cuadra. ¡Bien!'}</p>
+    <div class="dq">${Object.entries(g).map(([k, o]) => `<div class="dq-g"><b>${k}</b><div class="dq-barra" role="img" aria-label="${o.ok} de ${o.n} cierres cuadraron"><i style="width:${o.ok / o.n * 100}%"></i></div>
+      <span>${o.ok} de ${o.n} ${o.n === 1 ? 'cierre cuadró' : 'cierres cuadraron'}</span><div class="dq-n"><span class="mal">Faltó ${S(o.falta)}</span><span class="ok">Sobró ${S(o.sobra)}</span></div></div>`).join('')}</div></div>`;
+}
 const fh = t => t ? new Date(t).toLocaleString('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
 const fd = d => d ? d.split('-').reverse().join('/') : '';
 const masDias = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
@@ -1805,6 +1852,7 @@ async function vPanel(el) {
         <table>${medios(MEDIOS_VER).filter(m => porMedio[m.id] > 0).map(m => `<tr><td><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)}</td><td class="n">${S(porMedio[m.id])}</td><td class="n sub">${P(num(porMedio[m.id]) / totMedios * 100)}</td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Aún no hay cobros hoy.</p>'}
       </section>
       <section class="panel"><h2>Por reponer</h2>${reponer.length ? `<table>${reponer.map(r => `<tr><td>${esc(r.producto)}</td><td class="n"><span class="chip mal">quedan ${N(r.cantidad)}</span></td></tr>`).join('')}</table>` : '<p class="sub" style="margin:0">Todo con stock suficiente.</p>'}</section>
+      <div id="pagosPanel"></div>
       <div id="boletasPanel"></div>
       <section class="panel envio"><h2>Resumen del día</h2><p class="sub">Envíatelo por WhatsApp para tenerlo a la mano.</p>
         <div class="envio-btns"><a class="btn wsp" id="resWa" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a><button class="btn claro" id="resCopiar">Copiar</button>${navigator.share ? '<button class="btn claro" id="resCompartir">Compartir</button>' : ''}</div>
@@ -1867,6 +1915,7 @@ async function vPanel(el) {
     { nombre: 'Ganancia', color: COL_GAN, valores: fechasG.map(f => gb(dia(f))) }], { alto: 200, titulo: per === 'mes' ? 'Venta y ganancia de cada día del mes' : 'Venta y ganancia de los últimos 7 días' });
   el.querySelectorAll('[data-bajar]').forEach(b => b.onclick = () => $('#' + b.dataset.bajar)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   pintarBoletas();
+  if (!esSocio()) pintarPagosPanel();
 }
 
 // ============ VENDER ============
@@ -2545,11 +2594,12 @@ async function moverDinero(modo = 'aporte') {
 }
 
 async function vCaja(el) {
-  const [ses, saldos, ultimas, cobrosHoy] = await Promise.all([
+  const [ses, saldos, ultimas, cobrosHoy, sesMes] = await Promise.all([
     pintarEstadoCaja(), q(sb.from('v_saldos_cuentas').select('*')),
     q(sb.from('v_caja_sesiones').select('*').order('abierta_en', { ascending: false }).limit(12)),
     // Mismo cálculo que el Panel ("Cobraste hoy"): cobros de ventas menos reembolsos, desde las 00:00 de hoy
     q(sb.from('movimientos_financieros').select('monto, metodo_pago_id').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', inicioHoy())).catch(() => []),
+    q(sb.from('v_caja_sesiones').select('*').gte('abierta_en', iniMes() + 'T00:00:00-05:00')).catch(() => []),
   ]);
   const enCaja = num(saldos.find(s => s.cuenta_id === C.caja?.id)?.saldo);
   // Total de caja = suma de todas las cuentas (lo mismo que Reportes → "Dinero disponible hoy")
@@ -2626,6 +2676,7 @@ async function vCaja(el) {
     </div>
     <p class="sub" style="margin:10px 0 0">La alerta suena mientras la app esté abierta (aunque sea en segundo plano). Para que te avise con el celular bloqueado, agrégala también a tu calendario.</p>
   </div>
+  ${resumenDescuadres(sesMes)}
   <div class="panel"><h2>Cierres anteriores</h2><div class="scroll"><table>
     <tr><th>Abierta</th><th>Cerrada</th><th class="n">Apertura</th><th class="n">Esperado</th><th class="n">Contado</th><th class="n">Diferencia</th><th>Observación</th></tr>
     ${ultimas.map(u => `<tr><td>${fh(u.abierta_en)}</td><td>${u.cerrada_en ? fh(u.cerrada_en) : `<span class="chip ok">Abierta</span>${diaLima(u.abierta_en) < hoy() ? ' <button class="btn claro mini" data-cerrar-ant>Cerrarla</button>' : ''}`}</td><td class="n">${S(u.monto_apertura)}</td>
@@ -2773,6 +2824,7 @@ async function vCompras(el) {
     q(sb.from('v_compras_totales').select('*').order('fecha_ingreso', { ascending: false }).limit(20)),
     historialCostos().catch(() => []),
   ]);
+  const calPP = calendarioPagos(porPagar);
   const comprables = C.presentaciones.filter(p => p.se_compra);
   if (!lineasCompra.length) lineasCompra = [{ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }];
   const tarjeta = medios(MEDIOS_COMPRA)[0];
@@ -2821,10 +2873,10 @@ async function vCompras(el) {
   </aside>
   </div>
   ${panelProveedores(hist)}
-  ${porPagar.length ? `<div class="panel"><h2>Por pagar</h2><p class="sub">Compras a crédito y gastos que aún debes.</p><div class="scroll"><table>
+  ${porPagar.length ? `<div class="panel"><h2>Por pagar</h2><p class="sub">Debes ${S(calPP.total)} en compras a crédito y gastos. Paga primero lo vencido.</p>${tarjetasPagos(calPP)}<div class="scroll"><table>
     <tr><th>A quién</th><th>Fecha</th><th class="n">Total</th><th class="n">Debes</th><th>Vence</th><th></th></tr>
-    ${porPagar.map(p => `<tr><td>${esc(p.proveedor)} <span class="chip">${{ COMPRA: 'compra', GASTO: 'gasto', COSTO_ADICIONAL: 'flete' }[p.origen]}</span></td><td>${fd(p.fecha)}</td><td class="n">${S(p.total)}</td><td class="n"><b>${S(p.saldo)}</b></td>
-      <td>${fd(p.fecha_vencimiento)} ${num(p.dias_vencido) > 0 ? `<span class="chip mal">${p.dias_vencido} días tarde</span>` : ''}</td>
+    ${calPP.l.map(p => `<tr><td>${esc(p.proveedor)} <span class="chip">${{ COMPRA: 'compra', GASTO: 'gasto', COSTO_ADICIONAL: 'flete' }[p.origen]}</span></td><td>${fd(p.fecha)}</td><td class="n">${S(p.total)}</td><td class="n"><b>${S(p.saldo)}</b></td>
+      <td>${fd(p.fecha_vencimiento)} ${chipPago(p.d)}</td>
       <td class="n"><button class="btn mini" data-pagar="${p.documento_id}" data-o="${esc(p.origen)}" data-s="${p.saldo}">Pagar</button></td></tr>`).join('')}</table></div></div>` : ''}
   <div class="panel"><h2>Compras recientes</h2><div class="scroll"><table>
     <tr><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th class="n">Total</th><th class="n">Debes</th><th>Estado</th><th></th></tr>
@@ -3198,10 +3250,12 @@ async function contarDinero() {
 }
 const DENOM = [[200, 'billete'], [100, 'billete'], [50, 'billete'], [20, 'billete'], [10, 'billete'], [5, 'moneda'], [2, 'moneda'], [1, 'moneda'], [0.5, 'moneda'], [0.2, 'moneda'], [0.1, 'moneda']];
 async function cerrarElDia() {
-  const [ses, saldos, ex, lotes, cxc] = await Promise.all([
+  const [ses, saldos, ex, lotes, cxc, pp] = await Promise.all([
     sesionCaja(), q(sb.from('v_saldos_cuentas').select('*')), q(sb.from('v_existencias').select('producto, cantidad, stock_minimo, requiere_reposicion').eq('activo', true)).catch(() => []),
     lotesPorVencer().catch(() => []), q(sb.from('v_cuentas_por_cobrar').select('cliente, saldo, dias_vencido')).catch(() => []),
+    esSocio() ? [] : q(sb.from('v_cuentas_por_pagar').select('*')).catch(() => []),
   ]);
+  const pagos = calendarioPagos(pp);
   const sinBol = await ventasSinBoleta(hoy(), hoy()).catch(() => []);
   const esperado = num(saldos.find(x => x.cuenta_id === C.caja?.id)?.saldo);
   const st = { paso: ses ? 1 : 2, cuenta: local.leer('cuentaBilletes') || {}, obs: '', cerrada: !ses, dif: null };
@@ -3228,6 +3282,7 @@ async function cerrarElDia() {
         ${st.cerrada && !st.dif ? '<div class="cuadre ok" style="margin-bottom:12px">La caja ya está cerrada.</div>' : ''}
         <div class="revisar">
           ${[
+            pagos.vencido + pagos.semana > 0 ? `<div class="rv ${pagos.vencido > 0 ? 'mal' : 'aviso'}"><b>💳 Pagos a proveedores</b><span>${pagos.vencido > 0 ? `${S(pagos.vencido)} vencido` : ''}${pagos.vencido > 0 && pagos.semana > 0 ? ' · ' : ''}${pagos.semana > 0 ? `${S(pagos.semana)} en los próximos 7 días` : ''}</span><button class="lnk" data-ir2="compras">Ver y pagar</button></div>` : '',
             vencen.length ? `<div class="rv mal"><b>⏳ Vence esta semana</b><span>${vencen.slice(0, 4).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : l.dias + ' d'})`).join(', ')}</span><button class="lnk" data-ir2="stock">Ver vencimientos</button></div>` : '',
             reponer.length ? `<div class="rv aviso"><b>📦 Por reponer</b><span>${reponer.slice(0, 5).map(e => `${esc(e.producto)} (quedan ${N(e.cantidad)})`).join(', ')}</span><button class="lnk" data-ir2="stock">Armar el pedido</button></div>` : '',
             atrasados.length ? `<div class="rv aviso"><b>🤝 Fiados atrasados</b><span>${atrasados.slice(0, 4).map(c => `${esc(c.cliente)} (${S(c.saldo)})`).join(', ')}</span><button class="lnk" data-ir2="ventas">Recordarles</button></div>` : '',

@@ -403,14 +403,21 @@ test('stock: tarjetas con semáforo, filtros y pedido por proveedor con +/−', 
   }
 });
 
-test('menú lateral por secciones: grupos con pistas, navega y se puede achicar', async ({ page, errores }) => {
+test('botón circular: despliega todas las secciones, navega y se cierra', async ({ page, errores }) => {
   await abrirDemo(page);
-  const lat = page.locator('#tabs.lateral');
-  if (!(await lat.isVisible())) return; // en celular se usa la barra de abajo
-  await expect(lat.locator('.nav-gt').first()).toHaveText(/Tu día/i);
-  await lat.locator('[data-v="reportes"]').click();
+  await expect(page.locator('#tabs')).toBeHidden();
+  await expect(page.locator('#navMovil')).toBeHidden();
+  const fab = page.locator('#fab');
+  await expect(fab).toBeVisible();
+  await fab.click();
+  await expect(page.locator('#menuFab')).toBeVisible();
+  await expect(fab).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#menuFab .mf-gt').first()).toHaveText(/Tu día/i);
+  await page.locator('#menuFab [data-v="reportes"]').click();
   await expect(page.locator('#pagina h1')).toHaveText('Reportes');
-  await expect(lat.locator('[data-v="reportes"]')).toHaveClass(/on/);
-  const plegar = page.locator('#navPlegar');
-  if (await plegar.isVisible()) { await plegar.click(); await expect(page.locator('body')).toHaveClass(/nav-plegada/); await page.locator('#navPlegar').click(); }
+  await expect(fab).toHaveAttribute('aria-expanded', 'false');
+  // Se cierra con Esc
+  await fab.click(); await expect(page.locator('#menuFab')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#menuFab')).toBeHidden();
 });

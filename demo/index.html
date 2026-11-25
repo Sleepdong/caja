@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Caja">
-<title>Caja · Demostración</title>
+<title>Oni Cobin · Demostración</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1050,6 +1050,14 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
 .dq-barra{height:8px;border-radius:99px;background:#FF7A8A40;overflow:hidden;margin-top:8px}.dq-barra i{display:block;height:100%;background:var(--menta);border-radius:99px}
 .dq-n{display:flex;gap:14px;margin-top:8px;font-size:13px;font-weight:600}.dq-n .mal{color:var(--coral)}.dq-n .ok{color:var(--menta)}
 @media(max-width:700px){.pg-cal{gap:6px}.pg-t{padding:8px 9px}.pg-t b{font-size:15px}.pg-t span{display:none}}
+/* Marca: logo OC de Oni Cobin */
+.marca i.logo{background:none!important;box-shadow:0 6px 16px #7B5CFF40!important;border:0!important;padding:0!important;overflow:hidden}
+.marca i.logo svg{width:100%;height:100%;display:block}
+.marca-t{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+.marca-t b{font-weight:700;letter-spacing:-.03em}
+.marca-t small{font-size:.62em;font-weight:600;color:var(--gris);letter-spacing:.04em}
+#ingreso .marca-t{flex-direction:column;gap:2px;align-items:flex-start}#ingreso .marca-t small{font-size:.5em}
+@media(max-width:520px){.top .marca-t small{display:none}}
 </style>
 </head>
 <body>
@@ -1062,7 +1070,7 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
 
 <div id="ingreso">
   <form id="fIngreso">
-    <div class="marca"><i>S/</i>Caja</div>
+    <div class="marca"><i class="logo"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgOC1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7B5CFF"/><stop offset=".55" stop-color="#C054E8"/><stop offset="1" stop-color="#FF7A8A"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#lgOC1)"/><circle cx="24.5" cy="32" r="12" fill="none" stroke="#fff" stroke-width="6"/><path d="M48.2 24.2A12 12 0 1 0 48.2 39.8" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg></i><span class="marca-t"><b>Oni Cobin</b><small>S.A.C.</small></span></div>
     <div class="bienvenida oculto" id="bienvenida"><span class="avatar l" data-avatar></span><div><b id="bvNombre"></b><small class="cargo-txt">Gerente General</small></div></div>
     <div class="campo"><label for="lEmail">Correo</label><input type="email" id="lEmail" required autocomplete="username"></div>
     <div class="campo"><label for="lPass">Contraseña</label><input type="password" id="lPass" required autocomplete="current-password"></div>
@@ -1070,7 +1078,7 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
     <p style="margin:14px 0 0;font-size:13.5px;text-align:center"><a href="#" id="olvide" style="color:var(--tinta2)">Olvidé mi contraseña</a></p>
   </form>
   <form id="fCodigo" class="oculto">
-    <div class="marca"><i>S/</i>Caja</div>
+    <div class="marca"><i class="logo"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgOC2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7B5CFF"/><stop offset=".55" stop-color="#C054E8"/><stop offset="1" stop-color="#FF7A8A"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#lgOC2)"/><circle cx="24.5" cy="32" r="12" fill="none" stroke="#fff" stroke-width="6"/><path d="M48.2 24.2A12 12 0 1 0 48.2 39.8" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg></i><span class="marca-t"><b>Oni Cobin</b><small>S.A.C.</small></span></div>
     <h2 style="font-family:var(--display);font-stretch:var(--ancho);font-size:21px;margin:0 0 6px">Código de verificación</h2>
     <p class="sub">Abre tu app autenticadora y escribe el código de 6 dígitos de <b>Caja</b>.</p>
     <div class="campo"><input id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="Código de 6 dígitos" style="font-size:28px;letter-spacing:.35em;text-align:center;font-family:var(--display);font-stretch:var(--ancho)"></div>
@@ -1081,7 +1089,7 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
 
 <div id="app" class="oculto">
   <div class="top">
-    <div class="marca"><i>S/</i>Caja</div>
+    <div class="marca"><i class="logo"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgOC3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7B5CFF"/><stop offset=".55" stop-color="#C054E8"/><stop offset="1" stop-color="#FF7A8A"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#lgOC3)"/><circle cx="24.5" cy="32" r="12" fill="none" stroke="#fff" stroke-width="6"/><path d="M48.2 24.2A12 12 0 1 0 48.2 39.8" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg></i><span class="marca-t"><b>Oni Cobin</b><small>S.A.C.</small></span></div>
     <span class="fecha" id="fechaHoy"></span>
     <span class="esp"></span>
     <button class="estado-caja" id="estadoCaja">Caja cerrada</button>

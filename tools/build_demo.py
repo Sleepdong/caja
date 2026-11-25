@@ -23,7 +23,7 @@ cambiar('<link rel="manifest" href="manifest.webmanifest">\n', '')
 cambiar('href="favicon.png"', 'href="../favicon.png"')
 cambiar('href="apple-touch-icon.png"', 'href="../apple-touch-icon.png"')
 cambiar("if ('serviceWorker' in navigator && location.protocol === 'https:') {", "if (false) {")
-cambiar('<title>Caja · Gestión Comercial</title>', '<title>Caja · Demostración</title>\n<meta name="robots" content="noindex">')
+cambiar('<title>Oni Cobin S.A.C. · Caja</title>', '<title>Oni Cobin · Demostración</title>\n<meta name="robots" content="noindex">')
 # 4. Aviso visible de demostración
 banner = '''<div id="demoBanner" role="note"><span><b>Demostración</b> con datos de ejemplo<span class="dm-largo">. Prueba vender, cobrar o simular precios: nada se guarda y se reinicia al recargar</span>.</span><span class="dm-vistas"><a href="./">Ver como dueño</a><a href="./?socio">Ver como socio</a></span><a href="https://github.com/Sleepdong/caja" target="_blank" rel="noopener">Ver el proyecto</a></div>
 <style>#demoBanner{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;background:linear-gradient(135deg,#7B5CFF,#C054E8 55%,#FF7A8A);color:#fff;font:500 13px/1.4 Sora,system-ui,sans-serif;padding:9px 16px;text-align:center;padding-top:max(9px,env(safe-area-inset-top))}

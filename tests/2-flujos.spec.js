@@ -403,25 +403,29 @@ test('stock: tarjetas con semáforo, filtros y pedido por proveedor con +/−', 
   }
 });
 
-test('botón circular: despliega todas las secciones, navega y se cierra', async ({ page, errores }) => {
+test('barra de abajo: secciones a un toque y tarjeta Más', async ({ page, errores }) => {
   await abrirDemo(page);
   await expect(page.locator('#tabs')).toBeHidden();
-  await expect(page.locator('#navMovil')).toBeHidden();
-  const fab = page.locator('#fab');
-  await expect(fab).toBeVisible();
-  await fab.click();
-  await expect(page.locator('#menuFab')).toBeVisible();
-  await expect(fab).toHaveAttribute('aria-expanded', 'true');
-  // Las 12 secciones salen en abanico y la ayuda dice dónde estás
-  await expect(page.locator('#menuFab .mf-b')).toHaveCount(12);
-  await expect(page.locator('#mfInfo')).toContainText(await page.evaluate(() => vistas()[vistaActual][0]));
-  await page.locator('#menuFab [data-v="stock"]').hover();
-  await expect(page.locator('#mfInfo')).toContainText('qué pedir');
-  await page.locator('#menuFab [data-v="reportes"]').click();
+  const dock = page.locator('#dock');
+  await expect(dock).toBeVisible();
+  await expect(dock.locator('.dk-b[data-v]')).toHaveCount(5);
+  await dock.locator('[data-v="stock"]').click();
+  await expect(page.locator('#pagina h1')).toHaveText('Stock');
+  await expect(dock.locator('[data-v="stock"]')).toHaveClass(/on/);
+  // "Más" abre una tarjeta pequeña con el resto, agrupado y explicado
+  const mas = page.locator('#dockMas');
+  await mas.click();
+  await expect(page.locator('#dockHoja')).toBeVisible();
+  await expect(mas).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#dockHoja .dh-b')).toHaveCount(7);
+  await expect(page.locator('#dockHoja')).toContainText('Estado de resultados');
+  await page.locator('#dockHoja [data-v="reportes"]').click();
   await expect(page.locator('#pagina h1')).toHaveText('Reportes');
-  await expect(fab).toHaveAttribute('aria-expanded', 'false');
-  // Se cierra con Esc
-  await fab.click(); await expect(page.locator('#menuFab')).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(page.locator('#menuFab')).toBeHidden();
+  await expect(page.locator('#dockHoja')).toBeHidden();
+  await expect(page.locator('#dockMas')).toContainText('Reportes');
+  // Se cierra con Esc y tocando afuera
+  await page.locator('#dockMas').click(); await expect(page.locator('#dockHoja')).toBeVisible();
+  await page.keyboard.press('Escape'); await expect(page.locator('#dockHoja')).toBeHidden();
+  await page.locator('#dockMas').click(); await expect(page.locator('#dockHoja')).toBeVisible();
+  await page.locator('#pagina').click(); await expect(page.locator('#dockHoja')).toBeHidden();
 });

@@ -276,6 +276,8 @@ test('gastos fijos: se registran solos al pasar fin de mes y nunca dos veces', a
 test('mover dinero: elegir cuenta, monto rápido y detalle, y registrar', async ({ page, errores }) => {
   await abrirDemo(page);
   await irA(page, 'caja');
+  // La alerta de cierre (aparece de noche) no debe tapar los botones
+  await page.evaluate(() => { local.guardar('alertaCierre', false); document.getElementById('alertaCierreBar')?.remove(); });
   await page.locator('#btnAporte').click();
   const md = page.locator('.md');
   await expect(md.locator('.acc .btn:not(.claro)')).toBeDisabled();
@@ -428,4 +430,19 @@ test('barra de abajo: secciones a un toque y tarjeta Más', async ({ page, error
   await page.keyboard.press('Escape'); await expect(page.locator('#dockHoja')).toBeHidden();
   await page.locator('#dockMas').click(); await expect(page.locator('#dockHoja')).toBeVisible();
   await page.locator('#pagina').click(); await expect(page.locator('#dockHoja')).toBeHidden();
+});
+
+test('Caja: flujo proyectado a 30 días con pagos con fecha; Panel: meta del mes', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'caja');
+  const fl = page.locator('#flujoCaja');
+  await expect(fl).toContainText('Tu dinero en los próximos 30 días');
+  await expect(fl).toContainText('En 30 días tendrías');
+  await expect(fl.locator('.fl-msg')).toBeVisible();
+  await expect(fl.locator('svg.fl-svg')).toBeVisible();
+  await expect(page.locator('#descuadres')).toContainText('cierres cuadraron');
+  await page.evaluate(() => { fijarMeta(60); local.guardar('panelPer', 'mes'); });
+  await irA(page, 'panel');
+  await expect(page.locator('.pn-meta')).toContainText('Meta de ganancia del mes');
+  await expect(page.locator('#pagosPanel')).toContainText('Pagos a proveedores');
 });

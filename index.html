@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-2DHMmJ7Z8PKyn5ezPkmg9C0ujVtDzjw6iXooeSlBGiA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-GR17qhFbu+RsTA+WUQESHYN6tKU49Gmgxl0zB8QKqq4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -650,6 +650,7 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .pn-meta-cab small{color:var(--gris);font-size:13.5px;display:block}.pn-meta-cab b{font-size:22px}.pn-meta-cab b span{font-size:15px;color:var(--gris);font-weight:500}
 .pn-meta-vacia{color:var(--gris)}
 .pn-meta-barra{height:10px;background:var(--tono);border-radius:6px;overflow:hidden;margin-top:12px}.pn-meta-barra i{display:block;height:100%;background:var(--brillo);border-radius:6px}
+.pn-meta-barra{position:relative}.pn-meta-ritmo{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:#fff;border-radius:2px;opacity:.85}
 .pn-det{margin-top:12px}.pn-det summary{cursor:pointer;color:var(--gris);font-size:14px}.pn-det .envio-txt{margin-top:10px}
 .pn-s2 .envio-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 @media(max-width:999px){.pn-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -1033,6 +1034,15 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
 .pg-t.cero{opacity:.55}
 .pg-lista>div{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #ffffff10}
 .pg-lista small{display:block;color:var(--gris);font-size:11.5px}
+/* Flujo de caja proyectado */
+.fl-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 12px}
+.fl-kpis>div{background:var(--tono);border-radius:14px;padding:10px 12px}
+.fl-kpis small{display:block;color:var(--gris);font-size:12px}.fl-kpis b{display:block;font-size:20px;letter-spacing:-.03em;margin-top:2px;font-variant-numeric:tabular-nums}
+.fl-kpis b.neg{color:var(--coral)}.fl-kpis b.pos{color:var(--menta)}.fl-kpis span{display:block;font-size:11.5px;color:var(--gris)}
+.fl-msg{border-radius:12px;padding:10px 12px;font-size:13.5px;margin-bottom:8px;background:var(--tono)}
+.fl-msg.mal{background:#FF7A8A1f}.fl-msg.aviso{background:#FFC8571a}.fl-msg.ok{background:#4FE3C114}
+.fl-svg{width:100%;height:auto;display:block}.fl-t{font-size:11px;fill:var(--gris)}
+@media(max-width:700px){.fl-kpis{grid-template-columns:1fr 1fr}}
 /* Descuadres de caja del mes */
 .dq{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:10px}
 .dq-g{background:var(--tono);border-radius:14px;padding:12px 14px}
@@ -1154,6 +1164,60 @@ async function pintarPagosPanel() {
     <div class="pg-lista">${c.l.slice(0, 4).map(p => `<div><span><b>${esc(p.proveedor)}</b><small>${p.fecha_vencimiento ? 'Pagar hasta el ' + fd(p.fecha_vencimiento) : 'Sin fecha de pago'}</small></span>${chipPago(p.d)}<b>${S(p.saldo)}</b></div>`).join('')}</div>
     <button class="lnk" data-ir-pagos style="margin-top:10px">Pagar en Compras →</button></section>`;
   caja.querySelector('[data-ir-pagos]').onclick = () => ir('compras');
+}
+// Flujo de caja proyectado a 30 días: dinero de hoy + lo que entra en promedio por día − pagos con fecha
+const TIPOS_OPERACION = ['COBRO_VENTA', 'REEMBOLSO_CLIENTE', 'PAGO_COMPRA', 'PAGO_GASTO', 'PAGO_COSTO_ADICIONAL'];
+async function pintarFlujo(saldoHoy) {
+  const caja = $('#flujoCaja'); if (!caja) return;
+  const N_DIAS = 30, VENTANA = 28, h = hoy();
+  const desde = new Date(Date.parse(h + 'T12:00:00-05:00') - VENTANA * 864e5).toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+  const [movs, pp] = await Promise.all([
+    q(sb.from('movimientos_financieros').select('monto, tipo, fecha').in('tipo', TIPOS_OPERACION).gte('fecha', desde + 'T00:00:00-05:00').lt('fecha', h + 'T00:00:00-05:00')),
+    q(sb.from('v_cuentas_por_pagar').select('*')).catch(() => []),
+  ]);
+  const diasCon = new Set(movs.filter(m => m.tipo === 'COBRO_VENTA').map(m => diaLima(m.fecha))).size;
+  if (diasCon < 7) { caja.innerHTML = `<div class="panel"><h2>Tu dinero en los próximos 30 días</h2><p class="sub" style="margin:0">Cuando tengas al menos 7 días con ventas, aquí verás cuánto dinero tendrás cada día y si te alcanza para pagar a tus proveedores.</p></div>`; return; }
+  const entra = r2(movs.filter(m => num(m.monto) > 0).reduce((a, m) => a + num(m.monto), 0) / VENTANA);
+  const sale = r2(-movs.filter(m => num(m.monto) < 0).reduce((a, m) => a + num(m.monto), 0) / VENTANA);
+  const neto = r2(entra - sale);
+  // Pagos con fecha: deudas a proveedores (lo vencido, hoy) y cobros fijos del banco a fin de mes
+  const fecha = i => new Date(Date.parse(h + 'T12:00:00-05:00') + i * 864e5).toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+  const pagos = calendarioPagos(pp).l.map(p => ({ dia: Math.max(0, p.d ?? N_DIAS), monto: num(p.saldo), que: p.proveedor })).filter(p => p.dia <= N_DIAS);
+  for (let i = 0; i <= N_DIAS; i++) { const f = fecha(i); if (f === finMes(mesDe(f))) fijos.leer().forEach(x => pagos.push({ dia: i, monto: num(x.monto), que: x.detalle })); }
+  const serie = []; let sal = r2(saldoHoy);
+  for (let i = 0; i <= N_DIAS; i++) { if (i > 0) sal = r2(sal + neto); const hoyP = pagos.filter(p => p.dia === i); sal = r2(sal - hoyP.reduce((a, p) => a + p.monto, 0)); serie.push({ i, f: fecha(i), s: sal, pagos: hoyP }); }
+  const min = serie.reduce((a, x) => x.s < a.s ? x : a, serie[0]), fin = serie[N_DIAS], totPagos = r2(pagos.reduce((a, p) => a + p.monto, 0));
+  // Gráfico
+  const W = Math.max(300, Math.min(1100, (caja.clientWidth || 640) - 44)), H = W < 500 ? 170 : 210, L = 8, R = 8, T = 18, B = 26, lo = Math.min(0, ...serie.map(x => x.s)), hi = Math.max(...serie.map(x => x.s), 1);
+  const X = i => L + (W - L - R) * i / N_DIAS, Y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo || 1));
+  const linea = serie.map((x, k) => `${k ? 'L' : 'M'}${X(x.i).toFixed(1)},${Y(x.s).toFixed(1)}`).join('');
+  const area = `${linea}L${X(N_DIAS)},${Y(lo)}L${X(0)},${Y(lo)}Z`;
+  const fc = f => fd(f).slice(0, 5);
+  const svg = `<svg viewBox="0 0 ${W} ${H}" class="fl-svg" role="img" aria-label="Dinero proyectado día por día durante 30 días">
+    <defs><linearGradient id="flG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A73D9" stop-opacity=".35"/><stop offset="1" stop-color="#7A73D9" stop-opacity="0"/></linearGradient></defs>
+    ${lo < 0 ? `<rect x="${L}" y="${Y(0)}" width="${W - L - R}" height="${Y(lo) - Y(0)}" fill="#FF7A8A" opacity=".08"/><line x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}" stroke="#FF7A8A" stroke-dasharray="4 4" stroke-width="1"/><text x="${W - R}" y="${Y(0) - 5}" text-anchor="end" class="fl-t" fill="#FF7A8A">S/ 0</text>` : ''}
+    <path d="${area}" fill="url(#flG)"/><path d="${linea}" fill="none" stroke="#7A73D9" stroke-width="2.2" stroke-linejoin="round"/>
+    ${serie.filter(x => x.pagos.length).map(x => `<circle cx="${X(x.i)}" cy="${Y(x.s)}" r="4.5" fill="#FFC857" stroke="#15162A" stroke-width="2"/>`).join('')}
+    <circle cx="${X(min.i)}" cy="${Y(min.s)}" r="5.5" fill="${min.s < 0 ? '#FF7A8A' : '#4FE3C1'}" stroke="#15162A" stroke-width="2"/>
+    ${(W < 500 ? [0, 15, 30] : [0, 10, 20, 30]).map(i => `<text x="${X(i)}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === 30 ? 'end' : 'middle'}" class="fl-t">${i === 0 ? 'Hoy' : fc(fecha(i))}</text>`).join('')}
+    ${serie.map(x => `<rect x="${X(x.i) - (W - L - R) / N_DIAS / 2}" y="0" width="${(W - L - R) / N_DIAS}" height="${H}" fill="transparent"><title>${fd(x.f)}: ${S(x.s)}${x.pagos.length ? ' · pagas ' + x.pagos.map(p => `${p.que} ${S(p.monto)}`).join(', ') : ''}</title></rect>`).join('')}
+  </svg>`;
+  const mensaje = min.s < 0
+    ? `<div class="fl-msg mal"><b>⚠️ El ${fd(min.f)} no te alcanzaría: te faltarían ${S(-min.s)}.</b> Cobra tus fiados, pide más plazo al proveedor o compra un poco menos esta semana.</div>`
+    : min.s < neto * 3 && min.i > 0
+      ? `<div class="fl-msg aviso"><b>Ojo con el ${fd(min.f)}:</b> te quedarías con solo ${S(min.s)} después de pagar${min.pagos.length ? ' a ' + esc(min.pagos.map(p => p.que).join(', ')) : ''}.</div>`
+      : `<div class="fl-msg ok"><b>✅ Te alcanza para todo.</b> Tu punto más bajo sería ${S(min.s)} ${min.i === 0 ? 'hoy' : 'el ' + fd(min.f)}.</div>`;
+  caja.innerHTML = `<div class="panel fl"><div class="pn-cab"><h2>Tu dinero en los próximos 30 días</h2><span class="sub">Estimación</span></div>
+    <div class="fl-kpis">
+      <div><small>Hoy tienes</small><b>${S(saldoHoy)}</b></div>
+      <div><small>Te queda por día</small><b class="${neto < 0 ? 'neg' : ''}">${neto >= 0 ? '+' : '−'}${S(Math.abs(neto))}</b><span>entra ${S(entra)} · sale ${S(sale)}</span></div>
+      <div><small>Pagos con fecha</small><b>−${S(totPagos)}</b><span>${pagos.length} ${pagos.length === 1 ? 'pago' : 'pagos'} en 30 días</span></div>
+      <div><small>En 30 días tendrías</small><b class="${fin.s < 0 ? 'neg' : 'pos'}">${S(fin.s)}</b></div>
+    </div>
+    ${mensaje}${svg}
+    <div class="leyenda" style="margin:6px 0 0"><span style="--c:#7A73D9">Dinero estimado</span><span style="--c:#FFC857">Día de pago</span><span style="--c:${min.s < 0 ? '#FF7A8A' : '#4FE3C1'}">Punto más bajo</span></div>
+    ${pagos.length ? `<details class="pn-det"><summary>Ver los pagos programados</summary><table>${pagos.sort((a, b) => a.dia - b.dia).map(p => `<tr><td>${fd(fecha(p.dia))}</td><td>${esc(p.que)}</td><td class="n">${S(p.monto)}</td></tr>`).join('')}</table></details>` : ''}
+    <p class="sub" style="margin:8px 0 0">Supone que en los próximos días vendes y gastas como en los últimos ${VENTANA}. No cuenta aportes ni retiros.</p></div>`;
 }
 // Descuadres de caja del mes: cuántos cierres cuadraron y cuánto faltó o sobró
 function resumenDescuadres(ses) {
@@ -1825,7 +1889,14 @@ async function vPanel(el) {
   <div class="pn-grid">
     <div class="pn-s1">
       <section class="panel pn-meta">
-        ${meta ? `<div class="pn-meta-cab"><div><small>Meta de ganancia de hoy</small><b>${S(gb(H0))} <span>de ${S(meta)}</span></b></div><button class="lnk" id="metaCambiar">Cambiar</button></div>
+        ${meta && per !== 'hoy' ? (() => {
+          const ini = per === 'mes' ? iniMes() : desdeP, diasP = per === 'mes' ? Number(finMes(mesDe(h)).slice(8)) : 7, metaP = r2(meta * diasP);
+          const llev = Math.max(0, gb(P0)), av = llev / metaP * 100, transcurridos = Math.round((Date.parse(h) - Date.parse(ini)) / 864e5) + 1, quedan = Math.max(0, diasP - transcurridos);
+          const ritmo = transcurridos / diasP * 100, porDia = quedan ? r2((metaP - llev) / quedan) : 0;
+          return `<div class="pn-meta-cab"><div><small>Meta de ganancia ${per === 'mes' ? 'del mes' : 'de 7 días'}</small><b>${S(llev)} <span>de ${S(metaP)}</span></b></div><button class="lnk" id="metaCambiar">Cambiar</button></div>
+          <div class="pn-meta-barra" role="progressbar" aria-label="Avance de la meta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(Math.min(av, 100))}"><i style="width:${Math.min(100, av)}%"></i><em class="pn-meta-ritmo" style="left:${Math.min(100, ritmo)}%" title="Dónde deberías ir hoy"></em></div>
+          <p class="sub" style="margin:8px 0 0">${av >= 100 ? `<b>¡Meta cumplida!</b> Vas ${S(llev - metaP)} por encima.` : `Llevas ${Math.floor(av)}% y ${av >= ritmo ? '<b style="color:var(--menta)">vas a buen ritmo</b>' : '<b style="color:var(--ambar)">vas un poco atrás</b>'} (la rayita marca dónde deberías ir hoy). ${quedan ? `Para llegar necesitas <b>${S(porDia)} de ganancia por día</b> en los ${quedan} días que quedan.` : ''}`}</p>`;
+        })() : meta ? `<div class="pn-meta-cab"><div><small>Meta de ganancia de hoy</small><b>${S(gb(H0))} <span>de ${S(meta)}</span></b></div><button class="lnk" id="metaCambiar">Cambiar</button></div>
           <div class="pn-meta-barra" role="progressbar" aria-label="Avance de la meta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(Math.min(avance, 100))}"><i style="width:${Math.min(100, avance)}%"></i></div>
           <p class="sub" style="margin:8px 0 0">${avance >= 100 ? `<b>¡Meta cumplida!</b> Ganaste ${S(gb(H0) - meta)} más de lo que te propusiste.` : `Llevas ${Math.floor(avance)}%. Te faltan <b>${S(meta - gb(H0))}</b>${faltan ? `: unas ${faltan}` : ''}.`}</p>`
         : `<div class="pn-meta-cab"><div><small>Meta del día</small><b class="pn-meta-vacia">Sin meta</b></div><button class="btn claro mini" id="metaCambiar">Ponerte una meta</button></div>
@@ -2639,6 +2710,7 @@ async function vCaja(el) {
   ${pend.n ? `<div class="aviso-barra"><p><b>${pend.n} ${pend.n === 1 ? 'venta hecha' : 'ventas hechas'} sin internet por ${S(pend.total)} no ${pend.n === 1 ? 'se ha subido' : 'se han subido'}.</b> ${ses ? 'Se suben solas cuando hay conexión.' : 'No se pueden subir con la caja cerrada: ábrela y súbelas.'}</p><button class="btn rotulo" id="btnSubirCola">${ses ? 'Subir ahora' : 'Abrir caja y subirlas'}</button></div>` : ''}
   ${resumenCaja}
   <div id="turnoSocio"></div>
+  <div id="flujoCaja"></div>
   <div class="panel contar-ahora"><div class="envio-cab"><div><h2>¿Cuánto efectivo tienes de verdad?</h2>
     <p class="sub" style="margin:0">Cuenta billetes y monedas cuando quieras y compáralo con lo que dice el sistema (${S(enCaja)}). Si no cuadra, la app te ayuda a registrar por qué.${ultArq ? ` Último conteo ${hace(ultArq.fecha)}: ${Math.abs(num(ultArq.dif)) < 0.005 ? 'cuadró' : (ultArq.dif > 0 ? 'sobraban ' : 'faltaban ') + S(Math.abs(ultArq.dif))}.` : ''}</p></div>
     <button class="btn rotulo" id="btnContarAhora">Contar el dinero ahora</button></div></div>
@@ -2685,6 +2757,7 @@ async function vCaja(el) {
   </table></div></div>`;
   if ($('#btnAbrir')) $('#btnAbrir').onclick = async () => { if (await abrirCajaRapido()) ir('caja'); };
   pintarTurnoSocio(enTurno).catch(() => {});
+  if (!esSocio()) pintarFlujo(totalCaja).catch(() => { $("#flujoCaja") && ($("#flujoCaja").innerHTML = ""); });
   $('#btnContarAhora').onclick = () => contarDinero().catch(e => aviso(textoError(e), true));
   $('#btnSubirCola') && ($('#btnSubirCola').onclick = async () => { await subirAtascadas(); ir('caja'); });
   el.querySelectorAll('[data-cerrar-ant]').forEach(b => b.onclick = () => cerrarElDia().catch(e => aviso(textoError(e), true)));

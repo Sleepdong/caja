@@ -85,3 +85,21 @@ test('editar un producto antiguo: pasar de solo caja a las dos formas', async ({
   await expect(page.locator('body')).toContainText('Producto actualizado');
   expect(await page.evaluate(i => C.presentaciones.filter(p => p.producto_id === i && p.se_compra).length, id)).toBe(2);
 });
+
+test('compras: al elegir proveedor salen primero los productos que le compras', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'compras');
+  // Un proveedor con compras de una sola categoría
+  const prov = await page.evaluate(async () => {
+    const h = await historialCostos();
+    const cats = {}; h.forEach(x => { const c = C.presentaciones.find(p => p.producto_id === x.producto_id)?.productos?.categoria_id; (cats[x.proveedor_id] ??= new Set()).add(c); });
+    return Object.entries(cats).find(([, s]) => s.size === 1)?.[0];
+  });
+  test.skip(!prov, 'La demo no tiene un proveedor de una sola categoría');
+  await page.locator('#prov').selectOption(prov);
+  const grupo = page.locator('#tLineas select').first().locator('optgroup').first();
+  await expect(grupo).toHaveAttribute('label', /Lo que le compras a/);
+  // La línea en blanco pasa a un producto de ese proveedor
+  const enGrupo = await grupo.locator('option').evaluateAll(o => o.map(x => x.value));
+  expect(enGrupo).toContain(await page.locator('#tLineas select').first().inputValue());
+});

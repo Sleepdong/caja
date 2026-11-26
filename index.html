@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-dUjma76ZW4xm0GTS4z18vhgT9l+Y+ORW5YhUiaO862A='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-QYfXjWm92jIb5k1/zQrr7BsadjItFVj5eDc4IEeT5Yo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -875,9 +875,23 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .seg-pago button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:14px;padding:11px 14px;font:inherit;cursor:pointer}
 .seg-pago button small{color:var(--gris);font-size:12px}
 .seg-pago button.on{border-color:var(--violeta);background:var(--tono2)}
-.asis-preg{margin:0 0 8px;font-size:15px;font-weight:600}
-.seg-pago.llega{grid-template-columns:repeat(3,1fr);max-width:none;margin-bottom:16px}.seg-pago.llega b{font-size:14.5px}
-@media(max-width:600px){.seg-pago.llega{gap:6px}.seg-pago.llega button{padding:10px;justify-content:center;text-align:center;align-items:center}.seg-pago.llega small{display:none}.seg-pago.llega b{font-size:13.5px}.asis .frase input.corto{width:104px}.asis .frase input.mini{width:84px}}
+.np-sec{margin:0 0 22px}.np-sec h4{display:flex;gap:10px;align-items:center;margin:0 0 12px;font-size:15.5px}
+.np-sec h4 span{width:24px;height:24px;border-radius:50%;background:var(--violeta);color:#fff;display:grid;place-items:center;font-size:12.5px;flex:none}
+.np .chips-cat.np-cats{flex-wrap:wrap;overflow:visible}.np .chips-cat button{background:var(--tono)}.np .chips-cat button.on{background:var(--texto)}
+.np-nombre{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;align-items:start}
+.np-modo button{padding:11px 10px;font-size:14px}
+.np-linea{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 0 0;font-size:14.5px}.np-linea[hidden]{display:none}
+.np-step{display:flex;align-items:center;gap:6px}.np-step input{width:72px;text-align:center;font-size:17px;font-weight:700;padding:9px 6px}
+.np-b{width:42px;height:42px;border:0;border-radius:12px;background:var(--tono);color:var(--texto);font:inherit;font-size:20px;font-weight:700;cursor:pointer}
+.np-soles{display:flex;align-items:center;gap:6px;color:var(--gris)}.np-soles input{width:110px;font-size:16px;font-weight:600}
+.np-corto{width:200px;max-width:100%}
+.np-precio{display:flex;align-items:center;gap:8px;font-size:22px;color:var(--gris)}.np-precio input{width:160px;font-size:24px;font-weight:700;padding:10px 14px}
+.np-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}.np-chips:empty{display:none}.np-chips small{opacity:.75;font-weight:500;margin-left:6px}
+.np-nota{margin:8px 0 0;font-size:12.5px}.np-nota:empty{display:none}
+.np-res{margin-top:14px;border-radius:16px;padding:12px 14px;background:var(--tono);font-size:13.5px;line-height:1.5;display:grid;gap:2px}
+.np-gan{font-size:17px}.np-res.ok{background:#4FE3C11f}.np-res.ok .np-gan b{color:var(--menta)}.np-res.aviso{background:#FFC8571f}.np-res.aviso .np-gan b{color:var(--ambar)}.np-res.mal{background:#FF7A8A1f}.np-res.mal .np-gan b{color:var(--coral)}
+.np-mas{margin-top:4px}.np-mas .check{margin-top:12px}
+@media(max-width:600px){.np-nombre{grid-template-columns:1fr}.np-linea>span{flex:1 1 100%}}
 @media(min-width:900px){.velo.hoja-velo{align-items:center}}
 .dialogo,.hoja{background:var(--blanco);color:var(--texto);border-radius:28px;box-shadow:0 0 0 1px var(--linea)}
 .hp-cab small{color:var(--violeta)}
@@ -4326,113 +4340,147 @@ async function crearCategoria() {
     aviso('Categoría creada'); await cargarCatalogos(); return cat.id;
   } catch (e) { aviso(textoError(e), true); return null; }
 }
-// ============ ASISTENTE: PRODUCTO NUEVO EN 3 PASOS ============
+// ============ NUEVO PRODUCTO: UNA SOLA PANTALLA, TRES PREGUNTAS ============
+// 1) ¿Qué es?  2) ¿Cómo te lo vende el proveedor?  3) ¿A cuánto lo vendes?  Lo poco usado va en "Más opciones".
+// Siempre se puede registrar la compra suelta (por unidad), aunque normalmente llegue en caja.
 function abrirAsistenteProducto(catInicial) {
-  const st = { paso: catInicial ? 2 : 1, cat: C.categorias.find(c => c.id === catInicial) || null, marca: '', variante: '', nf: '', cf: '', pkBase: 'Caja', pkF: '', vendePaq: false, pu: '', pkP: '', min: '', costo: '', costoU: '', compra: 'uni' };
-  // compra: 'paq' = te llega en caja/paquete, 'uni' = te llega suelto, 'ambos' = a veces de una forma y a veces de la otra
-  const usar = cat => Object.assign(st, { cat, pkBase: cat.paquete_nombre || 'Caja', pkF: cat.paquete_unidades || '', vendePaq: !!cat.vende_paquete && !!cat.paquete_nombre, compra: cat.paquete_nombre ? 'paq' : 'uni' });
-  if (st.cat) usar(st.cat);
+  const st = { cat: null, marca: '', variante: '', modo: 'caja', pkNom: 'Caja', pkF: '', costo: '', pu: '', vendePaq: false, pkP: '', min: '', nf: '', cf: '' };
+  let precios = [];
+  const usar = cat => Object.assign(st, { cat, modo: cat.paquete_nombre ? 'caja' : 'unidad', pkNom: cat.paquete_nombre || 'Caja', pkF: cat.paquete_unidades || '', costo: '', vendePaq: !!cat.vende_paquete && !!cat.paquete_nombre });
+  const ini = catInicial && C.categorias.find(c => c.id === catInicial);
+  if (ini) usar(ini);
   const v = document.createElement('div'); v.className = 'velo hoja-velo asis-velo';
-  v.innerHTML = '<div class="asis" role="dialog" aria-modal="true" aria-labelledby="asisT"></div>';
+  v.innerHTML = '<div class="asis np" role="dialog" aria-modal="true" aria-labelledby="asisT"></div>';
   document.body.appendChild(v);
   const caja = v.firstChild, cerrar = () => v.remove();
   v.addEventListener('click', e => { if (e.target === v) cerrar(); });
-  const uniNom = () => (C.unidades.find(u => u.id === st.cat?.unidad_medida_id)?.nombre || 'Unidad').toLowerCase();
-  const art = w => /(a|ad|ón)$/i.test(w) ? 'la' : 'el';
-  const cuantos = w => /(a|ad)$/i.test(w) ? 'Cuántas' : 'Cuántos';
+  v.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
+  const fem = w => /(a|ad|ón)$/i.test(w), la = w => fem(w) ? 'la' : 'el', oa = w => fem(w) ? 'a' : 'o';
+  const u = () => (C.unidades.find(x => x.id === st.cat?.unidad_medida_id)?.nombre || 'Unidad').toLowerCase();
+  const pk = () => (singular(st.pkNom) || 'Caja').toLowerCase();
   const nombre = () => [singular(st.marca), singular(st.variante)].filter(Boolean).join(' ');
   const duplicado = () => { const n = normTexto(nombre()); return n ? C.presentaciones.find(p => normTexto(p.productos?.nombre || '') === n)?.productos : null; };
-  const pasos = ['Tipo', 'Producto', 'Precios'];
-  const pintar = () => {
-    const u = uniNom(), dup = duplicado();
-    const marcas = [...new Set(C.presentaciones.filter(p => !st.cat || p.productos?.categoria_id === st.cat.id).map(p => p.productos?.marca).filter(Boolean))];
-    const conPaq = st.compra !== 'uni', conUni = st.compra !== 'paq', pk = (st.pkBase || 'caja').toLowerCase(), Art = w => art(w)[0].toUpperCase() + art(w).slice(1), oa = w => art(w) === 'la' ? 'a' : 'o';
-    const cuPaq = conPaq && num(st.costo) > 0 && num(st.pkF) >= 2 ? num(st.costo) / num(st.pkF) : 0, cuUni = conUni ? num(st.costoU) : 0;
-    const cu = Math.max(cuPaq, cuUni); // si te llega de las dos formas, el precio debe cubrir la más cara
-    const sug = cu > 0 ? precioSugerido(cu) : 0;
-    const comoCompras = st.compra === 'uni' ? `por ${esc(u)} suelt${oa(u)}` : `${esc(pk)}${num(st.pkF) >= 2 ? ' x ' + st.pkF : ''}${st.compra === 'ambos' ? ` o por ${esc(u)} suelt${oa(u)}` : ''}`;
-    const ganU = cu > 0 && num(st.pu) > 0 ? num(st.pu) - cu : null;
-    caja.innerHTML = `
-      <header class="asis-cab"><div><small>Nuevo producto</small><h3 id="asisT">${st.paso === 1 ? '¿Qué tipo de producto es?' : st.paso === 2 ? '¿Cuál es?' : '¿Cómo lo compras y lo vendes?'}</h3></div>
-        <button class="asis-x" data-a="cerrar" aria-label="Cerrar">✕</button></header>
-      <ol class="asis-pasos">${pasos.map((t, i) => `<li class="${i + 1 < st.paso ? 'hecho' : i + 1 === st.paso ? 'on' : ''}"><span>${i + 1}</span>${t}</li>`).join('')}</ol>
-      <div class="asis-cuerpo">${
-      st.paso === 1 ? `<div class="cats elegir">${C.categorias.map(c => { const un = C.unidades.find(x => x.id === c.unidad_medida_id)?.nombre?.toLowerCase() || 'unidad';
-          return `<button class="cat-card" data-cat="${c.id}" style="--c:${colorProducto(c.id)}"><div class="cat-top"><span class="cat-ini">${esc(c.nombre.charAt(0))}</span><div><b>${esc(c.nombre)}</b><small>${c.paquete_nombre ? `Compras ${esc(c.paquete_nombre.toLowerCase())}${c.paquete_unidades ? ' x ' + c.paquete_unidades : ''}, vendes por ${esc(un)}` : `Compras y vendes por ${esc(un)}`}</small></div></div></button>`; }).join('')}
-          <button class="cat-card nueva" data-a="nuevacat"><div class="cat-top"><span class="cat-ini">＋</span><div><b>Otra categoría</b><small>Crea un tipo nuevo, p. ej. Chocolates</small></div></div></button></div>`
-      : st.paso === 2 ? `
-        <div class="vista-prod" style="--c:${colorProducto(st.cat.id + nombre())}"><span class="vp-cat">${esc(st.cat.nombre)}</span><b>${esc(nombre() || 'Marca y variante')}</b><small>${st.pkBase ? `${esc(st.pkBase)}${num(st.pkF) >= 2 ? ' x ' + st.pkF : ''}` : 'Por ' + esc(u)}</small></div>
-        <label for="aMarca">Marca</label><input id="aMarca" value="${esc(st.marca)}" placeholder="Ej.: ${esc(marcas[0] || 'Fini')}" autocomplete="off">
-        ${marcas.length ? `<div class="chips-cat mini-chips">${marcas.map(m => `<button data-marca="${esc(m)}" class="${m === st.marca ? 'on' : ''}">${esc(m)}</button>`).join('')}</div>` : ''}
-        <label for="aVar" style="margin-top:12px">Variante <span class="sub">(sabor, color o tipo)</span></label><input id="aVar" value="${esc(st.variante)}" placeholder="Ej.: ${st.cat.prefijo_factura === 'CIG' ? 'RED, Click, Menta' : 'Ositos, Besos de fresa'}">
-        ${dup ? `<div class="aviso-txt" style="margin-top:12px"><b>Ya tienes "${esc(dup.nombre)}".</b> Si es el mismo producto, edítalo en vez de crear otro, para no repartir el stock. <button class="lnk" data-a="editardup">Ir a editarlo</button></div>` : ''}
-        <details class="extra" style="margin-top:14px" ${st.nf || st.cf ? 'open' : ''}><summary>Datos de la factura (para que el escáner lo reconozca)</summary>
-          <div class="fila" style="margin-top:10px"><div style="flex:2 1 220px"><label for="aNf">Nombre en la factura</label><input id="aNf" value="${esc(st.nf)}" placeholder="Cópialo tal cual"></div>
-          <div><label for="aCf">Código</label><input id="aCf" value="${esc(st.cf)}" inputmode="numeric" placeholder="Ej.: 460069"></div></div>
-          <p class="sub" style="margin:6px 0 0">Si no lo pones, la app lo aprende sola la primera vez que escanees su factura.</p></details>`
-      : `
-        <p class="asis-preg">¿Cómo te llega del proveedor?</p>
-        <div class="seg-pago llega" role="radiogroup" aria-label="Cómo te llega del proveedor">
-          <button type="button" role="radio" aria-checked="${st.compra === 'paq'}" data-compra="paq" class="${st.compra === 'paq' ? 'on' : ''}"><b>En ${esc(pk)}</b><small>${esc(art(pk))} ${esc(pk)} cerrad${oa(pk)}</small></button>
-          <button type="button" role="radio" aria-checked="${st.compra === 'uni'}" data-compra="uni" class="${st.compra === 'uni' ? 'on' : ''}"><b>Por ${esc(u)}</b><small>suelto, de una en una</small></button>
-          <button type="button" role="radio" aria-checked="${st.compra === 'ambos'}" data-compra="ambos" class="${st.compra === 'ambos' ? 'on' : ''}"><b>De las dos formas</b><small>a veces en ${esc(pk)}, a veces suelto</small></button>
-        </div>
-        ${conPaq ? `<div class="frase"><span>Te llega en</span><input id="aPk" class="corto" value="${esc(st.pkBase)}" placeholder="Caja, display…"><span>de</span><input id="aPkF" class="mini" type="number" min="2" inputmode="numeric" value="${esc(st.pkF)}" placeholder="12"><span>${esc(plural(u))}</span></div>
-          <div class="frase"><span>${Art(pk)} ${esc(pk)} te cuesta</span><span class="pre">S/</span><input id="aCosto" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.costo)}" placeholder="0.00">${cuPaq ? `<span class="sub">= ${S(cuPaq)} por ${esc(u)}</span>` : '<span class="sub">opcional, para sugerirte el precio</span>'}</div>` : ''}
-        ${conUni ? `<div class="frase"><span>Cada ${esc(u)} suelt${oa(u)} te cuesta</span><span class="pre">S/</span><input id="aCostoU" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.costoU)}" placeholder="0.00">${conPaq ? '' : '<span class="sub">opcional, para sugerirte el precio</span>'}</div>` : ''}
-        <div class="frase grande"><span>Vendes cada ${esc(u)} a</span><span class="pre">S/</span><input id="aPu" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pu)}" placeholder="0.00">
-          ${sug ? `<button class="chip-sug" data-a="sug">Sugerido S/ ${sug.toFixed(2)}</button>` : ''}</div>
-        ${conPaq && st.pkBase ? `<label class="check"><input type="checkbox" id="aVp" ${st.vendePaq ? 'checked' : ''}> También vendo ${art(pk)} ${esc(pk)} complet${oa(pk)}</label>
-          ${st.vendePaq ? `<div class="frase"><span>${Art(pk)} ${esc(pk)} complet${oa(pk)} a</span><span class="pre">S/</span><input id="aPkP" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pkP)}" placeholder="0.00"></div>` : ''}` : ''}
-        <div class="frase"><span>Avísame cuando queden menos de</span><input id="aMin" class="mini" type="number" min="0" inputmode="numeric" value="${esc(st.min)}" placeholder="0"><span>${esc(plural(u))}</span></div>
-        <div class="consejo-claro">${[
-          `<b>${esc(nombre())}</b>: compras ${comoCompras}`,
-          num(st.pu) > 0 ? `vendes por ${esc(u)} a ${S(num(st.pu))}` : '<span class="txt-aviso">falta el precio de venta</span>',
-          ganU != null ? (ganU > 0 ? `ganas <b>${S(ganU)}</b> por ${esc(u)} (${P(ganU / num(st.pu) * 100)})` : `<span class="txt-mal">pierdes ${S(-ganU)} por ${esc(u)}</span>`) : '',
-          cuPaq && cuUni && cuUni > cuPaq ? `suelt${oa(u)} te cuesta ${S(cuUni - cuPaq)} más por ${esc(u)} que en ${esc(pk)}` : '',
-          conPaq && st.vendePaq && num(st.pkP) > 0 && num(st.pu) > 0 && num(st.pkF) >= 2 && num(st.pu) * num(st.pkF) > num(st.pkP) ? `suelto ganas ${S(num(st.pu) * num(st.pkF) - num(st.pkP))} más por ${esc(pk)}` : '',
-        ].filter(Boolean).join(', ')}.</div>`}
-      </div>
-      <footer class="asis-pie">${st.paso > 1 ? '<button class="btn claro" data-a="atras">Atrás</button>' : '<span></span>'}
-        ${st.paso === 2 ? `<button class="btn" data-a="sig" ${singular(st.marca) ? '' : 'disabled'}>Siguiente</button>` : st.paso === 3 ? '<button class="btn rotulo" data-a="crear">Crear producto</button>' : ''}</footer>`;
-    // Eventos
-    const leer = () => {
-      const val = id => caja.querySelector('#' + id)?.value;
-      if (st.paso === 2) Object.assign(st, { marca: val('aMarca') ?? st.marca, variante: val('aVar') ?? st.variante, nf: val('aNf') ?? st.nf, cf: val('aCf') ?? st.cf });
-      if (st.paso === 3) { Object.assign(st, { pkBase: singular(val('aPk') ?? st.pkBase), pkF: val('aPkF') ?? st.pkF, costo: val('aCosto') ?? st.costo, costoU: val('aCostoU') ?? st.costoU, pu: val('aPu') ?? st.pu, pkP: val('aPkP') ?? st.pkP, min: val('aMin') ?? st.min });
-        const c = caja.querySelector('#aVp'); if (c) st.vendePaq = c.checked; }
-    };
-    const repintar = foco => { leer(); const pos = foco && caja.querySelector('#' + foco)?.selectionStart; pintar(); const f = foco && caja.querySelector('#' + foco); if (f) { f.focus(); try { f.setSelectionRange(pos, pos); } catch {} } };
-    caja.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { usar(C.categorias.find(c => c.id === b.dataset.cat)); st.paso = 2; pintar(); caja.querySelector('#aMarca')?.focus(); });
-    caja.querySelectorAll('[data-marca]').forEach(b => b.onclick = () => { leer(); st.marca = b.dataset.marca; pintar(); caja.querySelector('#aVar')?.focus(); });
-    ['aMarca', 'aVar'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.oninput = () => repintar(id); });
-    caja.querySelectorAll('[data-compra]').forEach(b => b.onclick = () => { leer(); st.compra = b.dataset.compra; if (st.compra === 'uni') st.vendePaq = false; pintar();
-      caja.querySelector(st.compra === 'uni' ? '#aCostoU' : num(st.pkF) >= 2 ? '#aCosto' : '#aPkF')?.focus(); });
-    ['aPk', 'aPkF', 'aCosto', 'aCostoU', 'aPu', 'aPkP', 'aMin'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.onchange = () => repintar(); });
-    ['aCosto', 'aCostoU', 'aPu', 'aPkP', 'aPkF'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.oninput = () => { leer(); const r = caja.querySelector('.consejo-claro'); if (r) { const pos = i.selectionStart; pintar(); const f = caja.querySelector('#' + id); f.focus(); try { f.setSelectionRange(pos, pos); } catch {} } }; });
-    caja.querySelector('#aVp') && (caja.querySelector('#aVp').onchange = () => repintar());
-    caja.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
-      const a = b.dataset.a; leer();
-      if (a === 'cerrar') return cerrar();
-      if (a === 'atras') { st.paso--; return pintar(); }
-      if (a === 'sig') { if (!singular(st.marca)) return aviso('Escribe la marca', true); st.paso = 3; pintar(); return caja.querySelector('#aPu')?.focus(); }
-      if (a === 'sug') { st.pu = sug.toFixed(2); return pintar(); }
-      if (a === 'editardup') { const d = duplicado(); cerrar(); const prs = { ...d }; return editarProducto(d.id, prs); }
-      if (a === 'nuevacat') { v.style.display = 'none'; const id = await crearCategoria(); v.style.display = ''; if (id) { usar(C.categorias.find(c => c.id === id)); st.paso = 2; } return pintar(); }
-      if (a === 'crear') {
-        if (duplicado() && !(await dialogo('¿Crear un producto repetido?', [{ type: 'info', html: `<p class="sub" style="margin:0">Ya tienes "${esc(duplicado().nombre)}". Si es el mismo, mejor edítalo para no repartir el stock.</p>` }], 'Crear igual'))) return;
-        const paq = st.compra !== 'uni';
-        if (paq && !st.pkBase) { aviso('Escribe en qué te llega: caja, display, bolsa…', true); return caja.querySelector('#aPk')?.focus(); }
-        if (paq && Math.round(num(st.pkF)) < 2) { aviso(`Escribe cuántas ${plural(uniNom())} trae ${art(st.pkBase.toLowerCase())} ${st.pkBase.toLowerCase()}`, true); return caja.querySelector('#aPkF')?.focus(); }
-        b.disabled = true;
-        const id = await crearProducto({ cat: st.cat, marca: st.marca, variante: st.variante, uniId: st.cat.unidad_medida_id || C.unidades[0].id, pkBase: paq ? st.pkBase : '', pkF: num(st.pkF), compraUni: st.compra !== 'paq',
-          pu: st.pu, pkP: paq && st.vendePaq ? st.pkP : '', min: num(st.min), nombre_factura: st.nf, codigo_factura: st.cf });
-        if (id) { cerrar(); ir('catalogo'); } else b.disabled = false;
-      }
-    });
+  const cuantas = () => Math.round(num(st.pkF));
+  // Lo que te cuesta cada unidad (bolsa, cigarro…)
+  const costoU = () => { const c = num(st.costo); return !(c > 0) ? 0 : st.modo === 'unidad' ? c : cuantas() >= 2 ? c / cuantas() : 0; };
+  const dupHtml = () => { const d = duplicado(); return d ? `<div class="aviso-txt" style="margin-top:12px"><b>Ya tienes "${esc(d.nombre)}".</b> Si es el mismo, edítalo en vez de crear otro. <button type="button" class="lnk" data-a="editardup">Ir a editarlo</button></div>` : ''; };
+  const cuTxt = () => st.modo === 'caja' && costoU() > 0 ? `Te sale a <b>${S(costoU())}</b> cada ${esc(u())}.` : '';
+  const chipsPrecio = () => {
+    if (!st.cat) return '';
+    const cu = costoU(), out = [];
+    if (cu > 0) out.push([precioSugerido(cu), `sugerido`]);
+    const cuenta = {};
+    C.presentaciones.filter(p => p.productos?.categoria_id === st.cat.id && num(p.factor) === 1)
+      .forEach(p => { const x = precios.find(y => y.presentacion_id === p.id)?.precio; if (x != null) { const k = num(x).toFixed(2); cuenta[k] = (cuenta[k] || 0) + 1; } });
+    Object.entries(cuenta).sort((a, b) => b[1] - a[1]).slice(0, 3)
+      .forEach(([p]) => { if (!out.some(o => o[0].toFixed(2) === p)) out.push([num(p), `como en ${st.cat.nombre}`]); });
+    return out.map(([p, t]) => `<button type="button" class="chip-sug" data-precio="${p.toFixed(2)}">S/ ${p.toFixed(2)}<small>${esc(t)}</small></button>`).join('');
   };
+  const resumen = () => {
+    if (!st.cat) return '';
+    const pu = num(st.pu), cu = costoU(), un = esc(u()), n = cuantas();
+    if (!(pu > 0)) return `<div class="np-res">Escribe a cuánto vendes cada ${un} y aquí verás cuánto ganas.</div>`;
+    if (!(cu > 0)) return `<div class="np-res">Vendes cada ${un} a <b>${S(pu)}</b>. Si pones cuánto te cuesta, aquí verás cuánto ganas.</div>`;
+    const g = pu - cu, m = g / pu * 100;
+    if (g <= 0) return `<div class="np-res mal"><span class="np-gan"><b>Pierdes ${S(-g)}</b> por ${un}</span><span>Te cuesta ${S(cu)}. Véndelo a ${S(precioSugerido(cu))} o más.</span></div>`;
+    return `<div class="np-res ${m < umbral() ? 'aviso' : 'ok'}"><span class="np-gan">Ganas <b>${S(g)}</b> por ${un}</span>
+      <span>${P(m)} de margen${m < umbral() ? ` · tu mínimo es ${P(umbral())}` : ''}</span>
+      ${st.modo === 'caja' && n >= 2 ? `<span>Al vender ${la(pk())} ${esc(pk())} entera por ${un}: <b>${S(g * n)}</b> de ganancia</span>` : ''}</div>`;
+  };
+  const pintar = () => {
+    const un = u(), cat = st.cat, p = pk();
+    const marcas = cat ? [...new Set(C.presentaciones.filter(x => x.productos?.categoria_id === cat.id).map(x => x.productos?.marca).filter(Boolean))] : [];
+    const soles = (id, val) => `<div class="np-soles"><span>S/</span><input id="${id}" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(val)}" placeholder="0.00"></div>`;
+    caja.innerHTML = `
+    <header class="asis-cab"><div><small>Nuevo producto</small><h3 id="asisT">${esc(nombre() || 'Producto nuevo')}</h3></div>
+      <button type="button" class="asis-x" data-a="cerrar" aria-label="Cerrar">✕</button></header>
+    <div class="asis-cuerpo">
+      <section class="np-sec"><h4><span>1</span>¿Qué producto es?</h4>
+        <div class="chips-cat np-cats">${C.categorias.map(c => `<button type="button" data-cat="${c.id}" class="${c.id === cat?.id ? 'on' : ''}">${esc(c.nombre)}</button>`).join('')}<button type="button" data-a="nuevacat">+ Otro tipo</button></div>
+        ${cat ? `<div class="np-nombre">
+            <div><label for="aMarca">Marca</label><input id="aMarca" value="${esc(st.marca)}" placeholder="Ej.: ${esc(marcas[0] || 'Fini')}" autocomplete="off">
+              ${marcas.length ? `<div class="chips-cat mini-chips np-cats">${marcas.map(m => `<button type="button" data-marca="${esc(m)}" class="${m === st.marca ? 'on' : ''}">${esc(m)}</button>`).join('')}</div>` : ''}</div>
+            <div><label for="aVar">Sabor o tipo <span class="sub">(opcional)</span></label><input id="aVar" value="${esc(st.variante)}" placeholder="Ej.: ${cat.prefijo_factura === 'CIG' ? 'Red, Menta' : 'Banana, Ositos'}" autocomplete="off"></div></div>
+          <div id="npDup">${dupHtml()}</div>` : '<p class="sub" style="margin:0">Toca el tipo de producto para empezar.</p>'}
+      </section>
+      ${cat ? `
+      <section class="np-sec"><h4><span>2</span>¿Cómo te lo vende el proveedor?</h4>
+        <div class="seg-mini seg-full np-modo" role="radiogroup">
+          <button type="button" role="radio" aria-checked="${st.modo === 'caja'}" data-modo="caja" class="${st.modo === 'caja' ? 'on' : ''}">Por ${esc(p)}</button>
+          <button type="button" role="radio" aria-checked="${st.modo === 'unidad'}" data-modo="unidad" class="${st.modo === 'unidad' ? 'on' : ''}">Por ${esc(un)} suelt${oa(un)}</button></div>
+        ${st.modo === 'caja' ? `
+          <div class="np-linea"><span>¿Cuántas ${esc(plural(un))} trae ${la(p)} ${esc(p)}?</span>
+            <div class="np-step"><button type="button" class="np-b" data-paso="-1" aria-label="Una menos">−</button><input id="aPkF" type="number" min="2" inputmode="numeric" value="${esc(st.pkF)}" placeholder="12"><button type="button" class="np-b" data-paso="1" aria-label="Una más">+</button></div></div>
+          <div class="np-linea"><span>¿Cuánto pagas por ${la(p)} ${esc(p)}? <small class="sub">opcional</small></span>${soles('aCosto', st.costo)}</div>`
+        : `<div class="np-linea"><span>¿Cuánto pagas por cada ${esc(un)}? <small class="sub">opcional</small></span>${soles('aCosto', st.costo)}</div>`}
+        <p class="sub np-nota" id="npCu">${cuTxt()}</p>
+        ${st.modo === 'caja' ? `<p class="sub np-nota">Si algún día te llega suelt${oa(un)}, igual podrás registrarl${oa(un)} en Compras.</p>` : ''}
+      </section>
+      <section class="np-sec"><h4><span>3</span>¿A cuánto vendes cada ${esc(un)}?</h4>
+        <div class="np-precio"><span>S/</span><input id="aPu" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pu)}" placeholder="0.00"></div>
+        <div class="np-chips" id="npChips">${chipsPrecio()}</div>
+        <div id="npRes">${resumen()}</div>
+      </section>
+      <details class="extra np-mas" ${st.min || st.nf || st.cf ? 'open' : ''}><summary>Más opciones</summary>
+        ${st.modo === 'caja' ? `<label class="check"><input type="checkbox" id="aVp" ${st.vendePaq ? 'checked' : ''}> También vendo ${la(p)} ${esc(p)} complet${oa(p)}</label>
+          <div class="np-linea" id="npPkP" ${st.vendePaq ? '' : 'hidden'}><span>Precio de ${la(p)} ${esc(p)} complet${oa(p)}</span>${soles('aPkP', st.pkP)}</div>
+          <div class="np-linea"><span>¿Cómo le llamas al paquete?</span><input id="aPkNom" class="np-corto" value="${esc(st.pkNom)}" placeholder="Caja, display…"></div>` : ''}
+        <div class="np-linea"><span>Avísame cuando queden menos de</span><div class="np-soles"><input id="aMin" type="number" min="0" inputmode="numeric" value="${esc(st.min)}" placeholder="0"><span>${esc(plural(un))}</span></div></div>
+        <div class="np-linea"><span>Nombre en la factura</span><input id="aNf" class="np-corto" value="${esc(st.nf)}" placeholder="Cópialo tal cual"></div>
+        <div class="np-linea"><span>Código en la factura</span><input id="aCf" class="np-corto" value="${esc(st.cf)}" inputmode="numeric" placeholder="Ej.: 460069"></div>
+        <p class="sub np-nota">Si no pones los datos de la factura, la app los aprende sola la primera vez que escanees una.</p>
+      </details>` : ''}
+    </div>
+    <footer class="asis-pie"><button type="button" class="btn claro" data-a="cerrar">Cancelar</button>
+      <button type="button" class="btn rotulo" data-a="crear" ${cat ? '' : 'disabled'}>Guardar producto</button></footer>`;
+  };
+  const leer = () => {
+    for (const [k, id] of [['marca', 'aMarca'], ['variante', 'aVar'], ['pkF', 'aPkF'], ['costo', 'aCosto'], ['pu', 'aPu'], ['pkP', 'aPkP'], ['pkNom', 'aPkNom'], ['min', 'aMin'], ['nf', 'aNf'], ['cf', 'aCf']]) {
+      const x = caja.querySelector('#' + id)?.value; if (x != null) st[k] = x; }
+    const c = caja.querySelector('#aVp'); if (c) st.vendePaq = c.checked;
+  };
+  // Mientras escribes solo se actualizan los textos (el cursor no salta)
+  const vivo = () => {
+    leer();
+    const t = caja.querySelector('#asisT'); if (t) t.textContent = nombre() || 'Producto nuevo';
+    for (const [id, h] of [['npDup', dupHtml()], ['npCu', cuTxt()], ['npChips', chipsPrecio()], ['npRes', resumen()]]) { const e = caja.querySelector('#' + id); if (e) e.innerHTML = h; }
+    const pp = caja.querySelector('#npPkP'); if (pp) pp.hidden = !st.vendePaq;
+  };
+  caja.addEventListener('input', vivo);
+  caja.addEventListener('change', e => { if (e.target.id === 'aPkNom') { leer(); pintar(); } });
+  const guardar = async b => {
+    const falta = (id, msg) => { aviso(msg, true); const f = caja.querySelector('#' + id); if (f) { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); f.focus(); } };
+    if (!st.cat) return aviso('Elige qué tipo de producto es', true);
+    if (!singular(st.marca)) return falta('aMarca', 'Escribe la marca');
+    const caj = st.modo === 'caja', n = cuantas();
+    if (caj && n < 2) return falta('aPkF', `Escribe cuántas ${plural(u())} trae ${la(pk())} ${pk()}`);
+    const conPaq = caj && st.vendePaq && num(st.pkP) > 0;
+    if (!(num(st.pu) > 0) && !conPaq) return falta('aPu', `Escribe a cuánto vendes cada ${u()}`);
+    if (duplicado() && !(await dialogo('¿Crear un producto repetido?', [{ type: 'info', html: `<p class="sub" style="margin:0">Ya tienes "${esc(duplicado().nombre)}". Si es el mismo, mejor edítalo para no repartir el stock.</p>` }], 'Crear igual'))) return;
+    b.disabled = true;
+    const id = await crearProducto({ cat: st.cat, marca: st.marca, variante: st.variante, uniId: st.cat.unidad_medida_id || C.unidades[0].id,
+      pkBase: caj ? (singular(st.pkNom) || 'Caja') : '', pkF: n, compraUni: true, pu: num(st.pu) > 0 ? st.pu : '', pkP: conPaq ? st.pkP : '',
+      min: num(st.min), nombre_factura: st.nf, codigo_factura: st.cf });
+    if (id) { cerrar(); ir('catalogo'); } else b.disabled = false;
+  };
+  caja.addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    leer();
+    if (b.dataset.cat) { usar(C.categorias.find(c => c.id === b.dataset.cat)); pintar(); return caja.querySelector('#aMarca')?.focus(); }
+    if (b.dataset.marca) { st.marca = b.dataset.marca; pintar(); return caja.querySelector('#aVar')?.focus(); }
+    if (b.dataset.modo) { if (st.modo !== b.dataset.modo) { st.modo = b.dataset.modo; st.costo = ''; if (st.modo === 'unidad') st.vendePaq = false; } pintar(); return caja.querySelector('#aCosto')?.focus(); }
+    if (b.dataset.paso) { const d = Number(b.dataset.paso); st.pkF = String(Math.max(2, (cuantas() || (d > 0 ? 1 : 3)) + d)); caja.querySelector('#aPkF').value = st.pkF; return vivo(); }
+    if (b.dataset.precio) { caja.querySelector('#aPu').value = b.dataset.precio; return vivo(); }
+    const a = b.dataset.a;
+    if (a === 'cerrar') return cerrar();
+    if (a === 'editardup') { const d = duplicado(); cerrar(); return editarProducto(d.id, { ...d }); }
+    if (a === 'nuevacat') { v.style.display = 'none'; const id = await crearCategoria(); v.style.display = ''; if (id) usar(C.categorias.find(c => c.id === id)); pintar(); return caja.querySelector('#aMarca')?.focus(); }
+    if (a === 'crear') return guardar(b);
+  });
   pintar();
-  if (st.paso === 2) caja.querySelector('#aMarca')?.focus();
+  if (st.cat) caja.querySelector('#aMarca')?.focus();
+  // Precios que ya usas en la categoría, para ofrecerlos con un toque
+  q(sb.from('v_precios_vigentes').select('presentacion_id, precio')).then(r => { precios = r || []; const c = caja.querySelector('#npChips'); if (c) c.innerHTML = chipsPrecio(); }).catch(() => {});
 }
 // Corrige los datos de un producto o lo desactiva
 async function editarProducto(id, pr) {

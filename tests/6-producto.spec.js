@@ -1,73 +1,74 @@
-// Crear productos: cómo te llegan del proveedor (en caja, sueltos o de las dos formas)
+// Nuevo producto: una sola pantalla con tres preguntas
 const { test, expect, abrirDemo, irA, aceptarDialogo } = require('./ayuda');
 
-async function abrirAsistente(page, marca) {
+async function abrir(page, marca) {
   await abrirDemo(page);
   await irA(page, 'catalogo');
   await page.locator('#btnNuevoProd').click();
-  const asis = page.locator('.asis[role="dialog"]');
-  await asis.locator('[data-cat]').filter({ hasText: 'Gomas' }).click();
-  await asis.locator('#aMarca').fill(marca);
-  await asis.locator('[data-a="sig"]').click();
-  await expect(asis).toContainText('¿Cómo te llega del proveedor?');
-  return asis;
+  const np = page.locator('.asis.np');
+  await expect(np.locator('[data-a="crear"]')).toBeDisabled();
+  await np.locator('[data-cat]').filter({ hasText: 'Gomas' }).click();
+  await np.locator('#aMarca').fill(marca);
+  return np;
 }
+const comprables = (page, nombre) => page.evaluate(n => C.presentaciones.filter(p => p.productos?.nombre === n && p.se_compra).map(p => p.nombre).sort(), nombre);
 
-// Fila del catálogo con el producto y sus presentaciones
-const filasDe = (page, nombre) => page.locator('table tr').filter({ has: page.locator('b', { hasText: nombre }) });
-
-test('gomitas que llegan sueltas: se compran por bolsa, sin caja', async ({ page, errores }) => {
-  const asis = await abrirAsistente(page, 'Suelta Prueba');
-  // La categoría Gomas viene en caja: se elige "Por bolsa"
-  await expect(asis.locator('[data-compra="paq"]')).toHaveClass(/on/);
-  await asis.locator('[data-compra="uni"]').click();
-  await expect(asis.locator('#aPk')).toHaveCount(0);
-  await asis.locator('#aCostoU').fill('0.50');
-  await expect(asis.locator('[data-a="sug"]')).toBeVisible();
-  await asis.locator('#aPu').fill('1');
-  await expect(asis.locator('.consejo-claro')).toContainText('por bolsa suelta');
-  await asis.locator('[data-a="crear"]').click();
-  await expect(asis).toBeHidden();
-  const fila = filasDe(page, 'Suelta Prueba');
-  await expect(fila).toContainText('se compra así');
-  await expect(fila).not.toContainText('Caja x');
+test('gomitas por caja: muestra la ganancia y se puede comprar en caja o suelto', async ({ page, errores }) => {
+  const np = await abrir(page, 'Caja Prueba');
+  await expect(np.locator('[data-modo="caja"]')).toHaveClass(/on/);
+  await expect(np.locator('#aPkF')).toHaveValue('12');
+  await np.locator('#aCosto').fill('7.20');
+  await expect(np.locator('#npCu')).toContainText('S/ 0.60');
+  await expect(np.locator('#npChips [data-precio]').first()).toBeVisible();
+  await np.locator('#aPu').fill('1');
+  await expect(np.locator('#npRes')).toContainText('Ganas S/ 0.40 por bolsa');
+  await expect(np.locator('#npRes')).toContainText('S/ 4.80');
+  await np.locator('[data-a="crear"]').click();
+  await expect(np).toBeHidden();
+  expect(await comprables(page, 'Caja Prueba')).toEqual(['Caja x 12', 'Unidad']);
 });
 
-test('de las dos formas: se puede comprar la caja y la bolsa suelta', async ({ page, errores }) => {
-  const asis = await abrirAsistente(page, 'Ambas Prueba');
-  await asis.locator('[data-compra="ambos"]').click();
-  await asis.locator('#aPkF').fill('12');
-  await asis.locator('#aCosto').fill('6');
-  await asis.locator('#aCostoU').fill('0.60');
-  await asis.locator('#aPu').fill('1');
-  await expect(asis.locator('.consejo-claro')).toContainText('caja x 12 o por bolsa suelta');
-  await expect(asis.locator('.consejo-claro')).toContainText('más por bolsa que en caja');
-  await asis.locator('[data-a="crear"]').click();
-  await expect(asis).toBeHidden();
-  const comprables = await page.evaluate(() => C.presentaciones.filter(p => p.productos?.nombre === 'Ambas Prueba' && p.se_compra).map(p => p.nombre).sort());
-  expect(comprables).toEqual(['Caja x 12', 'Unidad']);
+test('gomitas que llegan sueltas: solo por bolsa', async ({ page, errores }) => {
+  const np = await abrir(page, 'Suelta Prueba');
+  await np.locator('[data-modo="unidad"]').click();
+  await expect(np.locator('#aPkF')).toHaveCount(0);
+  await np.locator('#aCosto').fill('0.70');
+  await np.locator('#npChips [data-precio]').first().click();
+  await expect(np.locator('#aPu')).not.toHaveValue('');
+  await expect(np.locator('#npRes')).toContainText('Ganas');
+  await np.locator('[data-a="crear"]').click();
+  await expect(np).toBeHidden();
+  expect(await comprables(page, 'Suelta Prueba')).toEqual(['Unidad']);
 });
 
-test('en caja sin decir cuántas trae no deja crear', async ({ page, errores }) => {
-  const asis = await abrirAsistente(page, 'Sin Factor');
-  await asis.locator('#aPkF').fill('');
-  await asis.locator('#aPu').fill('1');
-  await asis.locator('[data-a="crear"]').click();
-  await expect(asis).toBeVisible();
-  await expect(page.locator('body')).toContainText('cuántas bolsas trae');
+test('avisa si pierdes plata y no deja guardar sin precio', async ({ page, errores }) => {
+  const np = await abrir(page, 'Sin Precio');
+  await np.locator('#aCosto').fill('12');
+  await np.locator('#aPu').fill('0.50');
+  await expect(np.locator('#npRes')).toContainText('Pierdes');
+  await np.locator('#aPu').fill('');
+  await np.locator('[data-a="crear"]').click();
+  await expect(np).toBeVisible();
+  await expect(page.locator('body')).toContainText('a cuánto vendes cada bolsa');
 });
 
-test('editar un producto: pasar de solo caja a las dos formas', async ({ page, errores }) => {
-  const asis = await abrirAsistente(page, 'Editar Prueba');
-  await asis.locator('#aPkF').fill('12');
-  await asis.locator('#aPu').fill('1');
-  await asis.locator('[data-a="crear"]').click();
-  await expect(asis).toBeHidden();
-  await filasDe(page, 'Editar Prueba').locator('[data-editar]').click();
-  const form = page.locator('form.dialogo');
-  await form.locator('select').last().selectOption('ambos');
+test('los botones − y + cambian cuántas trae la caja', async ({ page, errores }) => {
+  const np = await abrir(page, 'Pasos');
+  await np.locator('[data-paso="1"]').click();
+  await expect(np.locator('#aPkF')).toHaveValue('13');
+  await np.locator('#aPkF').fill('2');
+  await np.locator('[data-paso="-1"]').click();
+  await expect(np.locator('#aPkF')).toHaveValue('2');
+});
+
+test('editar un producto antiguo: pasar de solo caja a las dos formas', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'catalogo');
+  const id = await page.evaluate(() => { const p = C.presentaciones.find(x => num(x.factor) > 1 && x.se_compra && !C.presentaciones.find(y => y.producto_id === x.producto_id && num(y.factor) === 1)?.se_compra); return p?.producto_id; });
+  test.skip(!id, 'La demo no tiene productos solo por caja');
+  await page.locator(`[data-editar="${id}"]`).click();
+  await page.locator('form.dialogo select').last().selectOption('ambos');
   await aceptarDialogo(page);
   await expect(page.locator('body')).toContainText('Producto actualizado');
-  const comprables = await page.evaluate(() => C.presentaciones.filter(p => p.productos?.nombre === 'Editar Prueba' && p.se_compra).length);
-  expect(comprables).toBe(2);
+  expect(await page.evaluate(i => C.presentaciones.filter(p => p.producto_id === i && p.se_compra).length, id)).toBe(2);
 });

@@ -6,7 +6,6 @@ async function abrir(page, marca) {
   await irA(page, 'catalogo');
   await page.locator('#btnNuevoProd').click();
   const np = page.locator('.asis.np');
-  await expect(np.locator('[data-a="crear"]')).toBeDisabled();
   await np.locator('[data-cat]').filter({ hasText: 'Gomas' }).click();
   await np.locator('#aMarca').fill(marca);
   return np;
@@ -18,14 +17,20 @@ test('gomitas por caja: muestra la ganancia y se puede comprar en caja o suelto'
   await expect(np.locator('[data-modo="caja"]')).toHaveClass(/on/);
   await expect(np.locator('#aPkF')).toHaveValue('12');
   await np.locator('#aCosto').fill('7.20');
-  await expect(np.locator('#npCu')).toContainText('S/ 0.60');
+  await expect(np.locator('#npMet')).toContainText('S/ 0.60');
   await expect(np.locator('#npChips [data-precio]').first()).toBeVisible();
   await np.locator('#aPu').fill('1');
-  await expect(np.locator('#npRes')).toContainText('Ganas S/ 0.40 por bolsa');
-  await expect(np.locator('#npRes')).toContainText('S/ 4.80');
+  await expect(np.locator('#npPie')).toContainText('Ganas S/ 0.40 por bolsa');
+  await expect(np.locator('#npMet')).toContainText('S/ 4.80');
+  await expect(np.locator('#npTile')).toContainText('Caja Prueba');
   await np.locator('[data-a="crear"]').click();
-  await expect(np).toBeHidden();
+  await expect(np).toContainText('Producto guardado');
   expect(await comprables(page, 'Caja Prueba')).toEqual(['Caja x 12', 'Unidad']);
+  // Registrar su stock: abre Compras con la caja ya puesta y su costo
+  await np.locator('[data-a="stock"]').click();
+  await expect(np).toBeHidden();
+  await expect(page.locator('#tLineas select').first()).toContainText('Caja Prueba');
+  await expect(page.locator('#tLineas [data-lu]').first()).toHaveValue('7.2');
 });
 
 test('gomitas que llegan sueltas: solo por bolsa', async ({ page, errores }) => {
@@ -35,21 +40,29 @@ test('gomitas que llegan sueltas: solo por bolsa', async ({ page, errores }) => 
   await np.locator('#aCosto').fill('0.70');
   await np.locator('#npChips [data-precio]').first().click();
   await expect(np.locator('#aPu')).not.toHaveValue('');
-  await expect(np.locator('#npRes')).toContainText('Ganas');
+  await expect(np.locator('#npPie')).toContainText('Ganas');
   await np.locator('[data-a="crear"]').click();
-  await expect(np).toBeHidden();
+  await expect(np).toContainText('Producto guardado');
   expect(await comprables(page, 'Suelta Prueba')).toEqual(['Unidad']);
+  // Crear otro de la misma categoría: el formulario vuelve limpio
+  await np.locator('[data-a="otro"]').click();
+  await expect(np.locator('#aMarca')).toHaveValue('');
+  await page.keyboard.press('Escape');
+  await expect(np).toBeHidden();
+  await expect(page.locator('table tr').filter({ hasText: 'Suelta Prueba' }).first()).toBeVisible();
 });
 
 test('avisa si pierdes plata y no deja guardar sin precio', async ({ page, errores }) => {
   const np = await abrir(page, 'Sin Precio');
   await np.locator('#aCosto').fill('12');
   await np.locator('#aPu').fill('0.50');
-  await expect(np.locator('#npRes')).toContainText('Pierdes');
+  await expect(np.locator('#npPie')).toContainText('Pierdes');
   await np.locator('#aPu').fill('');
   await np.locator('[data-a="crear"]').click();
-  await expect(np).toBeVisible();
-  await expect(page.locator('body')).toContainText('a cuánto vendes cada bolsa');
+  await expect(np.locator('[data-campo="pu"]')).toHaveClass(/err/);
+  await expect(np.locator('[data-campo="pu"] .np-err')).toContainText('a cuánto vendes cada bolsa');
+  await np.locator('#aPu').fill('1');
+  await expect(np.locator('[data-campo="pu"]')).not.toHaveClass(/err/);
 });
 
 test('los botones − y + cambian cuántas trae la caja', async ({ page, errores }) => {

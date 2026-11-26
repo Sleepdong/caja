@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-QYfXjWm92jIb5k1/zQrr7BsadjItFVj5eDc4IEeT5Yo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-9HFkt7v9zCAYHDAswHWdE+M33/l03FVwbz8q5G2pnok='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -875,23 +875,45 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .seg-pago button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:14px;padding:11px 14px;font:inherit;cursor:pointer}
 .seg-pago button small{color:var(--gris);font-size:12px}
 .seg-pago button.on{border-color:var(--violeta);background:var(--tono2)}
-.np-sec{margin:0 0 22px}.np-sec h4{display:flex;gap:10px;align-items:center;margin:0 0 12px;font-size:15.5px}
-.np-sec h4 span{width:24px;height:24px;border-radius:50%;background:var(--violeta);color:#fff;display:grid;place-items:center;font-size:12.5px;flex:none}
-.np .chips-cat.np-cats{flex-wrap:wrap;overflow:visible}.np .chips-cat button{background:var(--tono)}.np .chips-cat button.on{background:var(--texto)}
-.np-nombre{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;align-items:start}
-.np-modo button{padding:11px 10px;font-size:14px}
-.np-linea{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 0 0;font-size:14.5px}.np-linea[hidden]{display:none}
-.np-step{display:flex;align-items:center;gap:6px}.np-step input{width:72px;text-align:center;font-size:17px;font-weight:700;padding:9px 6px}
-.np-b{width:42px;height:42px;border:0;border-radius:12px;background:var(--tono);color:var(--texto);font:inherit;font-size:20px;font-weight:700;cursor:pointer}
-.np-soles{display:flex;align-items:center;gap:6px;color:var(--gris)}.np-soles input{width:110px;font-size:16px;font-weight:600}
-.np-corto{width:200px;max-width:100%}
-.np-precio{display:flex;align-items:center;gap:8px;font-size:22px;color:var(--gris)}.np-precio input{width:160px;font-size:24px;font-weight:700;padding:10px 14px}
-.np-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}.np-chips:empty{display:none}.np-chips small{opacity:.75;font-weight:500;margin-left:6px}
-.np-nota{margin:8px 0 0;font-size:12.5px}.np-nota:empty{display:none}
-.np-res{margin-top:14px;border-radius:16px;padding:12px 14px;background:var(--tono);font-size:13.5px;line-height:1.5;display:grid;gap:2px}
-.np-gan{font-size:17px}.np-res.ok{background:#4FE3C11f}.np-res.ok .np-gan b{color:var(--menta)}.np-res.aviso{background:#FFC8571f}.np-res.aviso .np-gan b{color:var(--ambar)}.np-res.mal{background:#FF7A8A1f}.np-res.mal .np-gan b{color:var(--coral)}
-.np-mas{margin-top:4px}.np-mas .check{margin-top:12px}
-@media(max-width:600px){.np-nombre{grid-template-columns:1fr}.np-linea>span{flex:1 1 100%}}
+.np .asis-cuerpo{padding-top:6px}
+.np-tile{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 22%,var(--tono)),var(--tono));border-radius:20px;padding:14px 16px;margin:0 0 16px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent)}
+.np-av{width:46px;height:46px;border-radius:14px;background:var(--c);color:#0E0F1A;display:grid;place-items:center;font-weight:800;font-size:20px;flex:none}
+.np-tt{flex:1;min-width:0}.np-tt b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.np-tt small{color:var(--gris);font-size:12.5px}
+.np-tp{text-align:right;font-weight:800;font-size:18px;white-space:nowrap}.np-tp small{display:block;color:var(--gris);font-size:11.5px;font-weight:500}
+.np-grupo{background:var(--tono);border-radius:20px;padding:14px 16px 16px;margin:0 0 12px}
+.np-gt{margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+details.np-grupo>summary{cursor:pointer;list-style:none;margin:0;display:flex;justify-content:space-between}details.np-grupo>summary::after{content:'＋';font-size:15px}details.np-grupo[open]>summary{margin-bottom:12px}details.np-grupo[open]>summary::after{content:'－'}
+.np-f{margin:0 0 14px}.np-f:last-child{margin-bottom:0}.np-f>label{display:block;margin:0 0 6px;font-size:13px;font-weight:600;color:var(--texto)}
+.np em{font-style:normal;font-weight:500;color:var(--gris);font-size:11.5px;margin-left:4px}
+.np-grupo input:not([type=checkbox]){background:var(--blanco)}
+.np-cats{display:flex;flex-wrap:wrap;gap:8px}.np-cats button{border:1.5px solid var(--linea);background:var(--blanco);color:var(--texto);border-radius:12px;padding:9px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.np-cats button.on{border-color:var(--violeta);background:#7B5CFF2a}.np-cats .np-nueva{border-style:dashed;color:var(--gris);font-weight:500}
+.np-sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.np-sug button{border:0;background:var(--blanco);color:var(--gris);border-radius:999px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer}.np-sug button.on{color:var(--texto);box-shadow:inset 0 0 0 1.5px var(--violeta)}
+.np-modo{margin-bottom:6px}.np-modo button{padding:10px;font-size:14px}.np-modo.seg-mini{background:var(--blanco)}
+.np-fila{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:11px 0 0;margin-top:10px;border-top:1px solid var(--linea);font-size:14.5px}.np-fila[hidden]{display:none}
+.np-fila .np-err{flex:1 1 100%;text-align:right}
+.np-step{display:flex;align-items:center;gap:6px}.np-step input{width:66px;text-align:center;font-size:17px;font-weight:700;padding:9px 4px}
+.np-b{width:40px;height:40px;border:0;border-radius:12px;background:var(--blanco);color:var(--texto);font:inherit;font-size:20px;font-weight:700;cursor:pointer}.np-b:active{transform:scale(.94)}
+.np-soles{display:flex;align-items:center;gap:6px;color:var(--gris)}.np-soles input{width:104px;font-size:16px;font-weight:600;text-align:right}
+.np-corto{width:190px;max-width:100%}
+.np-precio{display:flex;align-items:center;gap:8px;font-size:24px;color:var(--gris);font-weight:600}.np-precio input{flex:1;max-width:220px;font-size:28px;font-weight:800;padding:10px 14px}
+.np-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}.np-chips:empty{display:none}
+.np-chip{display:flex;flex-direction:column;align-items:flex-start;border:0;background:var(--blanco);color:var(--texto);border-radius:12px;padding:7px 12px;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer}.np-chip small{font-size:11px;font-weight:500;color:var(--menta)}
+.np-metricas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.np-met{background:var(--blanco);border-radius:14px;padding:10px 12px}.np-met small{display:block;color:var(--gris);font-size:11.5px}.np-met b{font-size:16px}
+.np-met.ok b{color:var(--menta)}.np-met.aviso b{color:var(--ambar)}.np-met.mal b{color:var(--coral)}
+.np-ayuda{margin:10px 0 0;font-size:12.5px;color:var(--gris);line-height:1.45}.np-ancho{grid-column:1/-1;margin:2px 0 0}.np-ayuda b{color:var(--texto)}
+.np-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14.5px;cursor:pointer}.np-switch input{width:22px;height:22px;accent-color:var(--violeta)}
+.np-alerta{margin-top:12px;background:#FFC8571a;color:var(--ambar);border-radius:12px;padding:10px 12px;font-size:13px}.np-link{border:0;background:none;color:var(--texto);text-decoration:underline;font:inherit;font-weight:700;cursor:pointer;padding:0}
+.np-err{display:none;color:var(--coral);font-size:12.5px;margin-top:6px}.err .np-err{display:block}.err input{box-shadow:0 0 0 1.5px var(--coral)}.np-f.err .np-cats button{border-color:var(--coral)}
+.np-pie{display:flex;align-items:center;justify-content:space-between;gap:12px}.np-pie-res{font-size:14px;min-width:0}.np-pie-res b{font-size:16px}
+.np-pie-ok b{color:var(--menta)}.np-pie-aviso b{color:var(--ambar)}.np-pie-mal b{color:var(--coral)}
+.np-ok{display:flex;flex-direction:column;align-items:stretch;padding-top:10px}
+.np-check{width:64px;height:64px;border-radius:50%;background:#4FE3C126;color:var(--menta);display:grid;place-items:center;font-size:32px;font-weight:800;margin:4px auto 16px;animation:npPop .35s ease-out}
+@keyframes npPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.np-ok-acc{display:grid;gap:8px;margin:16px 0 6px}.np-ok-acc .btn{width:100%;justify-content:center}
+@media(max-width:600px){.np-metricas{gap:6px}.np-met{padding:9px 10px}.np-met b{font-size:15px}.np-pie .btn{flex:none}}
+@media(prefers-reduced-motion:reduce){.np-check{animation:none}}
 @media(min-width:900px){.velo.hoja-velo{align-items:center}}
 .dialogo,.hoja{background:var(--blanco);color:var(--texto);border-radius:28px;box-shadow:0 0 0 1px var(--linea)}
 .hp-cab small{color:var(--violeta)}
@@ -4340,142 +4362,191 @@ async function crearCategoria() {
     aviso('Categoría creada'); await cargarCatalogos(); return cat.id;
   } catch (e) { aviso(textoError(e), true); return null; }
 }
-// ============ NUEVO PRODUCTO: UNA SOLA PANTALLA, TRES PREGUNTAS ============
-// 1) ¿Qué es?  2) ¿Cómo te lo vende el proveedor?  3) ¿A cuánto lo vendes?  Lo poco usado va en "Más opciones".
-// Siempre se puede registrar la compra suelta (por unidad), aunque normalmente llegue en caja.
+// ============ NUEVO PRODUCTO (formulario profesional) ============
+// Tarjeta en vivo de cómo se verá el producto, tres grupos (Producto, Compra, Venta), barra fija con la ganancia
+// y, al guardar, una pantalla de éxito para registrar su stock al toque o crear otro igual.
+// La compra suelta (por unidad) siempre queda permitida, aunque normalmente llegue en caja.
 function abrirAsistenteProducto(catInicial) {
-  const st = { cat: null, marca: '', variante: '', modo: 'caja', pkNom: 'Caja', pkF: '', costo: '', pu: '', vendePaq: false, pkP: '', min: '', nf: '', cf: '' };
+  const st = { cat: null, marca: '', variante: '', modo: 'caja', pkNom: 'Caja', pkF: '', costo: '', pu: '', vendePaq: false, pkP: '', min: '', nf: '', cf: '', creado: null };
   let precios = [];
   const usar = cat => Object.assign(st, { cat, modo: cat.paquete_nombre ? 'caja' : 'unidad', pkNom: cat.paquete_nombre || 'Caja', pkF: cat.paquete_unidades || '', costo: '', vendePaq: !!cat.vende_paquete && !!cat.paquete_nombre });
   const ini = catInicial && C.categorias.find(c => c.id === catInicial);
-  if (ini) usar(ini);
+  if (ini) usar(ini); else if (C.categorias.length === 1) usar(C.categorias[0]);
   const v = document.createElement('div'); v.className = 'velo hoja-velo asis-velo';
   v.innerHTML = '<div class="asis np" role="dialog" aria-modal="true" aria-labelledby="asisT"></div>';
   document.body.appendChild(v);
-  const caja = v.firstChild, cerrar = () => v.remove();
+  // Al cerrar, si se creó algo, se refresca la pantalla de atrás (ir() oculta las hojas abiertas, por eso va al final)
+  let creados = 0;
+  const caja = v.firstChild, cerrar = () => { v.remove(); if (creados) ir(vistaActual); };
   v.addEventListener('click', e => { if (e.target === v) cerrar(); });
-  v.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
-  const fem = w => /(a|ad|ón)$/i.test(w), la = w => fem(w) ? 'la' : 'el', oa = w => fem(w) ? 'a' : 'o';
+  const fem = w => /(a|ad|ón)$/i.test(w), la = w => fem(w) ? 'la' : 'el', oa = w => fem(w) ? 'a' : 'o', May = w => w.charAt(0).toUpperCase() + w.slice(1);
   const u = () => (C.unidades.find(x => x.id === st.cat?.unidad_medida_id)?.nombre || 'Unidad').toLowerCase();
   const pk = () => (singular(st.pkNom) || 'Caja').toLowerCase();
   const nombre = () => [singular(st.marca), singular(st.variante)].filter(Boolean).join(' ');
   const duplicado = () => { const n = normTexto(nombre()); return n ? C.presentaciones.find(p => normTexto(p.productos?.nombre || '') === n)?.productos : null; };
   const cuantas = () => Math.round(num(st.pkF));
-  // Lo que te cuesta cada unidad (bolsa, cigarro…)
   const costoU = () => { const c = num(st.costo); return !(c > 0) ? 0 : st.modo === 'unidad' ? c : cuantas() >= 2 ? c / cuantas() : 0; };
-  const dupHtml = () => { const d = duplicado(); return d ? `<div class="aviso-txt" style="margin-top:12px"><b>Ya tienes "${esc(d.nombre)}".</b> Si es el mismo, edítalo en vez de crear otro. <button type="button" class="lnk" data-a="editardup">Ir a editarlo</button></div>` : ''; };
-  const cuTxt = () => st.modo === 'caja' && costoU() > 0 ? `Te sale a <b>${S(costoU())}</b> cada ${esc(u())}.` : '';
+  const presTxt = () => !st.cat ? 'Elige la categoría' : st.modo === 'caja' ? `${May(pk())}${cuantas() >= 2 ? ' x ' + cuantas() : ''}` : `Por ${u()} suelt${oa(u())}`;
+  // Tarjeta: así se verá en tu catálogo y al vender
+  const tile = () => { const n = nombre(), pu = num(st.pu);
+    return `<div class="np-tile" style="--c:${colorProducto((st.cat?.id || '') + n)}"><span class="np-av">${esc((n || st.cat?.nombre || '?').charAt(0).toUpperCase())}</span>
+      <div class="np-tt"><b>${esc(n || 'Nombre del producto')}</b><small>${esc(st.cat?.nombre || 'Producto nuevo')} · ${esc(presTxt())}</small></div>
+      <span class="np-tp">${pu > 0 ? S(pu) : 'S/ —'}<small>${st.cat ? 'por ' + esc(u()) : ''}</small></span></div>`; };
+  const dupHtml = () => { const d = duplicado(); return d ? `<div class="np-alerta"><b>Ya tienes "${esc(d.nombre)}".</b> Si es el mismo, edítalo para no repartir el stock. <button type="button" class="np-link" data-a="editardup">Editarlo</button></div>` : ''; };
   const chipsPrecio = () => {
     if (!st.cat) return '';
-    const cu = costoU(), out = [];
-    if (cu > 0) out.push([precioSugerido(cu), `sugerido`]);
-    const cuenta = {};
+    const cu = costoU(), out = [], cuenta = {};
+    if (cu > 0) out.push([precioSugerido(cu), `Sugerido`]);
     C.presentaciones.filter(p => p.productos?.categoria_id === st.cat.id && num(p.factor) === 1)
       .forEach(p => { const x = precios.find(y => y.presentacion_id === p.id)?.precio; if (x != null) { const k = num(x).toFixed(2); cuenta[k] = (cuenta[k] || 0) + 1; } });
     Object.entries(cuenta).sort((a, b) => b[1] - a[1]).slice(0, 3)
-      .forEach(([p]) => { if (!out.some(o => o[0].toFixed(2) === p)) out.push([num(p), `como en ${st.cat.nombre}`]); });
-    return out.map(([p, t]) => `<button type="button" class="chip-sug" data-precio="${p.toFixed(2)}">S/ ${p.toFixed(2)}<small>${esc(t)}</small></button>`).join('');
+      .forEach(([p]) => { if (!out.some(o => o[0].toFixed(2) === p)) out.push([num(p), `Como en ${st.cat.nombre}`]); });
+    return out.map(([p, t]) => `<button type="button" class="np-chip" data-precio="${p.toFixed(2)}"><small>${esc(t)}</small>S/ ${p.toFixed(2)}</button>`).join('');
   };
-  const resumen = () => {
-    if (!st.cat) return '';
-    const pu = num(st.pu), cu = costoU(), un = esc(u()), n = cuantas();
-    if (!(pu > 0)) return `<div class="np-res">Escribe a cuánto vendes cada ${un} y aquí verás cuánto ganas.</div>`;
-    if (!(cu > 0)) return `<div class="np-res">Vendes cada ${un} a <b>${S(pu)}</b>. Si pones cuánto te cuesta, aquí verás cuánto ganas.</div>`;
-    const g = pu - cu, m = g / pu * 100;
-    if (g <= 0) return `<div class="np-res mal"><span class="np-gan"><b>Pierdes ${S(-g)}</b> por ${un}</span><span>Te cuesta ${S(cu)}. Véndelo a ${S(precioSugerido(cu))} o más.</span></div>`;
-    return `<div class="np-res ${m < umbral() ? 'aviso' : 'ok'}"><span class="np-gan">Ganas <b>${S(g)}</b> por ${un}</span>
-      <span>${P(m)} de margen${m < umbral() ? ` · tu mínimo es ${P(umbral())}` : ''}</span>
-      ${st.modo === 'caja' && n >= 2 ? `<span>Al vender ${la(pk())} ${esc(pk())} entera por ${un}: <b>${S(g * n)}</b> de ganancia</span>` : ''}</div>`;
+  const estado = () => { const pu = num(st.pu), cu = costoU(); if (!(pu > 0) || !(cu > 0)) return null; const g = pu - cu, m = g / pu * 100; return { g, m, nivel: g <= 0 ? 'mal' : m < umbral() ? 'aviso' : 'ok' }; };
+  const metricas = () => {
+    const cu = costoU(), e = estado(), n = cuantas();
+    return `<div class="np-met"><small>Costo por ${esc(u())}</small><b>${cu > 0 ? S(cu) : '—'}</b></div>
+      <div class="np-met ${e?.nivel || ''}"><small>${e && e.g <= 0 ? 'Pierdes' : 'Ganancia'}</small><b>${e ? S(Math.abs(e.g)) : '—'}</b></div>
+      <div class="np-met ${e?.nivel || ''}"><small>Margen</small><b>${e ? P(e.m) : '—'}</b></div>
+      ${e && e.g > 0 && st.modo === 'caja' && n >= 2 ? `<p class="np-ayuda np-ancho">Ganas <b>${S(e.g * n)}</b> por cada ${esc(pk())} que vendes por ${esc(u())}.${e.nivel === 'aviso' ? ` Tu margen mínimo es ${P(umbral())}.` : ''}</p>` : ''}
+      ${e && e.g <= 0 ? `<p class="np-ayuda np-ancho">Te cuesta ${S(cu)}. Véndelo a <b>${S(precioSugerido(cu))}</b> o más.</p>` : ''}
+      ${!(cu > 0) && st.cat ? `<p class="np-ayuda np-ancho">Pon el costo en Compra y verás cuánto ganas.</p>` : ''}`;
   };
+  const pie = () => { const e = estado(), pu = num(st.pu);
+    return !st.cat ? '<span class="sub">Elige la categoría</span>' : !(pu > 0) ? '<span class="sub">Falta el precio de venta</span>'
+      : !e ? `<span>Vendes a <b>${S(pu)}</b></span>` : e.g <= 0 ? `<span class="np-pie-mal">Pierdes <b>${S(-e.g)}</b> por ${esc(u())}</span>`
+      : `<span class="np-pie-${e.nivel}">Ganas <b>${S(e.g)}</b> por ${esc(u())}</span>`; };
+  const soles = (id, val) => `<div class="np-soles"><span>S/</span><input id="${id}" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(val)}" placeholder="0.00"></div>`;
   const pintar = () => {
     const un = u(), cat = st.cat, p = pk();
     const marcas = cat ? [...new Set(C.presentaciones.filter(x => x.productos?.categoria_id === cat.id).map(x => x.productos?.marca).filter(Boolean))] : [];
-    const soles = (id, val) => `<div class="np-soles"><span>S/</span><input id="${id}" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(val)}" placeholder="0.00"></div>`;
     caja.innerHTML = `
-    <header class="asis-cab"><div><small>Nuevo producto</small><h3 id="asisT">${esc(nombre() || 'Producto nuevo')}</h3></div>
+    <header class="asis-cab"><div><small>Catálogo</small><h3 id="asisT">Nuevo producto</h3></div>
       <button type="button" class="asis-x" data-a="cerrar" aria-label="Cerrar">✕</button></header>
-    <div class="asis-cuerpo">
-      <section class="np-sec"><h4><span>1</span>¿Qué producto es?</h4>
-        <div class="chips-cat np-cats">${C.categorias.map(c => `<button type="button" data-cat="${c.id}" class="${c.id === cat?.id ? 'on' : ''}">${esc(c.nombre)}</button>`).join('')}<button type="button" data-a="nuevacat">+ Otro tipo</button></div>
-        ${cat ? `<div class="np-nombre">
-            <div><label for="aMarca">Marca</label><input id="aMarca" value="${esc(st.marca)}" placeholder="Ej.: ${esc(marcas[0] || 'Fini')}" autocomplete="off">
-              ${marcas.length ? `<div class="chips-cat mini-chips np-cats">${marcas.map(m => `<button type="button" data-marca="${esc(m)}" class="${m === st.marca ? 'on' : ''}">${esc(m)}</button>`).join('')}</div>` : ''}</div>
-            <div><label for="aVar">Sabor o tipo <span class="sub">(opcional)</span></label><input id="aVar" value="${esc(st.variante)}" placeholder="Ej.: ${cat.prefijo_factura === 'CIG' ? 'Red, Menta' : 'Banana, Ositos'}" autocomplete="off"></div></div>
-          <div id="npDup">${dupHtml()}</div>` : '<p class="sub" style="margin:0">Toca el tipo de producto para empezar.</p>'}
+    <div class="asis-cuerpo np-cuerpo">
+      <div id="npTile">${tile()}</div>
+      <section class="np-grupo"><h4 class="np-gt">Producto</h4>
+        <div class="np-f" data-campo="cat"><label>Categoría</label>
+          <div class="np-cats">${C.categorias.map(c => `<button type="button" data-cat="${c.id}" class="${c.id === cat?.id ? 'on' : ''}">${esc(c.nombre)}</button>`).join('')}<button type="button" class="np-nueva" data-a="nuevacat">+ Nueva</button></div><small class="np-err"></small></div>
+        ${cat ? `
+        <div class="np-f" data-campo="marca"><label for="aMarca">Marca</label><input id="aMarca" value="${esc(st.marca)}" placeholder="Ej.: ${esc(marcas[0] || 'Fini')}" autocomplete="off" enterkeyhint="next">
+          ${marcas.length ? `<div class="np-sug">${marcas.map(m => `<button type="button" data-marca="${esc(m)}" class="${m === st.marca ? 'on' : ''}">${esc(m)}</button>`).join('')}</div>` : ''}<small class="np-err"></small></div>
+        <div class="np-f"><label for="aVar">Sabor o variante <em>Opcional</em></label><input id="aVar" value="${esc(st.variante)}" placeholder="Ej.: ${cat.prefijo_factura === 'CIG' ? 'Red, Menta' : 'Banana, Ositos'}" autocomplete="off" enterkeyhint="next"></div>
+        <div id="npDup">${dupHtml()}</div>` : ''}
       </section>
       ${cat ? `
-      <section class="np-sec"><h4><span>2</span>¿Cómo te lo vende el proveedor?</h4>
-        <div class="seg-mini seg-full np-modo" role="radiogroup">
+      <section class="np-grupo"><h4 class="np-gt">Compra al proveedor</h4>
+        <div class="seg-mini seg-full np-modo" role="radiogroup" aria-label="Cómo te llega">
           <button type="button" role="radio" aria-checked="${st.modo === 'caja'}" data-modo="caja" class="${st.modo === 'caja' ? 'on' : ''}">Por ${esc(p)}</button>
-          <button type="button" role="radio" aria-checked="${st.modo === 'unidad'}" data-modo="unidad" class="${st.modo === 'unidad' ? 'on' : ''}">Por ${esc(un)} suelt${oa(un)}</button></div>
+          <button type="button" role="radio" aria-checked="${st.modo === 'unidad'}" data-modo="unidad" class="${st.modo === 'unidad' ? 'on' : ''}">Por ${esc(un)}</button></div>
         ${st.modo === 'caja' ? `
-          <div class="np-linea"><span>¿Cuántas ${esc(plural(un))} trae ${la(p)} ${esc(p)}?</span>
-            <div class="np-step"><button type="button" class="np-b" data-paso="-1" aria-label="Una menos">−</button><input id="aPkF" type="number" min="2" inputmode="numeric" value="${esc(st.pkF)}" placeholder="12"><button type="button" class="np-b" data-paso="1" aria-label="Una más">+</button></div></div>
-          <div class="np-linea"><span>¿Cuánto pagas por ${la(p)} ${esc(p)}? <small class="sub">opcional</small></span>${soles('aCosto', st.costo)}</div>`
-        : `<div class="np-linea"><span>¿Cuánto pagas por cada ${esc(un)}? <small class="sub">opcional</small></span>${soles('aCosto', st.costo)}</div>`}
-        <p class="sub np-nota" id="npCu">${cuTxt()}</p>
-        ${st.modo === 'caja' ? `<p class="sub np-nota">Si algún día te llega suelt${oa(un)}, igual podrás registrarl${oa(un)} en Compras.</p>` : ''}
+          <div class="np-fila" data-campo="pkF"><span>${May(plural(un))} por ${esc(p)}</span>
+            <div class="np-step"><button type="button" class="np-b" data-paso="-1" aria-label="Una menos">−</button><input id="aPkF" type="number" min="2" inputmode="numeric" value="${esc(st.pkF)}" placeholder="12"><button type="button" class="np-b" data-paso="1" aria-label="Una más">+</button></div><small class="np-err"></small></div>
+          <div class="np-fila"><span>Costo de ${la(p)} ${esc(p)} <em>Opcional</em></span>${soles('aCosto', st.costo)}</div>
+          <p class="np-ayuda">Si algún día te llega suelt${oa(un)}, igual podrás registrarl${oa(un)} en Compras.</p>`
+        : `<div class="np-fila"><span>Costo por ${esc(un)} <em>Opcional</em></span>${soles('aCosto', st.costo)}</div>`}
       </section>
-      <section class="np-sec"><h4><span>3</span>¿A cuánto vendes cada ${esc(un)}?</h4>
-        <div class="np-precio"><span>S/</span><input id="aPu" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pu)}" placeholder="0.00"></div>
-        <div class="np-chips" id="npChips">${chipsPrecio()}</div>
-        <div id="npRes">${resumen()}</div>
+      <section class="np-grupo"><h4 class="np-gt">Venta</h4>
+        <div class="np-f" data-campo="pu"><label for="aPu">Precio por ${esc(un)}</label>
+          <div class="np-precio"><span>S/</span><input id="aPu" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pu)}" placeholder="0.00" enterkeyhint="done"></div>
+          <div class="np-chips" id="npChips">${chipsPrecio()}</div><small class="np-err"></small></div>
+        <div class="np-metricas" id="npMet">${metricas()}</div>
       </section>
-      <details class="extra np-mas" ${st.min || st.nf || st.cf ? 'open' : ''}><summary>Más opciones</summary>
-        ${st.modo === 'caja' ? `<label class="check"><input type="checkbox" id="aVp" ${st.vendePaq ? 'checked' : ''}> También vendo ${la(p)} ${esc(p)} complet${oa(p)}</label>
-          <div class="np-linea" id="npPkP" ${st.vendePaq ? '' : 'hidden'}><span>Precio de ${la(p)} ${esc(p)} complet${oa(p)}</span>${soles('aPkP', st.pkP)}</div>
-          <div class="np-linea"><span>¿Cómo le llamas al paquete?</span><input id="aPkNom" class="np-corto" value="${esc(st.pkNom)}" placeholder="Caja, display…"></div>` : ''}
-        <div class="np-linea"><span>Avísame cuando queden menos de</span><div class="np-soles"><input id="aMin" type="number" min="0" inputmode="numeric" value="${esc(st.min)}" placeholder="0"><span>${esc(plural(un))}</span></div></div>
-        <div class="np-linea"><span>Nombre en la factura</span><input id="aNf" class="np-corto" value="${esc(st.nf)}" placeholder="Cópialo tal cual"></div>
-        <div class="np-linea"><span>Código en la factura</span><input id="aCf" class="np-corto" value="${esc(st.cf)}" inputmode="numeric" placeholder="Ej.: 460069"></div>
-        <p class="sub np-nota">Si no pones los datos de la factura, la app los aprende sola la primera vez que escanees una.</p>
+      <details class="np-grupo np-mas" ${st.min || st.nf || st.cf ? 'open' : ''}><summary class="np-gt">Más opciones</summary>
+        ${st.modo === 'caja' ? `<label class="np-switch"><span>Vender también ${la(p)} ${esc(p)} complet${oa(p)}</span><input type="checkbox" id="aVp" ${st.vendePaq ? 'checked' : ''}></label>
+          <div class="np-fila" id="npPkP" ${st.vendePaq ? '' : 'hidden'}><span>Precio de ${la(p)} ${esc(p)}</span>${soles('aPkP', st.pkP)}</div>
+          <div class="np-fila"><span>Nombre del paquete</span><input id="aPkNom" class="np-corto" value="${esc(st.pkNom)}" placeholder="Caja, display…"></div>` : ''}
+        <div class="np-fila"><span>Aviso de stock bajo</span><div class="np-soles"><input id="aMin" type="number" min="0" inputmode="numeric" value="${esc(st.min)}" placeholder="0"><span>${esc(plural(un))}</span></div></div>
+        <div class="np-fila"><span>Nombre en la factura</span><input id="aNf" class="np-corto" value="${esc(st.nf)}" placeholder="Cópialo tal cual"></div>
+        <div class="np-fila"><span>Código en la factura</span><input id="aCf" class="np-corto" value="${esc(st.cf)}" inputmode="numeric" placeholder="Ej.: 460069"></div>
+        <p class="np-ayuda">Si los dejas vacíos, la app los aprende sola la primera vez que escanees su factura.</p>
       </details>` : ''}
     </div>
-    <footer class="asis-pie"><button type="button" class="btn claro" data-a="cerrar">Cancelar</button>
-      <button type="button" class="btn rotulo" data-a="crear" ${cat ? '' : 'disabled'}>Guardar producto</button></footer>`;
+    <footer class="asis-pie np-pie"><div id="npPie" class="np-pie-res">${pie()}</div>
+      <button type="button" class="btn rotulo" data-a="crear">Guardar producto</button></footer>`;
+  };
+  // Pantalla de éxito
+  const pintarListo = () => {
+    caja.innerHTML = `
+    <header class="asis-cab"><div><small>Catálogo</small><h3 id="asisT">Producto guardado</h3></div>
+      <button type="button" class="asis-x" data-a="listo" aria-label="Cerrar">✕</button></header>
+    <div class="asis-cuerpo np-cuerpo np-ok">
+      <div class="np-check" aria-hidden="true">✓</div>
+      ${tile()}
+      <p class="np-ayuda" style="text-align:center">Ya está en tu catálogo. Registra su compra para tener stock y empezar a venderlo.</p>
+      <div class="np-ok-acc">
+        <button type="button" class="btn rotulo" data-a="stock">Registrar compra de stock</button>
+        <button type="button" class="btn claro" data-a="otro">Crear otro producto</button>
+        <button type="button" class="btn claro" data-a="listo">Listo</button></div>
+    </div>`;
+    caja.querySelector('[data-a="stock"]')?.focus();
   };
   const leer = () => {
     for (const [k, id] of [['marca', 'aMarca'], ['variante', 'aVar'], ['pkF', 'aPkF'], ['costo', 'aCosto'], ['pu', 'aPu'], ['pkP', 'aPkP'], ['pkNom', 'aPkNom'], ['min', 'aMin'], ['nf', 'aNf'], ['cf', 'aCf']]) {
       const x = caja.querySelector('#' + id)?.value; if (x != null) st[k] = x; }
     const c = caja.querySelector('#aVp'); if (c) st.vendePaq = c.checked;
   };
-  // Mientras escribes solo se actualizan los textos (el cursor no salta)
-  const vivo = () => {
+  // Mientras escribes solo cambian los textos (el cursor no salta)
+  const vivo = e => {
     leer();
-    const t = caja.querySelector('#asisT'); if (t) t.textContent = nombre() || 'Producto nuevo';
-    for (const [id, h] of [['npDup', dupHtml()], ['npCu', cuTxt()], ['npChips', chipsPrecio()], ['npRes', resumen()]]) { const e = caja.querySelector('#' + id); if (e) e.innerHTML = h; }
+    e?.target?.closest?.('.np-f, .np-fila')?.classList.remove('err');
+    for (const [id, h] of [['npTile', tile()], ['npDup', dupHtml()], ['npChips', chipsPrecio()], ['npMet', metricas()], ['npPie', pie()]]) { const x = caja.querySelector('#' + id); if (x) x.innerHTML = h; }
     const pp = caja.querySelector('#npPkP'); if (pp) pp.hidden = !st.vendePaq;
   };
   caja.addEventListener('input', vivo);
   caja.addEventListener('change', e => { if (e.target.id === 'aPkNom') { leer(); pintar(); } });
+  // Enter pasa al siguiente campo; en el precio, guarda
+  caja.addEventListener('keydown', e => {
+    if (e.key === 'Escape') return cerrar();
+    if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || e.target.type === 'checkbox') return;
+    e.preventDefault();
+    const orden = ['aMarca', 'aVar', 'aPkF', 'aCosto', 'aPu'].map(id => caja.querySelector('#' + id)).filter(Boolean), i = orden.indexOf(e.target);
+    if (i >= 0 && i < orden.length - 1) orden[i + 1].focus(); else caja.querySelector('[data-a="crear"]')?.click();
+  });
+  const marcar = (campo, msg) => {
+    const f = caja.querySelector(`[data-campo="${campo}"]`); if (!f) return aviso(msg, true);
+    f.classList.add('err'); const s = f.querySelector('.np-err'); if (s) s.textContent = msg;
+    f.scrollIntoView({ block: 'center', behavior: 'smooth' }); f.querySelector('input')?.focus();
+  };
   const guardar = async b => {
-    const falta = (id, msg) => { aviso(msg, true); const f = caja.querySelector('#' + id); if (f) { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); f.focus(); } };
-    if (!st.cat) return aviso('Elige qué tipo de producto es', true);
-    if (!singular(st.marca)) return falta('aMarca', 'Escribe la marca');
+    caja.querySelectorAll('.err').forEach(x => x.classList.remove('err'));
+    if (!st.cat) return marcar('cat', 'Elige la categoría');
+    if (!singular(st.marca)) return marcar('marca', 'Escribe la marca');
     const caj = st.modo === 'caja', n = cuantas();
-    if (caj && n < 2) return falta('aPkF', `Escribe cuántas ${plural(u())} trae ${la(pk())} ${pk()}`);
+    if (caj && n < 2) return marcar('pkF', `¿Cuántas ${plural(u())} trae ${la(pk())} ${pk()}?`);
     const conPaq = caj && st.vendePaq && num(st.pkP) > 0;
-    if (!(num(st.pu) > 0) && !conPaq) return falta('aPu', `Escribe a cuánto vendes cada ${u()}`);
+    if (!(num(st.pu) > 0) && !conPaq) return marcar('pu', `Escribe a cuánto vendes cada ${u()}`);
     if (duplicado() && !(await dialogo('¿Crear un producto repetido?', [{ type: 'info', html: `<p class="sub" style="margin:0">Ya tienes "${esc(duplicado().nombre)}". Si es el mismo, mejor edítalo para no repartir el stock.</p>` }], 'Crear igual'))) return;
-    b.disabled = true;
+    b.disabled = true; b.textContent = 'Guardando…';
     const id = await crearProducto({ cat: st.cat, marca: st.marca, variante: st.variante, uniId: st.cat.unidad_medida_id || C.unidades[0].id,
       pkBase: caj ? (singular(st.pkNom) || 'Caja') : '', pkF: n, compraUni: true, pu: num(st.pu) > 0 ? st.pu : '', pkP: conPaq ? st.pkP : '',
       min: num(st.min), nombre_factura: st.nf, codigo_factura: st.cf });
-    if (id) { cerrar(); ir('catalogo'); } else b.disabled = false;
+    if (!id) { b.disabled = false; b.textContent = 'Guardar producto'; return; }
+    st.creado = id; creados++; pintarListo();
   };
   caja.addEventListener('click', async e => {
     const b = e.target.closest('button'); if (!b || b.disabled) return;
-    leer();
+    if (!st.creado) leer();
     if (b.dataset.cat) { usar(C.categorias.find(c => c.id === b.dataset.cat)); pintar(); return caja.querySelector('#aMarca')?.focus(); }
     if (b.dataset.marca) { st.marca = b.dataset.marca; pintar(); return caja.querySelector('#aVar')?.focus(); }
     if (b.dataset.modo) { if (st.modo !== b.dataset.modo) { st.modo = b.dataset.modo; st.costo = ''; if (st.modo === 'unidad') st.vendePaq = false; } pintar(); return caja.querySelector('#aCosto')?.focus(); }
-    if (b.dataset.paso) { const d = Number(b.dataset.paso); st.pkF = String(Math.max(2, (cuantas() || (d > 0 ? 1 : 3)) + d)); caja.querySelector('#aPkF').value = st.pkF; return vivo(); }
-    if (b.dataset.precio) { caja.querySelector('#aPu').value = b.dataset.precio; return vivo(); }
+    if (b.dataset.paso) { const d = Number(b.dataset.paso); caja.querySelector('#aPkF').value = String(Math.max(2, (cuantas() || (d > 0 ? 1 : 3)) + d)); return vivo({ target: caja.querySelector('#aPkF') }); }
+    if (b.dataset.precio) { caja.querySelector('#aPu').value = b.dataset.precio; return vivo({ target: caja.querySelector('#aPu') }); }
     const a = b.dataset.a;
     if (a === 'cerrar') return cerrar();
+    if (a === 'listo') return cerrar();
+    if (a === 'crear') return guardar(b);
     if (a === 'editardup') { const d = duplicado(); cerrar(); return editarProducto(d.id, { ...d }); }
     if (a === 'nuevacat') { v.style.display = 'none'; const id = await crearCategoria(); v.style.display = ''; if (id) usar(C.categorias.find(c => c.id === id)); pintar(); return caja.querySelector('#aMarca')?.focus(); }
-    if (a === 'crear') return guardar(b);
+    if (a === 'otro') { Object.assign(st, { marca: '', variante: '', costo: '', pu: '', pkP: '', nf: '', cf: '', creado: null }); pintar(); return caja.querySelector('#aMarca')?.focus(); }
+    if (a === 'stock') {
+      // Abre Compras con este producto ya puesto, en la forma en que normalmente te llega
+      const pr = C.presentaciones.filter(p => p.producto_id === st.creado && p.se_compra).sort((x, y) => num(y.factor) - num(x.factor))[0];
+      if (!pr) return aviso('No encontré cómo se compra este producto', true);
+      lineasCompra = [{ presentacion_id: pr.id, cantidad: 1, costo: num(st.costo) > 0 ? String(r2(st.costo)) : '' }];
+      v.remove(); return ir('compras');
+    }
   });
   pintar();
   if (st.cat) caja.querySelector('#aMarca')?.focus();

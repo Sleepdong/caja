@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-4XwAPMzK64I7oWzmPgq1mFxMLziY2GL3uNDA3amW/CY='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-nk8+ammGxQjw7pk6Q6u2ONPssMAsWfBKeswuR5dhPuA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -3685,22 +3685,21 @@ async function cerrarElDia() {
 }
 
 // ============ ¿SUELTO O CAJETILLA? ============
-async function pintarSueltoCajetilla(lineas) {
+async function pintarSueltoCajetilla(d, h) {
   const caja = $('#rSuelto'); if (!caja) return;
-  const [precios, ex] = await Promise.all([
+  const [precios, ex, lineas] = await Promise.all([
     leerInforme('v_precios_vigentes', '*', q => q, 'presentacion_id'),
     leerInforme('v_existencias', 'producto_id, costo_promedio', q => q, 'producto_id'),
+    leerInforme('venta_detalles', 'presentacion_id, cantidad, subtotal, costo_total, ventas!inner(fecha, estado)',
+      q => rangoInforme(q.eq('ventas.estado', 'EMITIDA'), 'ventas.fecha', d, h), 'venta_id', 'linea'),
   ]);
   if (!caja.isConnected) return;
   const cp = Object.fromEntries(ex.map(e => [e.producto_id, num(e.costo_promedio)]));
-  const factores = new Map(precios.map(p => [p.presentacion_id, num(p.factor)]));
   const real = {};
   for (const l of lineas) {
-    const factor = factores.get(l.presentacion_id);
-    if (!factor) continue;
     const o = real[l.presentacion_id] ??= { paq: 0, gan: 0 };
-    o.paq += num(l.cantidad_base) / factor;
-    o.gan += num(l.venta_neta) - num(l.costo);
+    o.paq += num(l.cantidad);
+    o.gan += num(l.subtotal) - num(l.costo_total);
   }
   const prods = {}; precios.filter(p => p.precio != null).forEach(p => (prods[p.producto_id] ??= []).push(p));
   const filas = Object.values(prods).map(ps => {
@@ -3713,8 +3712,8 @@ async function pintarSueltoCajetilla(lineas) {
   if (!filas.length) { caja.innerHTML = ''; return; }
   const extraMes = filas.reduce((a, r) => a + (r.rk ? r.rk.paq * r.extra : 0), 0);
   caja.innerHTML = `<div class="panel"><h2>¿Suelto o cajetilla?</h2>
-    <p class="sub">Cuánto ganas por cada ${filas[0].f > 1 ? 'paquete' : 'unidad'} según cómo lo vendas, con tus precios y tu costo de hoy.</p>
-    <div class="scroll"><table><tr><th>Producto</th><th class="n">Costo paq.</th><th class="n">Ganas entero</th><th class="n">Ganas suelto</th><th class="n">Suelto deja más</th><th class="n">Vendido entero neto</th><th class="n">Vendido suelto neto</th></tr>
+    <p class="sub">Cuánto ganas por cada ${filas[0].f > 1 ? 'paquete' : 'unidad'} según cómo lo vendas, con tus precios y tu costo de hoy. El detalle usa ventas emitidas, antes de devoluciones.</p>
+    <div class="scroll"><table><tr><th>Producto</th><th class="n">Costo paq.</th><th class="n">Ganas entero</th><th class="n">Ganas suelto</th><th class="n">Suelto deja más</th><th class="n">Vendido entero</th><th class="n">Vendido suelto</th></tr>
       ${filas.map(r => `<tr><td>${esc(r.nombre)}<div class="sub" style="margin:0">${esc(r.pres)} a ${S(r.precioPaq)} · suelto ${S(r.precioU)} c/u</div></td>
         <td class="n">${r.costo > 0 ? S(r.costo) : '—'}</td>
         <td class="n">${r.costo > 0 ? `${S(r.ganPaq)} <span class="sub">${P(r.ganPaq / r.precioPaq * 100)}</span>` : '—'}</td>
@@ -5597,12 +5596,13 @@ async function vAnalisis(el) {
   const prod = Object.fromEntries(productosInforme(rent).map(o => [o.id, { ...o, u: o.c,
     suelto: { u: 0, v: 0, c: 0 }, paquete: { u: 0, v: 0, c: 0 } }]));
   const presentaciones = new Map(C.presentaciones.map(p => [p.id, p]));
-  for (const l of rent) {
-    const o = prod[l.producto_id];
+  // El desglose por presentación usa los detalles emitidos; la vista neta agrupa por producto.
+  for (const v of ventas) for (const l of v.venta_detalles || []) {
     const pr = presentaciones.get(l.presentacion_id);
-    if (!pr) continue;
+    const o = pr && prod[pr.producto_id];
+    if (!o) continue;
     const t = num(pr.factor) > 1 ? o.paquete : o.suelto;
-    t.u += num(l.cantidad_base); t.v += num(l.venta_neta); t.c += num(l.costo);
+    t.u += num(l.cantidad_base); t.v += num(l.subtotal); t.c += num(l.costo_total);
   }
   const lista = Object.values(prod).sort((a, b) => b.g - a.g);
   const gTot = lista.reduce((a, x) => a + x.g, 0);
@@ -5627,12 +5627,12 @@ async function vAnalisis(el) {
   if (!hayGastos && kc.v > 0) H_.push({ t: 'Tu ganancia neta está sobrestimada', d: `No hay ningún gasto registrado en tu historial. Ganancia bruta del periodo: ${S(kc.g)}; sin gastos, la "ganancia neta" muestra lo mismo.`, i: 'Alquiler, transporte, bolsas o luz reducen lo que realmente ganas. Sin ellos no sabes si el negocio es rentable.', a: 'Registra en Gastos lo que pagas cada mes, aunque sea aproximado al inicio.', nivel: 'mal' });
   if (nV >= 10 && lista.length > 1 && gTot > 0) { const top = lista[0], sh = top.g / gTot * 100; if (sh >= 40) H_.push({ t: `${esc(top.nom)} sostiene tu ganancia`, d: `Genera ${P(sh)} de la ganancia por producto (${S(top.g)} de ${S(gTot)}) en ${nV} ventas del periodo.`, i: 'Si se agota o tu proveedor sube su precio, tu ganancia cae en esa proporción.', a: 'Cuida que nunca falte en stock y vigila su costo de compra.' }); }
   // Mezcla suelto vs. paquete: un solo hallazgo que agrupa todos los productos con el mismo patrón
-  const mezcla = lista.filter(o => o.suelto.v > 0 && o.paquete.v > 0).map(o => ({ nom: o.nom, ms: (o.suelto.v - o.suelto.c) / o.suelto.v * 100, mp: (o.paquete.v - o.paquete.c) / o.paquete.v * 100, shp: o.paquete.u / o.u * 100 }))
+  const mezcla = lista.filter(o => o.suelto.v > 0 && o.paquete.v > 0).map(o => ({ nom: o.nom, ms: (o.suelto.v - o.suelto.c) / o.suelto.v * 100, mp: (o.paquete.v - o.paquete.c) / o.paquete.v * 100, shp: o.paquete.u / (o.paquete.u + o.suelto.u) * 100 }))
     .filter(x => x.ms - x.mp >= 3 && x.shp >= 30);
   if (nV >= 10 && mezcla.length) {
-    const uP = lista.reduce((a, o) => a + o.paquete.u, 0), uT = lista.reduce((a, o) => a + o.u, 0);
+    const uP = lista.reduce((a, o) => a + o.paquete.u, 0), uT = lista.reduce((a, o) => a + o.paquete.u + o.suelto.u, 0);
     H_.push({ t: mezcla.length === 1 ? `${esc(mezcla[0].nom)}: el paquete deja menos que el suelto` : `En ${mezcla.length} productos el paquete deja menos que el suelto`,
-      d: `${mezcla.map(x => `${esc(x.nom)}: ${P(x.mp)} en paquete vs. ${P(x.ms)} suelto (${P(x.shp)} de sus unidades en paquete)`).join('; ')}. En total, ${P(uP / uT * 100)} de las unidades se vendieron en paquete.`,
+      d: `${mezcla.map(x => `${esc(x.nom)}: ${P(x.mp)} en paquete vs. ${P(x.ms)} suelto (${P(x.shp)} de sus unidades emitidas en paquete)`).join('; ')}. En total, ${P(uP / uT * 100)} de las unidades se vendieron en paquete.`,
       i: 'Cada unidad que se va dentro de un paquete te deja varios puntos menos de margen que vendida suelta.', a: 'Revisa el precio del paquete o exhibe más la venta suelta; no hace falta dejar de vender paquetes.' });
   }
   inv.filter(e => e.cob != null && e.cob < 3 && diasPerVenta >= 5).slice(0, 2).forEach(e => H_.push({ t: `${esc(e.producto)} se acabaría en ${Math.max(1, Math.round(e.cob)) === 1 ? 'aproximadamente 1 día' : `unos ${Math.round(e.cob)} días`}`, d: `Quedan ${N(e.cantidad)} unidades y vendes en promedio ${N(e.diario, 1)} por día con venta (${diasPerVenta} días).`, i: 'Un producto agotado es venta perdida, y tus clientes pueden irse a otra tienda.', a: 'Inclúyelo en tu próximo pedido.', nivel: 'mal' }));
@@ -5898,7 +5898,7 @@ async function vReportes(el) {
     rangoVerificado = [d, h];
     $('#rExcel').disabled = false;
     const detalle = $('#rSuelto');
-    await pintarSueltoCajetilla(rent).catch(() => {
+    await pintarSueltoCajetilla(d, h).catch(() => {
       if (detalle?.isConnected) detalle.innerHTML = '<p class="cuadre mal" role="alert">No se pudo cargar el detalle por presentación.</p>';
     });
   };
@@ -5984,8 +5984,8 @@ const rangoInforme = (consulta, campo, d, h) => consulta.gte(campo, inicioInform
 const fechasInforme = (consulta, campo, d, h) => consulta.gte(campo, d).lte(campo, h);
 const resultadosInforme = (d, h) => leerInforme('v_resultados_diarios', '*',
   q => d ? fechasInforme(q, 'fecha', d, h) : q.lte('fecha', h), 'fecha');
-const rentabilidadInforme = (d, h) => leerInforme('v_lineas_rentabilidad', 'fecha, producto_id, presentacion_id, cantidad_base, venta_neta, costo',
-  q => fechasInforme(q, 'fecha', d, h), 'fecha', 'producto_id', 'presentacion_id', 'cantidad_base', 'venta_neta', 'costo');
+const rentabilidadInforme = (d, h) => leerInforme('v_lineas_rentabilidad', 'fecha, producto_id, cantidad_base, venta_neta, costo',
+  q => fechasInforme(q, 'fecha', d, h), 'fecha', 'producto_id', 'cantidad_base', 'venta_neta', 'costo');
 async function contarVentasInforme(d, h) {
   const { error, count } = await rangoInforme(sb.from('ventas').select('id', { count: 'exact', head: true }).eq('estado', 'EMITIDA'), 'fecha', d, h);
   if (error) throw error;

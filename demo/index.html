@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-5b9VG5pvY7G2PqmG5bso+G8pxsvyMiXslT2iXSCKqt0='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-/1foY3JLjG3LTZyU+o3axTrPJ5KAM+cx6f1CA/UWIvM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -857,13 +857,42 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .acc-prov button:hover{background:var(--tono2);color:var(--texto)}
 .acc-prov #repetirCompra{background:#7B5CFF26;color:var(--texto)}
 .t-lineas td select{min-width:220px}
+.cp-provs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:0 0 12px}.cp-provs:empty{display:none}
+.cp-provs button{display:flex;flex-direction:column;gap:2px;text-align:left;border:1.5px solid var(--linea);background:var(--tono);color:var(--texto);border-radius:14px;padding:10px 12px;font:inherit;cursor:pointer}
+.cp-provs button b{font-size:13.5px;line-height:1.25}.cp-provs button small{color:var(--gris);font-size:11.5px}
+.cp-provs button.on{border-color:var(--violeta);background:#7B5CFF26}
+.cp-busca{display:flex;align-items:center;gap:8px;background:var(--tono);border-radius:14px;padding:0 12px;color:var(--gris);margin-bottom:10px}
+.cp-busca input{flex:1;border:0!important;background:transparent!important;box-shadow:none!important;padding:12px 0;font-size:15px}
+.cp-grid{margin-bottom:14px}.cp-gt{margin:2px 0 8px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+.cp-otros>summary{cursor:pointer;margin:10px 0 8px}.cp-otros[open]>summary{margin-bottom:8px}
+.cp-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:320px;overflow:auto;padding:2px}
+.cp-tile{min-width:0;position:relative;display:flex;flex-direction:column;gap:3px;text-align:left;border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:14px;padding:10px 12px;font:inherit;cursor:pointer;transition:transform .12s,border-color .12s}
+.cp-tile:hover{border-color:var(--linea)}.cp-tile:active{transform:scale(.97)}.cp-tile.en{border-color:var(--menta);background:#4FE3C114}
+.cp-tile b{font-size:13.5px;line-height:1.25;padding-right:18px}.cp-tile small{color:var(--gris);font-size:11.5px}
+.cp-st{font-size:11.5px;color:var(--menta)}.cp-st.bajo{color:var(--coral)}
+.cp-en{position:absolute;top:8px;right:9px;width:18px;height:18px;border-radius:50%;background:var(--menta);color:#0E0F1A;display:grid;place-items:center;font-size:11px;font-weight:800}
+.cp-nuevo{margin-top:10px;border:1.5px dashed var(--linea);background:none;color:var(--gris);border-radius:12px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}
+.cp-lineas{display:grid;gap:10px}
+.cl-item{background:var(--tono);border-radius:18px;padding:12px 14px 12px;border:1.5px solid transparent}.cl-item.nuevo{animation:clNuevo .9s ease-out}
+@keyframes clNuevo{from{border-color:var(--menta)}to{border-color:transparent}}
+.cl-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.cl-top b{font-size:15px}
+.cl-pres{margin-bottom:10px;background:var(--blanco)}.cl-pres button{padding:8px 10px;font-size:13px}
+.cl-nums{display:grid;grid-template-columns:auto auto 1fr;gap:12px;align-items:end}.cl-nums label{display:block;font-size:11.5px;color:var(--gris);margin:0 0 4px}
+.cl-item .stepper{display:flex;width:128px;background:var(--blanco)}.cl-item .stepper input{flex:1;min-width:0;width:auto!important;text-align:center;border:0!important;background:transparent!important;box-shadow:none!important;font-weight:700}
+.cl-soles{display:flex;align-items:center;gap:6px;color:var(--gris)}.cl-soles input{width:104px;font-weight:700;text-align:right;background:var(--blanco)}
+.cl-imp{text-align:right}.cl-imp b{font-size:17px}
+.cl-pista{margin:8px 0 0;font-size:12.5px;color:var(--gris);line-height:1.45}.cl-pista:empty{display:none}.cl-pista b{color:var(--texto)}
+.cl-item .vence-lin{display:inline-flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}
+.cl-vacio{display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center;border:1.5px dashed var(--linea);border-radius:18px;padding:18px;color:var(--gris);font-size:13px}.cl-vacio b{color:var(--texto);font-size:14px}
+@media(max-width:600px){.cp-provs{grid-template-columns:repeat(2,minmax(0,1fr))}.cp-tiles{grid-template-columns:repeat(2,minmax(0,1fr));max-height:280px}.cl-nums{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cl-item .stepper{width:100%}.cl-soles input{width:100%}.cl-imp{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;text-align:left}.cl-imp label{margin:0}}
+@media(prefers-reduced-motion:reduce){.cl-item.nuevo{animation:none}}
 .stepper{display:inline-flex;align-items:center;background:var(--tono);border-radius:12px;overflow:hidden}
 .stepper button{border:0;background:transparent;color:var(--texto);width:34px;height:40px;font-size:18px;cursor:pointer}
 .stepper button:hover{background:var(--tono2)}
 #tLineas .stepper{display:flex;width:128px}#tLineas .stepper input{flex:1;min-width:0;width:auto!important;text-align:center;border:0!important;background:transparent!important;box-shadow:none!important;padding:8px 2px!important}
 .quitar-x{border:0;background:var(--tono);color:var(--gris);width:32px;height:32px;border-radius:50%;font-size:18px;line-height:1;cursor:pointer}
 .quitar-x:hover{background:#FF7A8A33;color:var(--coral)}
-@media (max-width:980px){.compra-grid{grid-template-columns:1fr}.compra-res{position:static}}
+@media (max-width:980px){.compra-grid{grid-template-columns:minmax(0,1fr)}.compra-res{position:static}}
 @media (max-width:700px){#tLineas .stepper{width:100%}#tLineas tr:not(.pista){grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.9fr) auto!important}#tLineas tr:not(.pista) td:last-child{align-self:end;padding-bottom:4px}}
 /* Compras: al contado / a crédito */
 .pago-comp{margin-top:16px}
@@ -2834,7 +2863,7 @@ async function vCaja(el) {
 }
 
 // ============ COMPRAS ============
-let lineasCompra = [];
+let provCompraSel = '', lineasCompra = [];
 // ============ PRECIOS DE PROVEEDORES ============
 // Historial de costos por producto y proveedor (solo compras vigentes).
 async function historialCostos() {
@@ -2877,23 +2906,23 @@ function panelProveedores(hist) {
     </div>`).join('')}</div></div>`;
 }
 // Pista bajo cada línea de la compra: cómo se compara con la última vez
-function pistaCosto(hist, provId, presId, costo) {
+function pistaCosto(hist, provId, presId, costo, soloOtros = false) {
   if (!hist.length || !presId) return '';
   const pr = C.presentaciones.find(p => p.id === presId); if (!pr) return '';
   const f = num(pr.factor) || 1, mismos = hist.filter(h => h.producto_id === pr.producto_id);
   const propio = mismos.filter(h => h.proveedor_id === provId), u = propio[propio.length - 1];
   const partes = [];
-  if (u) {
+  if (u && !soloOtros) {
     const antes = u.presentacion_id === presId ? u.costo : u.costo / num(C.presentaciones.find(p => p.id === u.presentacion_id)?.factor || 1) * f;
     const c = num(costo) > 0 ? cambio(antes, num(costo)) : null;
     partes.push(`La última vez (${fd(u.fecha)}) te lo vendió a <b>${S(antes)}</b>${c ? c.tipo === 'igual' ? ', igual que ahora.' : `. <span class="${c.tipo === 'sube' ? 'txt-mal' : 'txt-ok'}">${c.tipo === 'sube' ? '▲ Te subió' : '▼ Te bajó'} ${S(Math.abs(c.d))} (${P(Math.abs(c.pct))})</span>.` : '.'}`);
-  } else if (provId) partes.push('Primera vez que le compras este producto a este proveedor.');
+  } else if (!u && provId) partes.push('Primera vez que le compras este producto a este proveedor.');
   // ¿Otro proveedor lo vende más barato? (comparado por unidad base, sin flete ni IGV)
   const otros = {}; mismos.filter(h => h.proveedor_id !== provId).forEach(h => otros[h.proveedor_id] = h);
   const ref = num(costo) > 0 ? num(costo) / f : u ? u.costo / num(C.presentaciones.find(p => p.id === u.presentacion_id)?.factor || 1) : null;
   const mejor = Object.values(otros).map(h => ({ h, pu: h.costo / num(C.presentaciones.find(p => p.id === h.presentacion_id)?.factor || 1) })).sort((a, b) => a.pu - b.pu)[0];
   if (ref && mejor && mejor.pu < ref - 0.0005) partes.push(`<span class="txt-aviso">${esc(nomProv(mejor.h.proveedor_id))} te lo vendió a ${S(mejor.pu * f)} el ${fd(mejor.h.fecha)}.</span>`);
-  return partes.length ? `<tr class="pista"><td colspan="5">${partes.join(' ')}</td></tr>` : '';
+  return partes.join(' ');
 }
 
 const vence = presId => { const pr = C.presentaciones.find(p => p.id === presId); return !!C.categorias.find(c => c.id === pr?.productos?.categoria_id)?.controla_vencimiento; };
@@ -2945,14 +2974,15 @@ async function pintarVencimientos() {
 }
 
 async function vCompras(el) {
-  const [porPagar, recientes, hist] = await Promise.all([
+  const [porPagar, recientes, hist, exist] = await Promise.all([
     q(sb.from('v_cuentas_por_pagar').select('*').order('fecha')),
     q(sb.from('v_compras_totales').select('*').order('fecha_ingreso', { ascending: false }).limit(20)),
     historialCostos().catch(() => []),
+    q(sb.from('v_existencias').select('producto_id, cantidad')).catch(() => []),
   ]);
   const calPP = calendarioPagos(porPagar);
   const comprables = C.presentaciones.filter(p => p.se_compra);
-  if (!lineasCompra.length) lineasCompra = [{ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }];
+  lineasCompra = lineasCompra.filter(l => l.presentacion_id);
   const tarjeta = medios(MEDIOS_COMPRA)[0];
   el.innerHTML = `
   <div class="compra-grid">
@@ -2963,14 +2993,17 @@ async function vCompras(el) {
     <input type="file" id="fotoFactura" accept="image/*,application/pdf" class="oculto">
     <div id="escaneo"></div>
     <div class="compra-sep"><span>o regístrala a mano</span></div>
-    <div class="paso-c"><span class="paso-n">1</span><h3>Proveedor y fecha</h3></div>
+    <div class="paso-c"><span class="paso-n">1</span><h3>¿A quién le compraste?</h3></div>
+    <div class="cp-provs" id="cpProvs" role="radiogroup" aria-label="Proveedor"></div>
     <div class="fila prov-fila">
       <div style="flex:3 1 240px"><label for="prov">Proveedor</label><select id="prov"><option value="">Elige un proveedor</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div>
       <div style="flex:1 1 150px"><label for="fComp">Fecha</label><input type="date" id="fComp" value="${hoy()}"></div></div>
     <div class="md-chips acc-prov"><button type="button" id="nuevoProv">+ Nuevo proveedor</button><button type="button" id="btnEscProv">Escanear RUC del proveedor</button><button type="button" id="repetirCompra" class="oculto"></button><input type="file" id="fotoProv" accept="image/*,application/pdf" class="oculto"></div>
-    <div class="paso-c"><span class="paso-n">2</span><h3>Productos</h3></div>
-    <div class="scroll"><table id="tLineas" class="t-lineas"></table></div>
-    <button type="button" class="btn claro mini" id="masLinea" style="margin-top:10px">+ Agregar producto</button>
+    <div class="paso-c"><span class="paso-n">2</span><h3>¿Qué te llegó?</h3></div>
+    <div class="cp-busca"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="cpBusca" type="search" placeholder="Busca un producto o toca uno de abajo" autocomplete="off" aria-label="Buscar producto"></div>
+    <div class="cp-grid" id="cpGrid"></div>
+    <div id="tLineas" class="cp-lineas" aria-live="polite"></div>
     <details class="extra" style="margin-top:16px"><summary>Comprobante, IGV y flete</summary>
       <div class="fila" style="margin-top:10px">
         <div><label>Comprobante</label><select id="tc">${C.tiposComp.filter(t => ['00', '01', '03', '12'].includes(t.codigo_sunat)).map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('')}</select></div>
@@ -3012,38 +3045,91 @@ async function vCompras(el) {
   </table></div></div>`;
 
   const totalC = () => { const tasa = num($('#igv').value); return r2(lineasCompra.reduce((a, l) => { const n = r2(num(l.cantidad) * num(l.costo)); return a + n + r2(n * tasa); }, 0) + num($('#adic').value)); };
-  // Lo que le sueles comprar al proveedor elegido (aprendido de tus compras): esas categorías salen primero
+  // ---------- Productos: tarjetas para tocar y líneas tipo tarjeta ----------
+  const presDe = id => C.presentaciones.find(p => p.id === id);
+  const uniDe = prod => (C.unidades.find(u => u.id === prod?.unidad_base_id)?.nombre || 'unidad').toLowerCase();
+  const stockDe = id => num(exist.find(e => e.producto_id === id)?.cantidad);
+  const nomProvSel = () => C.proveedores.find(x => x.id == $('#prov').value)?.razon_social || 'este proveedor';
+  // Lo que le sueles comprar al proveedor elegido (aprendido de tus compras)
   const catsProv = () => { const pv = $('#prov')?.value; if (!pv) return new Set();
-    return new Set(hist.filter(h => h.proveedor_id == pv).map(h => C.presentaciones.find(p => p.producto_id === h.producto_id)?.productos?.categoria_id).filter(Boolean)); };
-  const suyos = () => { const cs = catsProv(); return cs.size ? comprables.filter(p => cs.has(p.productos?.categoria_id)) : comprables; };
-  const opcionesProd = sel => {
-    const op = p => `<option value="${p.id}" ${p.id === sel ? 'selected' : ''}>${esc(presNombre(p))}</option>`, cs = catsProv();
-    if (!cs.size) return comprables.map(op).join('');
-    const mios = comprables.filter(p => cs.has(p.productos?.categoria_id)), otros = comprables.filter(p => !cs.has(p.productos?.categoria_id));
-    const pv = C.proveedores.find(x => x.id == $('#prov').value)?.razon_social || 'este proveedor';
-    return `<optgroup label="Lo que le compras a ${esc(pv)}">${mios.map(op).join('')}</optgroup>${otros.length ? `<optgroup label="Otros productos">${otros.map(op).join('')}</optgroup>` : ''}`;
+    return new Set(hist.filter(h => h.proveedor_id == pv).map(h => presDe(h.presentacion_id)?.productos?.categoria_id).filter(Boolean)); };
+  const productos = () => [...new Map(comprables.map(p => [p.producto_id, p.productos])).values()];
+  // Cómo se lo compras normalmente a este proveedor (si no, el paquete más grande)
+  const presDefecto = prodId => { const pv = $('#prov').value, ops = comprables.filter(p => p.producto_id === prodId);
+    const u = [...hist].reverse().find(h => h.producto_id === prodId && h.proveedor_id == pv && ops.some(o => o.id === h.presentacion_id));
+    return u ? ops.find(o => o.id === u.presentacion_id) : ops.sort((x, y) => num(y.factor) - num(x.factor))[0]; };
+  // Último costo pagado (primero a este proveedor), llevado a la presentación pedida
+  const ultimoCosto = (prodId, presId) => {
+    const pv = $('#prov').value, hs = hist.filter(h => h.producto_id === prodId).reverse(), f = num(presDe(presId)?.factor) || 1;
+    const h = hs.find(x => x.proveedor_id == pv && x.presentacion_id === presId) || hs.find(x => x.proveedor_id == pv) || hs.find(x => x.presentacion_id === presId) || hs[0];
+    return h ? r2(h.costo / (num(presDe(h.presentacion_id)?.factor) || 1) * f) : null; };
+  const pintarProvs = () => {
+    const orden = [...new Set([...hist].reverse().map(h => String(h.proveedor_id)))];
+    const lista = [...orden.map(id => C.proveedores.find(p => String(p.id) === id)).filter(Boolean), ...C.proveedores.filter(p => !orden.includes(String(p.id)))].slice(0, 6);
+    $('#cpProvs').innerHTML = lista.map(p => { const u = [...hist].reverse().find(h => h.proveedor_id == p.id), on = String(p.id) === $('#prov').value;
+      return `<button type="button" role="radio" aria-checked="${on}" data-provc="${p.id}" class="${on ? 'on' : ''}"><b>${esc(p.razon_social)}</b><small>${u ? 'Última compra: ' + fd(u.fecha) : 'Sin compras aún'}</small></button>`; }).join('');
   };
-  // Al elegir proveedor: si la línea aún está en blanco y es de otra categoría, se cambia a lo primero que le compras
-  const ajustarLineas = () => { const cs = catsProv(), primero = suyos()[0]; if (!cs.size || !primero) return;
-    lineasCompra.forEach(l => { const pr = C.presentaciones.find(p => p.id === l.presentacion_id);
-      if (!num(l.costo) && num(l.cantidad) <= 1 && !cs.has(pr?.productos?.categoria_id)) l.presentacion_id = primero.id; }); };
+  const pintarGrid = () => {
+    const txt = normTexto($('#cpBusca').value || ''), cs = catsProv();
+    const enLista = new Set(lineasCompra.map(l => presDe(l.presentacion_id)?.producto_id));
+    const prods = productos().filter(p => !txt || normTexto(p.nombre).includes(txt));
+    const tile = p => { const st = stockDe(p.id), bajo = st <= 0 || (num(p.stock_minimo) > 0 && st < num(p.stock_minimo)), en = enLista.has(p.id);
+      return `<button type="button" class="cp-tile ${en ? 'en' : ''}" data-addp="${p.id}"><b>${esc(p.nombre)}</b>
+        <small>${esc(presDefecto(p.id)?.nombre || '')}</small><span class="cp-st ${bajo ? 'bajo' : ''}">${st <= 0 ? 'Sin stock' : `Quedan ${N(st)}`}</span>${en ? '<span class="cp-en" aria-label="Ya está en la compra">✓</span>' : ''}</button>`; };
+    const mios = cs.size ? prods.filter(p => cs.has(p.categoria_id)) : [], otros = cs.size ? prods.filter(p => !cs.has(p.categoria_id)) : prods;
+    $('#cpGrid').innerHTML = (mios.length ? `<p class="cp-gt">Lo que le compras a ${esc(nomProvSel())}</p><div class="cp-tiles">${mios.map(tile).join('')}</div>` : '')
+      + (otros.length ? (mios.length ? `<details class="cp-otros" ${txt ? 'open' : ''}><summary class="cp-gt">Otros productos (${otros.length})</summary><div class="cp-tiles">${otros.map(tile).join('')}</div></details>`
+        : `<div class="cp-tiles">${otros.map(tile).join('')}</div>`) : '')
+      + (!prods.length ? `<p class="sub" style="margin:4px 0 8px">No encontré "${esc($('#cpBusca').value)}".</p>` : '')
+      + `<button type="button" class="cp-nuevo" data-nuevop>+ Crear producto nuevo</button>`;
+  };
+  const agregarProd = prodId => {
+    const ya = lineasCompra.find(l => presDe(l.presentacion_id)?.producto_id === prodId);
+    let i;
+    if (ya) { ya.cantidad = num(ya.cantidad) + 1; i = lineasCompra.indexOf(ya); }
+    else { const pr = presDefecto(prodId); if (!pr) return; const uc = ultimoCosto(prodId, pr.id);
+      lineasCompra.push({ presentacion_id: pr.id, cantidad: 1, costo: uc ? String(uc) : '', auto: uc != null }); i = lineasCompra.length - 1; }
+    $('#cpBusca').value = ''; pintarLineas();
+    const it = $('#tLineas').querySelectorAll('.cl-item')[i];
+    if (it) { it.classList.add('nuevo'); it.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); if (!lineasCompra[i].costo) it.querySelector('[data-lu]')?.focus(); }
+  };
   const pintarLineas = () => {
-    $('#tLineas').innerHTML = `<tr><th>Producto</th><th class="n">Cantidad</th><th class="n">Costo c/u</th><th class="n">Importe</th><th></th></tr>
-      ${lineasCompra.map((l, i) => `<tr><td style="min-width:200px"><select data-lp="${i}">${opcionesProd(l.presentacion_id)}</select></td>
-        <td class="n"><div class="stepper"><button type="button" data-menos="${i}" aria-label="Uno menos">−</button><input type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}" aria-label="Cantidad"><button type="button" data-mas="${i}" aria-label="Uno más">+</button></div></td>
-        <td class="n"><input style="width:100px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" placeholder="0.00" data-lu="${i}"></td>
-        <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button type="button" class="quitar-x" data-ld="${i}" aria-label="Quitar producto" title="Quitar">×</button>` : ''}</td></tr>${pistaCosto(hist, $('#prov').value, l.presentacion_id, l.costo)}${vence(l.presentacion_id) ? `<tr class="pista"><td colspan="5"><label class="vence-lin">Vence el <input type="date" data-lv="${i}" value="${esc(l.vence || '')}" min="${hoy()}"></label> <span class="sub">Así la app te avisa antes de que se te venza.</span></td></tr>` : ''}`).join('')}`;
-    const t = $('#tLineas');
-    t.querySelectorAll('[data-lp]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lp].presentacion_id = x.value; setTimeout(pintarLineas); });
-    t.querySelectorAll('[data-lc]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lc].cantidad = num(x.value); setTimeout(pintarLineas); });
-    t.querySelectorAll('[data-lu]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lu].costo = x.value; setTimeout(pintarLineas); });
+    const pv = $('#prov').value;
+    $('#tLineas').innerHTML = lineasCompra.length ? lineasCompra.map((l, i) => {
+      const pr = presDe(l.presentacion_id), prod = pr?.productos, f = num(pr?.factor) || 1, un = uniDe(prod);
+      const ops = comprables.filter(p => p.producto_id === pr?.producto_id).sort((a, b) => num(b.factor) - num(a.factor));
+      const paq = f > 1 ? pr.nombre.replace(/\s*x\s*\d+\s*$/i, '').toLowerCase() : un, pista = pistaCosto(hist, pv, l.presentacion_id, l.costo, !!l.auto);
+      return `<div class="cl-item">
+        <div class="cl-top"><b>${esc(prod?.nombre || 'Producto')}</b><button type="button" class="quitar-x" data-ld="${i}" aria-label="Quitar ${esc(prod?.nombre || 'producto')}" title="Quitar">×</button></div>
+        ${ops.length > 1 ? `<div class="seg-mini cl-pres" role="radiogroup" aria-label="Cómo te llegó">${ops.map(o => `<button type="button" role="radio" aria-checked="${o.id === l.presentacion_id}" data-lpres="${i}" data-id="${o.id}" class="${o.id === l.presentacion_id ? 'on' : ''}">${esc(num(o.factor) === 1 ? 'Por ' + un : o.nombre)}</button>`).join('')}</div>` : `<small class="sub">${esc(pr?.nombre || '')}</small>`}
+        <div class="cl-nums">
+          <div><label>Cantidad${f > 1 ? ` (${esc(paq)}s)` : ''}</label><div class="stepper"><button type="button" data-menos="${i}" aria-label="Uno menos">−</button><input type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}" aria-label="Cantidad"><button type="button" data-mas="${i}" aria-label="Uno más">+</button></div></div>
+          <div><label for="lu${i}">Costo por ${esc(paq)}</label><div class="cl-soles"><span>S/</span><input id="lu${i}" type="number" min="0" step="0.01" inputmode="decimal" value="${esc(l.costo)}" placeholder="0.00" data-lu="${i}"></div></div>
+          <div class="cl-imp"><label>Importe</label><b data-li="${i}">${S(num(l.cantidad) * num(l.costo))}</b></div></div>
+        <p class="cl-pista">${f > 1 && num(l.cantidad) > 0 ? `Entran <b>${N(num(l.cantidad) * f)} ${esc(plural(un))}</b>${num(l.costo) > 0 ? ` a ${S(num(l.costo) / f)} c/u` : ''}. ` : ''}${l.auto ? '<span class="chip aviso">último costo</span> Lo llené con lo que pagaste la última vez; cámbialo si te cobró distinto. ' : ''}${pista}</p>
+        ${vence(l.presentacion_id) ? `<label class="vence-lin">Vence el <input type="date" data-lv="${i}" value="${esc(l.vence || '')}" min="${hoy()}"></label>` : ''}
+      </div>`; }).join('')
+      : `<div class="cl-vacio"><b>Aún no agregas productos</b><span>Toca un producto de arriba o búscalo por su nombre.</span></div>`;
+    const t = $('#tLineas'), vivo = () => { $('#totC').textContent = S(totalC()); resumenCompra(); };
+    t.querySelectorAll('[data-lc]').forEach(x => { const l = lineasCompra[x.dataset.lc];
+      x.oninput = () => { l.cantidad = num(x.value); t.querySelector(`[data-li="${x.dataset.lc}"]`).textContent = S(num(l.cantidad) * num(l.costo)); vivo(); };
+      x.onchange = () => setTimeout(pintarLineas); });
+    t.querySelectorAll('[data-lu]').forEach(x => { const l = lineasCompra[x.dataset.lu];
+      x.oninput = () => { l.costo = x.value; l.auto = false; t.querySelector(`[data-li="${x.dataset.lu}"]`).textContent = S(num(l.cantidad) * num(l.costo)); vivo(); };
+      x.onchange = () => setTimeout(pintarLineas); });
+    t.querySelectorAll('[data-lpres]').forEach(x => x.onclick = () => { const l = lineasCompra[x.dataset.lpres], fa = num(presDe(l.presentacion_id)?.factor) || 1, fb = num(presDe(x.dataset.id)?.factor) || 1;
+      if (num(l.costo) > 0) { l.costo = String(r2(num(l.costo) / fa * fb)); l.auto = true; } else { const uc = ultimoCosto(presDe(x.dataset.id).producto_id, x.dataset.id); if (uc != null) { l.costo = String(uc); l.auto = true; } }
+      l.presentacion_id = x.dataset.id; pintarLineas(); });
     t.querySelectorAll('[data-ld]').forEach(x => x.onclick = () => { lineasCompra.splice(x.dataset.ld, 1); pintarLineas(); });
     t.querySelectorAll('[data-mas]').forEach(x => x.onclick = () => { lineasCompra[x.dataset.mas].cantidad = num(lineasCompra[x.dataset.mas].cantidad) + 1; pintarLineas(); });
     t.querySelectorAll('[data-menos]').forEach(x => x.onclick = () => { const l = lineasCompra[x.dataset.menos]; l.cantidad = Math.max(0, num(l.cantidad) - 1); pintarLineas(); });
     t.querySelectorAll('[data-lv]').forEach(x => x.onchange = () => { lineasCompra[x.dataset.lv].vence = x.value; });
-    $('#totC').textContent = S(totalC());
-    resumenCompra();
+    pintarGrid(); vivo();
   };
+  $('#cpGrid').onclick = e => { const b = e.target.closest('[data-addp]'); if (b) return agregarProd(b.dataset.addp); if (e.target.closest('[data-nuevop]')) abrirAsistenteProducto(); };
+  $('#cpBusca').oninput = pintarGrid;
+  $('#cpBusca').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); const b = $('#cpGrid [data-addp]'); if (b) agregarProd(b.dataset.addp); } };
+  $('#cpProvs').onclick = e => { const b = e.target.closest('[data-provc]'); if (!b) return; $('#prov').value = b.dataset.provc; $('#prov').dispatchEvent(new Event('change')); };
   // Resumen a la derecha: siempre a la vista con el total
   const resumenCompra = () => {
     const tasa = num($('#igv').value), sub = r2(lineasCompra.reduce((a, l) => a + r2(num(l.cantidad) * num(l.costo)), 0));
@@ -3061,7 +3147,7 @@ async function vCompras(el) {
       rep.textContent = `Repetir su última compra (${fd(ult.fecha)}, ${n} ${n === 1 ? 'producto' : 'productos'})`; rep.classList.remove('oculto'); rep.dataset.compra = ult.compra_id; }
     else rep.classList.add('oculto');
   };
-  $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => setTimeout(() => { ajustarLineas(); pintarLineas(); }));
+  $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => { provCompraSel = $('#prov').value; pintarProvs(); setTimeout(pintarLineas); });
   // Al contado / a crédito: a la vista, junto al total
   const pintarCond = () => {
     const c = $('#cond').value, cred = c === 'CREDITO';
@@ -3086,7 +3172,6 @@ async function vCompras(el) {
     lineasCompra = ls.map(h => ({ presentacion_id: h.presentacion_id, cantidad: h.cantidad || 1, costo: String(h.costo) }));
     pintarLineas(); aviso('Listo: revisa cantidades y costos antes de registrar');
   };
-  $('#masLinea').onclick = () => { lineasCompra.push({ presentacion_id: suyos()[0]?.id || comprables[0]?.id, cantidad: 1, costo: '' }); pintarLineas(); };
   $('#nuevoProv').onclick = async () => {
     const v = await dialogo('Nuevo proveedor', [{ label: 'Nombre o razón social', required: true }, { label: 'RUC (opcional)', ph: '11 dígitos' }, { label: 'Teléfono (opcional)' }]);
     if (!v) return;
@@ -3099,8 +3184,10 @@ async function vCompras(el) {
   $('#btnComprar').onclick = async () => {
     if (!$('#prov').value) return aviso('Elige el proveedor', true);
     const ls = lineasCompra.filter(l => num(l.cantidad) > 0);
-    if (!ls.length) return aviso('Agrega al menos un producto con cantidad', true);
-    if (ls.some(l => l.costo === '')) return aviso('Escribe el costo de cada producto', true);
+    if (!ls.length) { aviso('Agrega al menos un producto: tócalo en la lista de arriba', true); return $('#cpBusca').focus(); }
+    const sinC = lineasCompra.findIndex(l => num(l.cantidad) > 0 && l.costo === '');
+    if (sinC >= 0) { aviso('Escribe el costo de cada producto', true);
+      return setTimeout(() => { const x = $(`#tLineas [data-lu="${sinC}"]`); x?.scrollIntoView({ block: 'center', behavior: 'smooth' }); x?.focus(); }, 30); }
     const cond = $('#cond').value, total = totalC(), adic = num($('#adic').value);
     const p = {
       proveedor_id: $('#prov').value, tipo_comprobante_id: Number($('#tc').value), serie: $('#serie').value || null, numero: $('#numero').value || null,
@@ -3122,7 +3209,7 @@ async function vCompras(el) {
       const fechas = ls.map((l, i) => ({ linea: i + 1, fecha: l.vence || '' })).filter(x => x.fecha);
       if (fechas.length && r.data) await rpc('fijar_vencimientos', { p_compra_id: r.data, p_fechas: fechas });
       const prodIds = [...new Set(ls.map(l => C.presentaciones.find(x => x.id === l.presentacion_id)?.producto_id))];
-      lineasCompra = []; await ir('compras');
+      lineasCompra = []; provCompraSel = ''; await ir('compras');
       const al = await alertasMargen(prodIds).catch(() => []);
       if (al.length && await dialogo('Con este costo, revisa tus precios', [{ type: 'info', html: `<p class="sub" style="margin:0 0 10px">Después de esta compra, estos precios dejan menos de tu ${P(umbral())} mínimo:</p>${tablaAlertas(al)}` }], 'Ajustar precios')) ir('catalogo');
     }
@@ -3147,6 +3234,8 @@ async function vCompras(el) {
   $('#btnEscProv').onclick = () => $('#fotoProv').click();
   $('#fotoProv').onchange = () => { const f = $('#fotoProv').files[0]; $('#fotoProv').value = ''; if (f) escanearArchivo(f, escanearProveedor); };
   $('#fotoFactura').onchange = () => { const f = $('#fotoFactura').files[0]; $('#fotoFactura').value = ''; if (f) escanearArchivo(f, escanearFactura); };
+  // Si estabas a mitad de una compra (por ejemplo, creaste un producto nuevo), vuelve el proveedor
+  if (provCompraSel && C.proveedores.some(p => String(p.id) === String(provCompraSel))) $('#prov').value = provCompraSel;
   // Si venimos del escáner, llenar la cabecera
   if (cabeceraEscaneada) {
     const c = cabeceraEscaneada; cabeceraEscaneada = null;
@@ -3158,6 +3247,7 @@ async function vCompras(el) {
     el.querySelector('details.extra').open = true;
     setTimeout(() => $('#btnComprar').scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
   }
+  pintarProvs();
   pintarLineas();
 }
 async function devolverCompra(compraId, tarjeta) {
@@ -4565,7 +4655,7 @@ function abrirAsistenteProducto(catInicial) {
       // Abre Compras con este producto ya puesto, en la forma en que normalmente te llega
       const pr = C.presentaciones.filter(p => p.producto_id === st.creado && p.se_compra).sort((x, y) => num(y.factor) - num(x.factor))[0];
       if (!pr) return aviso('No encontré cómo se compra este producto', true);
-      lineasCompra = [{ presentacion_id: pr.id, cantidad: 1, costo: num(st.costo) > 0 ? String(r2(st.costo)) : '' }];
+      lineasCompra = [...lineasCompra.filter(l => l.presentacion_id), { presentacion_id: pr.id, cantidad: 1, costo: num(st.costo) > 0 ? String(r2(st.costo)) : '' }];
       v.remove(); return ir('compras');
     }
   });

@@ -29,7 +29,7 @@ test('gomitas por caja: muestra la ganancia y se puede comprar en caja o suelto'
   // Registrar su stock: abre Compras con la caja ya puesta y su costo
   await np.locator('[data-a="stock"]').click();
   await expect(np).toBeHidden();
-  await expect(page.locator('#tLineas select').first()).toContainText('Caja Prueba');
+  await expect(page.locator('#tLineas .cl-item').first()).toContainText('Caja Prueba');
   await expect(page.locator('#tLineas [data-lu]').first()).toHaveValue('7.2');
 });
 
@@ -86,20 +86,58 @@ test('editar un producto antiguo: pasar de solo caja a las dos formas', async ({
   expect(await page.evaluate(i => C.presentaciones.filter(p => p.producto_id === i && p.se_compra).length, id)).toBe(2);
 });
 
-test('compras: al elegir proveedor salen primero los productos que le compras', async ({ page, errores }) => {
+test('compras: al elegir proveedor salen primero sus productos y lo demás queda guardado', async ({ page, errores }) => {
   await abrirDemo(page);
   await irA(page, 'compras');
-  // Un proveedor con compras de una sola categoría
   const prov = await page.evaluate(async () => {
     const h = await historialCostos();
     const cats = {}; h.forEach(x => { const c = C.presentaciones.find(p => p.producto_id === x.producto_id)?.productos?.categoria_id; (cats[x.proveedor_id] ??= new Set()).add(c); });
     return Object.entries(cats).find(([, s]) => s.size === 1)?.[0];
   });
   test.skip(!prov, 'La demo no tiene un proveedor de una sola categoría');
-  await page.locator('#prov').selectOption(prov);
-  const grupo = page.locator('#tLineas select').first().locator('optgroup').first();
-  await expect(grupo).toHaveAttribute('label', /Lo que le compras a/);
-  // La línea en blanco pasa a un producto de ese proveedor
-  const enGrupo = await grupo.locator('option').evaluateAll(o => o.map(x => x.value));
-  expect(enGrupo).toContain(await page.locator('#tLineas select').first().inputValue());
+  await page.locator(`#cpProvs [data-provc="${prov}"]`).click();
+  await expect(page.locator('#prov')).toHaveValue(prov);
+  await expect(page.locator('#cpGrid .cp-gt').first()).toContainText('Lo que le compras a');
+  await expect(page.locator('#cpGrid details.cp-otros')).not.toHaveAttribute('open', '');
+});
+
+test('compras: tocar productos, costo anterior, caja o unidad y registrar', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'compras');
+  await expect(page.locator('.cl-vacio')).toBeVisible();
+  await page.locator('#cpProvs [data-provc]').first().click();
+  // Tocar un producto que ya compraste: entra con el último costo
+  const nombre = await page.evaluate(async () => { const h = await historialCostos(); return h.length ? C.presentaciones.find(p => p.id === h[h.length - 1].presentacion_id).productos.nombre : null; });
+  test.skip(!nombre, 'La demo no tiene compras');
+  await page.locator('#cpBusca').fill(nombre);
+  await page.locator('#cpBusca').press('Enter');
+  const item = page.locator('#tLineas .cl-item').first();
+  await expect(item).toContainText(nombre);
+  await expect(item.locator('[data-lu]')).not.toHaveValue('');
+  await expect(item).toContainText('último costo');
+  // Tocarlo otra vez suma uno, no crea otra línea
+  await page.locator('#cpGrid [data-addp]').filter({ hasText: nombre }).first().click();
+  await expect(page.locator('#tLineas .cl-item')).toHaveCount(1);
+  await expect(item.locator('[data-lc]')).toHaveValue('2');
+  // Cambiar entre caja y unidad recalcula el costo
+  const pres = item.locator('[data-lpres]');
+  if (await pres.count() > 1) {
+    const antes = Number(await item.locator('[data-lu]').inputValue());
+    await pres.locator('nth=-1').click();
+    await expect(item.locator('[data-lu]')).not.toHaveValue(String(antes));
+  }
+  await expect(page.locator('#totC')).not.toHaveText('S/ 0.00');
+  await page.locator('#btnComprar').click();
+  await expect(page.locator('body')).toContainText('Compra registrada');
+  await expect(page.locator('.cl-vacio')).toBeVisible();
+});
+
+test('compras: sin costo marca el campo', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'compras');
+  await page.locator('#cpProvs [data-provc]').first().click();
+  await page.locator('#cpGrid [data-addp]').first().click();
+  await page.locator('#tLineas [data-lu]').first().fill('');
+  await page.locator('#btnComprar').click();
+  await expect(page.locator('#tLineas [data-lu]').first()).toBeFocused();
 });

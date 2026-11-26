@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-/1foY3JLjG3LTZyU+o3axTrPJ5KAM+cx6f1CA/UWIvM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-adzFR2fsDvU3F10EFoyggxoth+9+/7JxAm74SCN8P2c='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -875,7 +875,9 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .cp-lineas{display:grid;gap:10px}
 .cl-item{background:var(--tono);border-radius:18px;padding:12px 14px 12px;border:1.5px solid transparent}.cl-item.nuevo{animation:clNuevo .9s ease-out}
 @keyframes clNuevo{from{border-color:var(--menta)}to{border-color:transparent}}
-.cl-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.cl-top b{font-size:15px}
+.cl-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.cl-acc{display:flex;align-items:center;gap:6px;flex:none}
+.cl-regalo{border:0;background:var(--blanco);color:var(--gris);border-radius:999px;padding:6px 11px;font:inherit;font-size:12px;cursor:pointer}.cl-regalo:hover{color:var(--texto)}
+.cl-gratis{height:42px;display:flex;align-items:center;font-weight:700;color:var(--menta)}.cl-top b{font-size:15px}
 .cl-pres{margin-bottom:10px;background:var(--blanco)}.cl-pres button{padding:8px 10px;font-size:13px}
 .cl-nums{display:grid;grid-template-columns:auto auto 1fr;gap:12px;align-items:end}.cl-nums label{display:block;font-size:11.5px;color:var(--gris);margin:0 0 4px}
 .cl-item .stepper{display:flex;width:128px;background:var(--blanco)}.cl-item .stepper input{flex:1;min-width:0;width:auto!important;text-align:center;border:0!important;background:transparent!important;box-shadow:none!important;font-weight:700}
@@ -3071,7 +3073,7 @@ async function vCompras(el) {
   };
   const pintarGrid = () => {
     const txt = normTexto($('#cpBusca').value || ''), cs = catsProv();
-    const enLista = new Set(lineasCompra.map(l => presDe(l.presentacion_id)?.producto_id));
+    const enLista = new Set(lineasCompra.filter(l => !l.bonif).map(l => presDe(l.presentacion_id)?.producto_id));
     const prods = productos().filter(p => !txt || normTexto(p.nombre).includes(txt));
     const tile = p => { const st = stockDe(p.id), bajo = st <= 0 || (num(p.stock_minimo) > 0 && st < num(p.stock_minimo)), en = enLista.has(p.id);
       return `<button type="button" class="cp-tile ${en ? 'en' : ''}" data-addp="${p.id}"><b>${esc(p.nombre)}</b>
@@ -3084,7 +3086,7 @@ async function vCompras(el) {
       + `<button type="button" class="cp-nuevo" data-nuevop>+ Crear producto nuevo</button>`;
   };
   const agregarProd = prodId => {
-    const ya = lineasCompra.find(l => presDe(l.presentacion_id)?.producto_id === prodId);
+    const ya = lineasCompra.find(l => !l.bonif && presDe(l.presentacion_id)?.producto_id === prodId);
     let i;
     if (ya) { ya.cantidad = num(ya.cantidad) + 1; i = lineasCompra.indexOf(ya); }
     else { const pr = presDefecto(prodId); if (!pr) return; const uc = ultimoCosto(prodId, pr.id);
@@ -3097,16 +3099,17 @@ async function vCompras(el) {
     const pv = $('#prov').value;
     $('#tLineas').innerHTML = lineasCompra.length ? lineasCompra.map((l, i) => {
       const pr = presDe(l.presentacion_id), prod = pr?.productos, f = num(pr?.factor) || 1, un = uniDe(prod);
-      const ops = comprables.filter(p => p.producto_id === pr?.producto_id).sort((a, b) => num(b.factor) - num(a.factor));
-      const paq = f > 1 ? pr.nombre.replace(/\s*x\s*\d+\s*$/i, '').toLowerCase() : un, pista = pistaCosto(hist, pv, l.presentacion_id, l.costo, !!l.auto);
+      // Bonificación: también se puede recibir por unidad aunque esa forma no esté marcada para compras
+      const ops = (l.bonif ? C.presentaciones.filter(p => p.producto_id === pr?.producto_id && (p.se_compra || num(p.factor) === 1)) : comprables.filter(p => p.producto_id === pr?.producto_id)).sort((a, b) => num(b.factor) - num(a.factor));
+      const paq = f > 1 ? pr.nombre.replace(/\s*x\s*\d+\s*$/i, '').toLowerCase() : un, pista = l.bonif ? '' : pistaCosto(hist, pv, l.presentacion_id, l.costo, !!l.auto);
       return `<div class="cl-item">
-        <div class="cl-top"><b>${esc(prod?.nombre || 'Producto')}</b><button type="button" class="quitar-x" data-ld="${i}" aria-label="Quitar ${esc(prod?.nombre || 'producto')}" title="Quitar">×</button></div>
+        <div class="cl-top"><b>${esc(prod?.nombre || 'Producto')}${l.bonif ? ' <span class="chip ok">🎁 Bonificación</span>' : ''}</b><span class="cl-acc">${l.bonif ? '' : `<button type="button" class="cl-regalo" data-lb="${i}">🎁 Bonificación</button>`}<button type="button" class="quitar-x" data-ld="${i}" aria-label="Quitar ${esc(prod?.nombre || 'producto')}" title="Quitar">×</button></span></div>
         ${ops.length > 1 ? `<div class="seg-mini cl-pres" role="radiogroup" aria-label="Cómo te llegó">${ops.map(o => `<button type="button" role="radio" aria-checked="${o.id === l.presentacion_id}" data-lpres="${i}" data-id="${o.id}" class="${o.id === l.presentacion_id ? 'on' : ''}">${esc(num(o.factor) === 1 ? 'Por ' + un : o.nombre)}</button>`).join('')}</div>` : `<small class="sub">${esc(pr?.nombre || '')}</small>`}
         <div class="cl-nums">
           <div><label>Cantidad${f > 1 ? ` (${esc(paq)}s)` : ''}</label><div class="stepper"><button type="button" data-menos="${i}" aria-label="Uno menos">−</button><input type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}" aria-label="Cantidad"><button type="button" data-mas="${i}" aria-label="Uno más">+</button></div></div>
-          <div><label for="lu${i}">Costo por ${esc(paq)}</label><div class="cl-soles"><span>S/</span><input id="lu${i}" type="number" min="0" step="0.01" inputmode="decimal" value="${esc(l.costo)}" placeholder="0.00" data-lu="${i}"></div></div>
+          ${l.bonif ? `<div><label>Costo</label><div class="cl-gratis">Gratis</div></div>` : `<div><label for="lu${i}">Costo por ${esc(paq)}</label><div class="cl-soles"><span>S/</span><input id="lu${i}" type="number" min="0" step="0.01" inputmode="decimal" value="${esc(l.costo)}" placeholder="0.00" data-lu="${i}"></div></div>`}
           <div class="cl-imp"><label>Importe</label><b data-li="${i}">${S(num(l.cantidad) * num(l.costo))}</b></div></div>
-        <p class="cl-pista">${f > 1 && num(l.cantidad) > 0 ? `Entran <b>${N(num(l.cantidad) * f)} ${esc(plural(un))}</b>${num(l.costo) > 0 ? ` a ${S(num(l.costo) / f)} c/u` : ''}. ` : ''}${l.auto ? '<span class="chip aviso">último costo</span> Lo llené con lo que pagaste la última vez; cámbialo si te cobró distinto. ' : ''}${pista}</p>
+        <p class="cl-pista">${l.bonif ? `Mercadería de regalo: entra a tu stock a S/ 0.00 y baja tu costo promedio. ` : ''}${f > 1 && num(l.cantidad) > 0 ? `Entran <b>${N(num(l.cantidad) * f)} ${esc(plural(un))}</b>${num(l.costo) > 0 ? ` a ${S(num(l.costo) / f)} c/u` : ''}. ` : ''}${l.auto ? '<span class="chip aviso">último costo</span> Lo llené con lo que pagaste la última vez; cámbialo si te cobró distinto. ' : ''}${pista}</p>
         ${vence(l.presentacion_id) ? `<label class="vence-lin">Vence el <input type="date" data-lv="${i}" value="${esc(l.vence || '')}" min="${hoy()}"></label>` : ''}
       </div>`; }).join('')
       : `<div class="cl-vacio"><b>Aún no agregas productos</b><span>Toca un producto de arriba o búscalo por su nombre.</span></div>`;
@@ -3119,7 +3122,15 @@ async function vCompras(el) {
       x.onchange = () => setTimeout(pintarLineas); });
     t.querySelectorAll('[data-lpres]').forEach(x => x.onclick = () => { const l = lineasCompra[x.dataset.lpres], fa = num(presDe(l.presentacion_id)?.factor) || 1, fb = num(presDe(x.dataset.id)?.factor) || 1;
       if (num(l.costo) > 0) { l.costo = String(r2(num(l.costo) / fa * fb)); l.auto = true; } else { const uc = ultimoCosto(presDe(x.dataset.id).producto_id, x.dataset.id); if (uc != null) { l.costo = String(uc); l.auto = true; } }
+      if (l.bonif) l.costo = '0', l.auto = false;
       l.presentacion_id = x.dataset.id; pintarLineas(); });
+    // 🎁 Bonificación: una línea aparte del mismo producto, gratis, por unidad
+    t.querySelectorAll('[data-lb]').forEach(x => x.onclick = () => { const l = lineasCompra[x.dataset.lb], prodId = presDe(l.presentacion_id)?.producto_id;
+      const uni = C.presentaciones.find(p => p.producto_id === prodId && num(p.factor) === 1) || presDe(l.presentacion_id);
+      const ya = lineasCompra.findIndex(m => m.bonif && presDe(m.presentacion_id)?.producto_id === prodId);
+      if (ya >= 0) lineasCompra[ya].cantidad = num(lineasCompra[ya].cantidad) + 1;
+      else lineasCompra.splice(Number(x.dataset.lb) + 1, 0, { presentacion_id: uni.id, cantidad: 1, costo: '0', bonif: true });
+      pintarLineas(); const it = t.querySelectorAll('.cl-item')[ya >= 0 ? ya : Number(x.dataset.lb) + 1]; it?.classList.add('nuevo'); it?.querySelector('[data-lc]')?.select(); });
     t.querySelectorAll('[data-ld]').forEach(x => x.onclick = () => { lineasCompra.splice(x.dataset.ld, 1); pintarLineas(); });
     t.querySelectorAll('[data-mas]').forEach(x => x.onclick = () => { lineasCompra[x.dataset.mas].cantidad = num(lineasCompra[x.dataset.mas].cantidad) + 1; pintarLineas(); });
     t.querySelectorAll('[data-menos]').forEach(x => x.onclick = () => { const l = lineasCompra[x.dataset.menos]; l.cantidad = Math.max(0, num(l.cantidad) - 1); pintarLineas(); });
@@ -3139,6 +3150,7 @@ async function vCompras(el) {
     const fila = (a, b, cls = '') => `<div class="${cls}"><span>${a}</span><b>${b}</b></div>`;
     $('#resFilas').innerHTML = fila('Proveedor', pv ? esc(pv.razon_social) : '<span class="txt-mal">Falta elegir</span>')
       + fila('Productos', `${conCant.length} ${conCant.length === 1 ? 'línea' : 'líneas'} · ${N(conCant.reduce((a, l) => a + num(l.cantidad), 0))} paq.`)
+      + (conCant.some(l => l.bonif) ? fila('Bonificación', `🎁 ${N(conCant.filter(l => l.bonif).reduce((a, l) => a + num(l.cantidad) * (num(presDe(l.presentacion_id)?.factor) || 1), 0))} gratis`) : '')
       + (sinCosto ? fila('Sin costo', `<span class="txt-mal">${sinCosto} ${sinCosto === 1 ? 'producto' : 'productos'}</span>`) : '')
       + fila('Subtotal', S(sub)) + (igv ? fila('IGV 18 %', S(igv)) : '') + (flete ? fila('Flete', S(flete)) : '');
     // Repetir la última compra a este proveedor
@@ -3188,6 +3200,10 @@ async function vCompras(el) {
     const sinC = lineasCompra.findIndex(l => num(l.cantidad) > 0 && l.costo === '');
     if (sinC >= 0) { aviso('Escribe el costo de cada producto', true);
       return setTimeout(() => { const x = $(`#tLineas [data-lu="${sinC}"]`); x?.scrollIntoView({ block: 'center', behavior: 'smooth' }); x?.focus(); }, 30); }
+    for (const pid of [...new Set(ls.filter(l => l.bonif).map(l => l.presentacion_id))]) {
+      const pr = presDe(pid);
+      if (pr && !pr.se_compra) { try { await q(sb.from('presentaciones').update({ se_compra: true }).eq('id', pid)); pr.se_compra = true; } catch (er) { return aviso('No pude preparar la bonificación: ' + textoError(er), true); } }
+    }
     const cond = $('#cond').value, total = totalC(), adic = num($('#adic').value);
     const p = {
       proveedor_id: $('#prov').value, tipo_comprobante_id: Number($('#tc').value), serie: $('#serie').value || null, numero: $('#numero').value || null,

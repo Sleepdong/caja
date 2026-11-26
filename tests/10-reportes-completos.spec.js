@@ -8,7 +8,7 @@ test('Reportes, Análisis y Excel cuadran con más de 1000 ventas, devoluciones 
   await abrirDemo(page);
   const modelo = await page.evaluate(async () => {
     const fecha = hoy(), hora = fecha + 'T23:59:59.999-05:00';
-    const pres = C.presentaciones[0], pid = pres.producto_id;
+    const pres = C.presentaciones.find(p => p.productos.nombre === 'Pall Mall BOOST' && num(p.factor) === 1), pid = pres.producto_id;
     const ventas = Array.from({ length: 1207 }, (_, i) => ({
       id: 'prueba-' + i, fecha: hora, estado: 'EMITIDA', origen: 'CAJA',
       venta_detalles: [{ presentacion_id: pres.id, cantidad_base: 1, subtotal: 10, costo_total: 4 }],
@@ -44,12 +44,14 @@ test('Reportes, Análisis y Excel cuadran con más de 1000 ventas, devoluciones 
     };
     local.guardar('repRango', { p: 'hoy' });
     local.guardar('anPeriodo', '7');
-    return { ganancia: S(7236), ventas: S(12060), cantidad: N(1207) };
+    return { ganancia: S(7236), ventas: S(12060), cantidad: N(1207), unidadesNetas: N(1206), neta: S(7200) };
   });
   await irA(page, 'reportes');
   await expect(page.locator('.rep-kpi').filter({ hasText: 'Ventas netas' }).locator('b')).toHaveText(modelo.ventas);
   await expect(page.locator('.rep-kpi').filter({ hasText: 'Ventas registradas' }).locator('b')).toHaveText(modelo.cantidad);
   await expect(page.locator('.rep-prod .fila-total td').nth(4)).toHaveText(modelo.ganancia);
+  await expect(page.locator('.rep-kpi').filter({ hasText: 'Utilidad neta' }).locator('b')).toHaveText(modelo.neta);
+  await expect(page.locator('#rSuelto tr').filter({ hasText: 'Pall Mall BOOST' }).locator('td').last()).toContainText(modelo.unidadesNetas + ' und.');
   expect(await page.evaluate(() => window.paginasRentabilidad)).toEqual([0, 400, 800, 1200]);
 
   const descarga = page.waitForEvent('download');

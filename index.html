@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-B8UdMFb6qMkEip8UQkkKgqdkIl77diI39/2plvIK0iI='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-WM7zSt+3f2dNA0QVp/OdapMKqQ7gkPdsSlMSXG25S54='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3715,7 +3715,7 @@ async function pintarSueltoCajetilla(lineas) {
         <td class="n">${r.costo > 0 ? `${S(r.ganSuelto)} <span class="sub">${P(r.ganSuelto / (r.precioU * r.f) * 100)}</span>` : '—'}</td>
         <td class="n"><b>${S(r.extra)}</b></td>
         <td class="n">${r.rk ? `${N(r.rk.paq)} paq. · ${S(r.rk.gan)}` : '—'}</td>
-        <td class="n">${r.ru ? `${N(r.ru.base)} und. · ${S(r.ru.gan)}` : '—'}</td></tr>`).join('')}
+        <td class="n">${r.ru ? `${N(r.ru.paq)} und. · ${S(r.ru.gan)}` : '—'}</td></tr>`).join('')}
     </table></div>
     ${extraMes > 0 ? `<div class="cuadre ok" style="margin-top:12px">En estas fechas vendiste paquetes enteros que, vendidos sueltos, te habrían dejado <b>${S(extraMes)}</b> más. No siempre se puede (quien compra la cajetilla no siempre compra suelto), pero muestra cuánto pesa el precio de la cajetilla.</div>`
       : `<p class="sub" style="margin-top:10px">Cuando registres ventas, aquí verás cuánto vendiste de cada forma y cuánto te dejó.</p>`}

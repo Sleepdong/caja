@@ -65,6 +65,59 @@ test('interpreta cajas y muestra importes OCR en Compras sin un QR', async ({ pa
   }, fotoTranscrita);
   await expect(page.locator('#escaneo .cuadre.ok')).toContainText('47.53');
   await expect(page.locator('#escaneo pre')).toHaveText(fotoTranscrita);
+  await page.locator('#escFiltro').click();
   await expect(page.locator('#escaneo [data-cant]').first()).toHaveValue('4');
   await expect(page.locator('#escaneo [data-imp]').nth(4)).toHaveValue('3.97');
+});
+
+test('muestra solo excepciones y actualiza el resumen antes de preparar la compra', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'compras');
+  const lectura = `Cant. U.M. P.Unit. Dscto Importe
+001292 GOMAS FINI OSITOS (CJX12UN) UNX80G
+2 UND 1.98 - 3.96
+001292 BONIF.GOMAS FINI OSITOS UNX80G
+3 UND 0.00 - *Bonif*
+009999 AZUCAR PRUEBA ESPECIAL UNX80G
+4 UND 1.98 - 7.92
+Importe Total S/ 11.88`;
+  await page.evaluate(async texto => {
+    cargarLibreria = async () => {};
+    interpretarQR = () => null;
+    leerQR = () => null;
+    leerTexto = async () => texto;
+    const bytes = Uint8Array.from(atob('R0lGODlhAQABAAAAACwAAAAAAQABAAA='), c => c.charCodeAt(0));
+    await escanearFactura(new File([bytes], 'factura.gif', { type: 'image/gif' }));
+  }, lectura);
+
+  await expect(page.locator('#escConteo')).toHaveText('2 líneas listas · 1 por revisar');
+  await expect(page.locator('[data-revision-linea]')).toHaveCount(1);
+  await expect(page.locator('[data-revision-linea="2"]')).toContainText('Elige el producto');
+  await expect(page.locator('#escEntradas')).toHaveText('5 unidades');
+  await expect(page.locator('#escRegalos')).toHaveText('3 unidades');
+  await expect(page.locator('#escImporteCompra')).toContainText('3.96');
+
+  await page.locator('#escFiltro').click();
+  await expect(page.locator('[data-revision-linea]')).toHaveCount(3);
+  await page.locator('#escFiltro').click();
+  const producto = await page.evaluate(() => C.presentaciones.find(p => p.productos.codigo_factura === '001292' && num(p.factor) === 1).id);
+  await page.locator('[data-pres="2"]').selectOption(producto);
+  await expect(page.locator('[data-revision-linea]')).toHaveCount(0);
+  await expect(page.locator('#escConteo')).toHaveText('3 líneas listas · 0 por revisar');
+  await expect(page.locator('#escEntradas')).toHaveText('9 unidades');
+  await expect(page.locator('#escImporteCompra')).toContainText('11.88');
+
+  const proveedor = await page.locator('#escProvSel option').nth(1).getAttribute('value');
+  await page.locator('#escProvSel').selectOption(proveedor);
+  await expect(page.locator('#escProvSel')).toHaveCount(0);
+  await page.evaluate(() => {
+    const rpc = sb.rpc.bind(sb);
+    sb.rpc = (fn, args) => {
+      if (fn === 'registrar_compra') throw new Error('La revisión no debe registrar la compra');
+      return rpc(fn, args);
+    };
+  });
+  await page.locator('#escUsar').click();
+  await expect(page.locator('#tLineas .cl-item')).toHaveCount(3);
+  await expect(page.locator('#totC')).toContainText('11.88');
 });

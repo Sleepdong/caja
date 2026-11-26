@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-adzFR2fsDvU3F10EFoyggxoth+9+/7JxAm74SCN8P2c='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-0BJ4772LGXPPgNn7AnpAq9dmeHZ/kE5b5kH6Rsck0oo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -620,6 +620,40 @@ a.btn{text-decoration:none}#alertaCierreBar>div{flex:1;min-width:0}#alertaCierre
 .dona-c small{color:var(--gris);font-size:12px}
 .dona-c b{font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:2px 0}
 .dona-c b.largo{font-size:19px}
+.gs-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px;align-items:start;margin-bottom:18px}.gs-grid>.panel{margin-bottom:0}
+.gs-monto{display:flex;align-items:center;gap:8px;background:var(--tono);border-radius:18px;padding:6px 16px;margin:6px 0 14px;font-size:26px;color:var(--gris);font-weight:600}
+.gs-monto input{flex:1;min-width:0;border:0!important;background:transparent!important;box-shadow:none!important;font-size:34px;font-weight:800;padding:8px 0;color:var(--texto)}
+.gs-lbl{display:block;margin:12px 0 6px;font-size:12px;font-weight:600;color:var(--gris)}
+.gs-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.gs-cats button{display:flex;align-items:center;gap:8px;border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:12px;padding:9px 10px;font:inherit;font-size:13px;text-align:left;cursor:pointer;line-height:1.2}
+.gs-cats button span{font-size:17px}.gs-cats button.on,.gs-chips button.on,.gs-chips input.on{border-color:var(--violeta);background:#7B5CFF2a}
+.gs-sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.gs-sug:empty{display:none}
+.gs-sug button{border:0;background:var(--tono);color:var(--gris);border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;cursor:pointer}.gs-sug button:hover{color:var(--texto)}
+.gs-chips{display:flex;flex-wrap:wrap;gap:6px}.gs-chips button{border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:12px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer}
+.gs-fecha input{width:auto;border:1.5px solid transparent;padding:7px 10px;font-size:13px}
+.gs-btn{width:100%;justify-content:center;margin-top:18px}
+.gs-res-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}.gs-res-cab h2{margin:0}.gs-res-cab .seg-mini button{text-transform:capitalize}
+.gs-dona{display:grid;grid-template-columns:190px minmax(0,1fr);gap:22px;align-items:center;margin-top:10px}
+.gs-dg{width:190px;height:190px}.gs-dif{font-size:11.5px;margin-top:2px}.gs-dif.sube{color:var(--coral)}.gs-dif.baja{color:var(--menta)}
+.gs-ley{display:grid;gap:4px}
+.gs-ley-f{display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--texto);border-radius:12px;padding:7px 8px;font:inherit;text-align:left;cursor:pointer;transition:opacity .15s,background .15s}
+.gs-ley-f:hover,.gs-ley-f.on{background:var(--tono)}.gs-ley-f.apagado,.dona-arco.apagado{opacity:.3}
+.gs-ico{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:16px;background:color-mix(in srgb,var(--c) 22%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--c) 55%,transparent)}
+.gs-ley-n{flex:1;min-width:0}.gs-ley-n b,.gs-mov-n b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gs-ley-n small,.gs-mov-n small{color:var(--gris);font-size:11.5px}
+.gs-ley-v{text-align:right}.gs-ley-v b{display:block;font-size:14px;font-variant-numeric:tabular-nums}.gs-ley-v small{color:var(--gris);font-size:11.5px}
+.gs-nota{margin:14px 0 0;font-size:12.5px;color:var(--gris)}.gs-nota b{color:var(--texto)}
+.gs-vacio{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:28px 10px;color:var(--gris);font-size:13px}.gs-vacio span{font-size:28px}.gs-vacio b{color:var(--texto)}
+.gs-movs-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}.gs-movs-cab h2{margin:0}
+.gs-quitar{border:0;background:var(--tono);color:var(--texto);border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+.gs-dia{margin-top:12px}.gs-dia-cab{display:flex;justify-content:space-between;font-size:12px;color:var(--gris);padding:0 4px 6px;border-bottom:1px solid var(--linea);text-transform:capitalize}.gs-dia-cab b{color:var(--texto);font-variant-numeric:tabular-nums}
+.gs-mov{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--linea)}.gs-mov:last-child{border-bottom:0}
+.gs-mov-n{flex:1;min-width:0}.gs-mov-v{font-weight:700;font-variant-numeric:tabular-nums}
+.gs-mov.anulado{opacity:.45}.gs-mov.anulado .gs-mov-v{text-decoration:line-through}
+.gs-vermas{display:block;width:100%;margin-top:10px;border:0;background:var(--tono);color:var(--texto);border-radius:12px;padding:11px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.gs-monto input::-webkit-inner-spin-button,.gs-monto input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.gs-monto input{-moz-appearance:textfield}
+.gs-mov-x{width:32px;height:32px;flex:none;border:0;background:none;color:var(--gris);border-radius:10px;font-size:18px;cursor:pointer}.gs-mov-x:hover{background:var(--tono);color:var(--texto)}
+@media(max-width:980px){.gs-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.gs-dona{grid-template-columns:1fr;justify-items:center}.gs-ley{width:100%}.gs-cats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .dona-c .dona-c2{font-size:11px;max-width:110px}
 .dona-ley{display:grid;gap:4px}
 .dona-fila{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;cursor:default;transition:opacity .15s,background .15s}
@@ -4416,41 +4450,135 @@ async function pintarFijos() {
   caja.querySelectorAll('[data-fya]').forEach(b => b.onclick = () => registrarUno(lista.find(f => f.id === b.dataset.fya), este, hoy()));
 }
 
+// ============ GASTOS: registrar en segundos + a dónde se va tu plata (dona por categoría) ============
+const COL_GASTO = ['#7B5CFF', '#4FE3C1', '#FF7A8A', '#FFC857', '#5AB4FF', '#E86AF0', '#8BD46A', '#FF9F5A', '#9AA0B8'];
+const icoGasto = n => { const t = normTexto(n || '');
+  return /transp|pasaj|mototax|movil|flete|taxi|combust|gasolin/.test(t) ? '🛵' : /luz|agua|servici|electr/.test(t) ? '💡' : /alquil|local|renta/.test(t) ? '🏠'
+    : /internet|telef|celular|recarg/.test(t) ? '📱' : /banc|financ|comisi|mantenim|itf/.test(t) ? '🏦' : /bolsa|insum|empaq|material|util/.test(t) ? '🛍️'
+    : /limpi/.test(t) ? '🧹' : /sueld|personal|pago a|planill|socio/.test(t) ? '👤' : /impuest|sunat|tribut|municip|licenc/.test(t) ? '🧾' : /comid|almuer|refrig/.test(t) ? '🍽️' : '📦'; };
+const colGasto = id => COL_GASTO[Math.max(0, C.catGasto.findIndex(c => c.id === id)) % COL_GASTO.length];
+let periodoGastos = 'mes';
 async function vGastos(el) {
-  const gastos = await q(sb.from('gastos').select('*, categorias_gasto(nombre)').order('fecha', { ascending: false }).order('creado_en', { ascending: false }).limit(50));
-  const mes = gastos.filter(g => g.estado === 'REGISTRADO' && g.fecha >= iniMes()).reduce((a, g) => a + num(g.monto), 0);
+  const ym = mesDe(hoy()), [a, m] = ym.split('-').map(Number), ymAnt = m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`;
+  const gastos = await q(sb.from('gastos').select('*, categorias_gasto(nombre)').gte('fecha', ymAnt + '-01').order('fecha', { ascending: false }).order('creado_en', { ascending: false }));
+  const vivos = gastos.filter(g => g.estado === 'REGISTRADO');
+  const delMes = y => vivos.filter(g => mesDe(g.fecha) === y), tot = l => r2(l.reduce((s, g) => s + num(g.monto), 0));
+  const st = { cat: C.catGasto[0]?.id, medio: medios(MEDIOS_GASTO).find(x => x.codigo === 'EFECTIVO')?.id ?? '', fecha: hoy(), filtro: null, todo: false };
   el.innerHTML = `
-  <div class="cols dos">
-  <div class="panel"><h2>Nuevo gasto</h2><p class="sub">Pasajes, luz, alquiler, bolsas: todo lo que no es mercadería.</p>
-    <div class="fila"><div><label>Categoría</label><select id="gCat">${C.catGasto.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select></div>
-      <div><label>Fecha</label><input type="date" id="gFecha" value="${hoy()}"></div></div>
-    <div class="fila" style="margin-top:8px"><div style="flex:2 1 200px"><label>Detalle</label><input id="gDesc" placeholder="Ej.: mototaxi al mercado"></div>
-      <div><label>Monto</label><input type="number" id="gMonto" min="0" step="0.10" inputmode="decimal"></div></div>
-    <div class="fila" style="margin-top:8px"><div><label>Pagado con</label><select id="gMet">${selMedios(MEDIOS_GASTO, 'EFECTIVO')}<option value="">Aún no lo pago</option></select></div>
-      <div class="auto"><button class="btn" id="btnGasto">Registrar gasto</button></div></div>
+  <div class="gs-grid">
+    <section class="panel gs-form" aria-labelledby="gsT"><h2 id="gsT">Nuevo gasto</h2>
+      <div class="gs-monto"><span>S/</span><input id="gMonto" type="number" min="0" step="0.10" inputmode="decimal" placeholder="0.00" aria-label="Monto"></div>
+      <label class="gs-lbl">¿En qué?</label>
+      <div class="gs-cats" id="gCats" role="radiogroup" aria-label="Categoría">${C.catGasto.map(c => `<button type="button" role="radio" data-gcat="${c.id}"><span>${icoGasto(c.nombre)}</span>${esc(c.nombre)}</button>`).join('')}</div>
+      <label class="gs-lbl" for="gDesc">Detalle</label>
+      <input id="gDesc" placeholder="Ej.: mototaxi al mercado" autocomplete="off">
+      <div class="gs-sug" id="gSug"></div>
+      <label class="gs-lbl">Pagado con</label>
+      <div class="gs-chips" id="gMeds" role="radiogroup" aria-label="Pagado con">${medios(MEDIOS_GASTO).map(x => `<button type="button" role="radio" data-gmed="${x.id}">${esc(x.nombre)}</button>`).join('')}<button type="button" role="radio" data-gmed="">Aún no lo pago</button></div>
+      <label class="gs-lbl">Fecha</label>
+      <div class="gs-chips gs-fecha"><button type="button" data-gfec="${hoy()}">Hoy</button><button type="button" data-gfec="${masDias(-1)}">Ayer</button><input type="date" id="gFecha" value="${hoy()}" max="${hoy()}" aria-label="Otra fecha"></div>
+      <button class="btn rotulo gs-btn" id="btnGasto">Registrar gasto</button>
+    </section>
+    <section class="panel gs-res" aria-labelledby="gsR">
+      <div class="gs-res-cab"><h2 id="gsR">¿A dónde se va tu plata?</h2>
+        <div class="seg-mini" role="radiogroup" aria-label="Periodo"><button type="button" role="radio" data-gper="mes">${esc(nombreMes(ym))}</button><button type="button" role="radio" data-gper="ant">${esc(nombreMes(ymAnt))}</button></div></div>
+      <div id="gDona"></div>
+    </section>
   </div>
-  <div class="cifras" style="align-content:start"><div class="cifra"><small>Gastos de este mes</small><b>${S(mes)}</b></div></div>
-  </div>
-  <div class="panel"><h2>Gastos recientes</h2><div class="scroll"><table><tr><th>Fecha</th><th>Categoría</th><th>Detalle</th><th class="n">Monto</th><th>Estado</th><th></th></tr>
-    ${gastos.map(g => `<tr><td>${fd(g.fecha)}</td><td>${esc(g.categorias_gasto?.nombre)}</td><td>${esc(g.descripcion)}</td><td class="n">${S(g.monto)}</td>
-      <td>${g.estado === 'ANULADO' ? '<span class="chip mal">Anulado</span>' : '<span class="chip ok">Registrado</span>'}</td>
-      <td class="n">${g.estado === 'REGISTRADO' ? `<button class="btn claro mini" data-anular="${g.id}">Anular</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="6" class="vacio">Sin gastos registrados.</td></tr>'}</table></div></div>`;
-  // Los fijos van entre el formulario y los recientes
-  el.querySelector('.cols.dos').insertAdjacentHTML('afterend', '<div id="fijos"></div>');
-  pintarFijos().catch(e => { $('#fijos').innerHTML = `<div class="panel"><h2>Gastos fijos de cada mes</h2><p class="sub">No se pudo cargar: ${esc(textoError(e))}</p></div>`; });
-  $('#btnGasto').onclick = async () => {
-    const monto = r2($('#gMonto').value);
-    if (!$('#gDesc').value.trim() || monto <= 0) return aviso('Completa el detalle y el monto', true);
-    const met = $('#gMet').value;
-    if (met && C.metodos.find(m => m.id == met)?.codigo === 'EFECTIVO' && !(await sesionCaja()) && !(await abrirCajaRapido())) return;
-    const p = { categoria_gasto_id: $('#gCat').value, descripcion: $('#gDesc').value.trim(), monto, pagos: met ? [{ metodo_pago_id: Number(met), monto }] : [] };
-    if ($('#gFecha').value !== hoy()) p.fecha = $('#gFecha').value;
-    if ((await rpc('registrar_gasto', { p }, 'Gasto registrado')).ok) ir('gastos');
+  <section class="panel gs-movs"><div class="gs-movs-cab"><h2>Movimientos</h2><span id="gFiltro"></span></div><div id="gLista"></div></section>
+  <div id="fijos"></div>`;
+  // ---------- Resumen con dona ----------
+  const pintarRes = () => {
+    const y = periodoGastos === 'mes' ? ym : ymAnt, l = delMes(y), total = tot(l), totAnt = tot(delMes(ymAnt));
+    el.querySelectorAll('[data-gper]').forEach(b => { const on = b.dataset.gper === periodoGastos; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+    const porCat = Object.values(l.reduce((o, g) => { const k = g.categoria_gasto_id; (o[k] ??= { id: k, n: g.categorias_gasto?.nombre || 'Otros', v: 0, c: 0 }); o[k].v += num(g.monto); o[k].c++; return o; }, {})).sort((x, z) => z.v - x.v);
+    const caja = $('#gDona');
+    if (!total) { caja.innerHTML = `<div class="gs-vacio"><span>🎉</span><b>Sin gastos en ${esc(nombreMes(y))}</b><small>Cuando registres uno, aquí verás en qué se va tu plata.</small></div>`; return; }
+    const R = 62, CIR = 2 * Math.PI * R, gap = porCat.length > 1 ? 2.5 : 0; let acc = 0;
+    const arcos = porCat.map(x => { const largo = x.v / total * CIR, r = { ...x, ini: acc, largo }; acc += largo; return r; });
+    const dif = periodoGastos === 'mes' && totAnt > 0 ? (total - totAnt) / totAnt * 100 : null;
+    // Mes en curso: a este ritmo, ¿cuánto gastarías en todo el mes?
+    const dia = Number(hoy().slice(8)), diasMes = Number(finMes(ym).slice(8)), proy = periodoGastos === 'mes' && dia < diasMes && dia >= 5 ? r2(total / dia * diasMes) : 0;
+    caja.innerHTML = `<div class="gs-dona">
+      <div class="dona-g gs-dg"><svg viewBox="0 0 160 160" role="img" aria-label="Gastos por categoría: ${porCat.map(x => `${x.n} ${S(x.v)}`).join(', ')}">
+        <circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--tono)" stroke-width="20"/>
+        ${arcos.map(x => `<circle class="dona-arco" data-gc="${x.id}" cx="80" cy="80" r="${R}" fill="none" stroke="${colGasto(x.id)}" stroke-width="20" stroke-linecap="butt"
+          stroke-dasharray="${Math.max(0.1, x.largo - gap)} ${CIR}" stroke-dashoffset="${-x.ini}" transform="rotate(-90 80 80)"><title>${esc(x.n)}: ${S(x.v)}</title></circle>`).join('')}
+      </svg><div class="dona-c" aria-hidden="true"><small>Gastaste</small><b class="${S(total).length > 10 ? 'largo' : ''}">${S(total)}</b>
+        ${dif != null ? `<small class="gs-dif ${dif > 0 ? 'sube' : 'baja'}">${dif > 0 ? '▲' : '▼'} ${P(Math.abs(dif))} vs ${esc(nombreMes(ymAnt))}</small>` : ''}</div></div>
+      <div class="gs-ley">${porCat.map(x => `<button type="button" class="gs-ley-f ${String(st.filtro) === String(x.id) ? 'on' : ''}" data-gc="${x.id}">
+        <span class="gs-ico" style="--c:${colGasto(x.id)}">${icoGasto(x.n)}</span><span class="gs-ley-n"><b>${esc(x.n)}</b><small>${x.c} ${x.c === 1 ? 'gasto' : 'gastos'}</small></span>
+        <span class="gs-ley-v"><b>${S(x.v)}</b><small>${P(x.v / total * 100)}</small></span></button>`).join('')}</div></div>
+      ${proy ? `<p class="gs-nota">A este ritmo cerrarías ${esc(nombreMes(ym))} con unos <b>${S(proy)}</b> en gastos.</p>` : ''}`;
+    const marcar = id => caja.querySelectorAll('[data-gc]').forEach(x => x.classList.toggle('apagado', id != null && x.dataset.gc !== String(id)));
+    caja.querySelectorAll('[data-gc]').forEach(x => { x.onmouseenter = () => marcar(x.dataset.gc); x.onmouseleave = () => marcar(st.filtro);
+      x.onclick = () => { st.filtro = String(st.filtro) === x.dataset.gc ? null : x.dataset.gc; st.todo = false; pintarRes(); pintarLista(); marcar(st.filtro); }; });
+    if (st.filtro) marcar(st.filtro);
   };
-  el.querySelectorAll('[data-anular]').forEach(b => b.onclick = async () => {
-    const v = await dialogo('Anular gasto', [{ label: 'Motivo', required: true }], 'Anular gasto');
-    if (v && (await rpc('anular_gasto', { p_gasto_id: b.dataset.anular, p_motivo: v[0] }, 'Gasto anulado')).ok) ir('gastos');
+  // ---------- Movimientos agrupados por día ----------
+  const pintarLista = () => {
+    const y = periodoGastos === 'mes' ? ym : ymAnt;
+    const l = gastos.filter(g => mesDe(g.fecha) === y && (!st.filtro || String(g.categoria_gasto_id) === String(st.filtro)));
+    const cat = C.catGasto.find(c => String(c.id) === String(st.filtro));
+    $('#gFiltro').innerHTML = cat ? `<button type="button" class="gs-quitar" id="gSinFiltro">${icoGasto(cat.nombre)} ${esc(cat.nombre)} <span aria-hidden="true">×</span></button>` : '';
+    const MAX = 10, ver = st.todo ? l : l.slice(0, MAX);
+    const ayer = masDias(-1), dias = [...new Set(ver.map(g => g.fecha))];
+    $('#gLista').innerHTML = l.length ? dias.map(d => { const del = ver.filter(g => g.fecha === d), t = tot(l.filter(g => g.fecha === d && g.estado === 'REGISTRADO'));
+      return `<div class="gs-dia"><div class="gs-dia-cab"><span>${d === hoy() ? 'Hoy' : d === ayer ? 'Ayer' : new Date(d + 'T12:00:00-05:00').toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'short', timeZone: 'America/Lima' })}</span><b>${S(t)}</b></div>
+        ${del.map(g => { const an = g.estado === 'ANULADO';
+          return `<div class="gs-mov ${an ? 'anulado' : ''}"><span class="gs-ico" style="--c:${colGasto(g.categoria_gasto_id)}">${icoGasto(g.categorias_gasto?.nombre)}</span>
+            <span class="gs-mov-n"><b>${esc(g.descripcion || g.categorias_gasto?.nombre || 'Gasto')}</b><small>${esc(g.categorias_gasto?.nombre || '')}${an ? ' · anulado' : ''}</small></span>
+            <span class="gs-mov-v">${S(g.monto)}</span>
+            ${an ? '<span class="gs-mov-x"></span>' : `<button type="button" class="gs-mov-x" data-anular="${g.id}" aria-label="Anular ${esc(g.descripcion || 'gasto')}" title="Anular">⋯</button>`}</div>`; }).join('')}</div>`; }).join('')
+        + (l.length > MAX ? `<button type="button" class="gs-vermas" id="gVerMas">${st.todo ? 'Ver menos' : `Ver todos (${l.length})`}</button>` : '')
+      : `<div class="gs-vacio"><span>🧾</span><b>${cat ? `Sin gastos de ${esc(cat.nombre)}` : 'Aún no hay gastos'} en ${esc(nombreMes(y))}</b></div>`;
+    $('#gSinFiltro')?.addEventListener('click', () => { st.filtro = null; pintarRes(); pintarLista(); });
+    $('#gVerMas')?.addEventListener('click', () => { st.todo = !st.todo; pintarLista(); });
+    $('#gLista').querySelectorAll('[data-anular]').forEach(b => b.onclick = async () => {
+      const g = gastos.find(x => x.id === b.dataset.anular);
+      const v = await dialogo('Anular gasto', [{ type: 'info', html: `<p class="sub" style="margin:0"><b>${esc(g.descripcion)}</b> · ${S(g.monto)}. Si lo pagaste, el dinero vuelve a su cuenta.</p>` }, { label: 'Motivo', required: true, ph: 'Ej.: lo registré dos veces' }], 'Anular gasto');
+      if (v && (await rpc('anular_gasto', { p_gasto_id: g.id, p_motivo: v[1] }, 'Gasto anulado')).ok) ir('gastos');
+    });
+  };
+  // ---------- Formulario ----------
+  const pintarForm = () => {
+    el.querySelectorAll('[data-gcat]').forEach(b => { const on = String(b.dataset.gcat) === String(st.cat); b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+    el.querySelectorAll('[data-gmed]').forEach(b => { const on = String(b.dataset.gmed) === String(st.medio); b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
+    el.querySelectorAll('[data-gfec]').forEach(b => b.classList.toggle('on', b.dataset.gfec === st.fecha));
+    $('#gFecha').classList.toggle('on', st.fecha !== hoy() && st.fecha !== masDias(-1));
+    // Lo que más escribes en esta categoría, para tocarlo en vez de escribirlo
+    const sug = [...new Set(gastos.filter(g => String(g.categoria_gasto_id) === String(st.cat) && g.descripcion).map(g => g.descripcion.trim()))].slice(0, 4);
+    $('#gSug').innerHTML = sug.map(t => `<button type="button" data-gsug="${esc(t)}">${esc(t)}</button>`).join('');
+    const mto = r2($('#gMonto').value);
+    $('#btnGasto').textContent = mto > 0 ? `Registrar gasto · ${S(mto)}` : 'Registrar gasto';
+  };
+  el.querySelector('.gs-form').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.gcat) { st.cat = b.dataset.gcat; pintarForm(); }
+    else if (b.dataset.gmed != null) { st.medio = b.dataset.gmed; pintarForm(); }
+    else if (b.dataset.gfec) { st.fecha = b.dataset.gfec; $('#gFecha').value = st.fecha; pintarForm(); }
+    else if (b.dataset.gsug) { $('#gDesc').value = b.dataset.gsug; $('#gMonto').value || $('#gMonto').focus(); }
   });
+  $('#gFecha').onchange = () => { st.fecha = $('#gFecha').value || hoy(); pintarForm(); };
+  $('#gMonto').oninput = pintarForm;
+  ['gMonto', 'gDesc'].forEach(id => $('#' + id).onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#btnGasto').click(); } });
+  el.querySelectorAll('[data-gper]').forEach(b => b.onclick = () => { periodoGastos = b.dataset.gper; st.filtro = null; pintarRes(); pintarLista(); });
+  $('#btnGasto').onclick = async () => {
+    const monto = r2($('#gMonto').value), desc = $('#gDesc').value.trim() || C.catGasto.find(c => String(c.id) === String(st.cat))?.nombre || '';
+    if (!(monto > 0)) { aviso('Escribe el monto', true); return $('#gMonto').focus(); }
+    if (!st.cat) return aviso('Elige en qué gastaste', true);
+    const met = st.medio;
+    if (met && C.metodos.find(x => x.id == met)?.codigo === 'EFECTIVO' && !(await sesionCaja()) && !(await abrirCajaRapido())) return;
+    const p = { categoria_gasto_id: st.cat, descripcion: desc, monto, pagos: met ? [{ metodo_pago_id: Number(met), monto }] : [] };
+    if (st.fecha !== hoy()) p.fecha = st.fecha;
+    $('#btnGasto').disabled = true;
+    const r = await rpc('registrar_gasto', { p }, `Gasto registrado: ${S(monto)}`);
+    $('#btnGasto').disabled = false;
+    if (r.ok) { periodoGastos = mesDe(st.fecha) === ym ? 'mes' : periodoGastos; ir('gastos'); }
+  };
+  pintarForm(); pintarRes(); pintarLista();
+  if (!matchMedia('(max-width: 700px)').matches) $('#gMonto').focus();
+  pintarFijos().catch(e => { $('#fijos').innerHTML = `<div class="panel"><h2>Gastos fijos de cada mes</h2><p class="sub">No se pudo cargar: ${esc(textoError(e))}</p></div>`; });
 }
 
 // ============ PRODUCTOS ============

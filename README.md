@@ -124,7 +124,3 @@ tests/              Pruebas automáticas (Playwright)
 tools/              build_demo.py (genera la demo) y csp.py (recalcula la huella de la CSP)
 docs/               Capturas
 ```
-
----
-
-**Luis Alvan Rojas** · Estudiante de Contabilidad (UTP) · Pucallpa, Perú

@@ -95,6 +95,8 @@ test('Caja: total = efectivo + otros medios, igual que Reportes y que lo cobrado
 });
 
 test('Panel: la dona reparte las ventas en mercadería, gastos y ganancia neta, igual que los indicadores', async ({ page, errores }) => {
+  // Al inicio de la jornada la demo puede tener pérdida y la dona muestra dos porciones.
+  await page.clock.setFixedTime(new Date('2026-11-26T21:00:00-05:00'));
   await abrirDemo(page);
   await irA(page, 'panel');
   const sol = t => Number(t.replace(/[^\d.\-−]/g, '').replace('−', '-'));

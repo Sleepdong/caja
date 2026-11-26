@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-GR17qhFbu+RsTA+WUQESHYN6tKU49Gmgxl0zB8QKqq4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-dUjma76ZW4xm0GTS4z18vhgT9l+Y+ORW5YhUiaO862A='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -875,6 +875,9 @@ textarea{width:100%;font:inherit;font-size:14.5px;line-height:1.5;resize:vertica
 .seg-pago button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid transparent;background:var(--tono);color:var(--texto);border-radius:14px;padding:11px 14px;font:inherit;cursor:pointer}
 .seg-pago button small{color:var(--gris);font-size:12px}
 .seg-pago button.on{border-color:var(--violeta);background:var(--tono2)}
+.asis-preg{margin:0 0 8px;font-size:15px;font-weight:600}
+.seg-pago.llega{grid-template-columns:repeat(3,1fr);max-width:none;margin-bottom:16px}.seg-pago.llega b{font-size:14.5px}
+@media(max-width:600px){.seg-pago.llega{gap:6px}.seg-pago.llega button{padding:10px;justify-content:center;text-align:center;align-items:center}.seg-pago.llega small{display:none}.seg-pago.llega b{font-size:13.5px}.asis .frase input.corto{width:104px}.asis .frase input.mini{width:84px}}
 @media(min-width:900px){.velo.hoja-velo{align-items:center}}
 .dialogo,.hoja{background:var(--blanco);color:var(--texto);border-radius:28px;box-shadow:0 0 0 1px var(--linea)}
 .hp-cab small{color:var(--violeta)}
@@ -4325,8 +4328,9 @@ async function crearCategoria() {
 }
 // ============ ASISTENTE: PRODUCTO NUEVO EN 3 PASOS ============
 function abrirAsistenteProducto(catInicial) {
-  const st = { paso: catInicial ? 2 : 1, cat: C.categorias.find(c => c.id === catInicial) || null, marca: '', variante: '', nf: '', cf: '', pkBase: '', pkF: '', vendePaq: false, pu: '', pkP: '', min: '', costo: '' };
-  const usar = cat => Object.assign(st, { cat, pkBase: cat.paquete_nombre || '', pkF: cat.paquete_unidades || '', vendePaq: !!cat.vende_paquete });
+  const st = { paso: catInicial ? 2 : 1, cat: C.categorias.find(c => c.id === catInicial) || null, marca: '', variante: '', nf: '', cf: '', pkBase: 'Caja', pkF: '', vendePaq: false, pu: '', pkP: '', min: '', costo: '', costoU: '', compra: 'uni' };
+  // compra: 'paq' = te llega en caja/paquete, 'uni' = te llega suelto, 'ambos' = a veces de una forma y a veces de la otra
+  const usar = cat => Object.assign(st, { cat, pkBase: cat.paquete_nombre || 'Caja', pkF: cat.paquete_unidades || '', vendePaq: !!cat.vende_paquete && !!cat.paquete_nombre, compra: cat.paquete_nombre ? 'paq' : 'uni' });
   if (st.cat) usar(st.cat);
   const v = document.createElement('div'); v.className = 'velo hoja-velo asis-velo';
   v.innerHTML = '<div class="asis" role="dialog" aria-modal="true" aria-labelledby="asisT"></div>';
@@ -4342,8 +4346,11 @@ function abrirAsistenteProducto(catInicial) {
   const pintar = () => {
     const u = uniNom(), dup = duplicado();
     const marcas = [...new Set(C.presentaciones.filter(p => !st.cat || p.productos?.categoria_id === st.cat.id).map(p => p.productos?.marca).filter(Boolean))];
-    const cu = num(st.costo) > 0 && num(st.pkF) >= 2 && st.pkBase ? num(st.costo) / num(st.pkF) : num(st.costo) > 0 && !st.pkBase ? num(st.costo) : 0;
+    const conPaq = st.compra !== 'uni', conUni = st.compra !== 'paq', pk = (st.pkBase || 'caja').toLowerCase(), Art = w => art(w)[0].toUpperCase() + art(w).slice(1), oa = w => art(w) === 'la' ? 'a' : 'o';
+    const cuPaq = conPaq && num(st.costo) > 0 && num(st.pkF) >= 2 ? num(st.costo) / num(st.pkF) : 0, cuUni = conUni ? num(st.costoU) : 0;
+    const cu = Math.max(cuPaq, cuUni); // si te llega de las dos formas, el precio debe cubrir la más cara
     const sug = cu > 0 ? precioSugerido(cu) : 0;
+    const comoCompras = st.compra === 'uni' ? `por ${esc(u)} suelt${oa(u)}` : `${esc(pk)}${num(st.pkF) >= 2 ? ' x ' + st.pkF : ''}${st.compra === 'ambos' ? ` o por ${esc(u)} suelt${oa(u)}` : ''}`;
     const ganU = cu > 0 && num(st.pu) > 0 ? num(st.pu) - cu : null;
     caja.innerHTML = `
       <header class="asis-cab"><div><small>Nuevo producto</small><h3 id="asisT">${st.paso === 1 ? '¿Qué tipo de producto es?' : st.paso === 2 ? '¿Cuál es?' : '¿Cómo lo compras y lo vendes?'}</h3></div>
@@ -4364,18 +4371,26 @@ function abrirAsistenteProducto(catInicial) {
           <div><label for="aCf">Código</label><input id="aCf" value="${esc(st.cf)}" inputmode="numeric" placeholder="Ej.: 460069"></div></div>
           <p class="sub" style="margin:6px 0 0">Si no lo pones, la app lo aprende sola la primera vez que escanees su factura.</p></details>`
       : `
-        <div class="frase"><span>Lo compras en</span><input id="aPk" class="corto" value="${esc(st.pkBase)}" placeholder="suelto"><span>de</span><input id="aPkF" class="mini" type="number" min="2" inputmode="numeric" value="${esc(st.pkF)}" ${st.pkBase ? '' : 'disabled'}><span>${esc(plural(u))}</span></div>
-        <div class="frase"><span>${st.pkBase ? `${art(st.pkBase)[0].toUpperCase() + art(st.pkBase).slice(1)} ${esc(st.pkBase.toLowerCase())} te cuesta` : `Cada ${esc(u)} te cuesta`}</span><span class="pre">S/</span><input id="aCosto" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.costo)}" placeholder="0.00"><span class="sub">opcional, para sugerirte el precio</span></div>
+        <p class="asis-preg">¿Cómo te llega del proveedor?</p>
+        <div class="seg-pago llega" role="radiogroup" aria-label="Cómo te llega del proveedor">
+          <button type="button" role="radio" aria-checked="${st.compra === 'paq'}" data-compra="paq" class="${st.compra === 'paq' ? 'on' : ''}"><b>En ${esc(pk)}</b><small>${esc(art(pk))} ${esc(pk)} cerrad${oa(pk)}</small></button>
+          <button type="button" role="radio" aria-checked="${st.compra === 'uni'}" data-compra="uni" class="${st.compra === 'uni' ? 'on' : ''}"><b>Por ${esc(u)}</b><small>suelto, de una en una</small></button>
+          <button type="button" role="radio" aria-checked="${st.compra === 'ambos'}" data-compra="ambos" class="${st.compra === 'ambos' ? 'on' : ''}"><b>De las dos formas</b><small>a veces en ${esc(pk)}, a veces suelto</small></button>
+        </div>
+        ${conPaq ? `<div class="frase"><span>Te llega en</span><input id="aPk" class="corto" value="${esc(st.pkBase)}" placeholder="Caja, display…"><span>de</span><input id="aPkF" class="mini" type="number" min="2" inputmode="numeric" value="${esc(st.pkF)}" placeholder="12"><span>${esc(plural(u))}</span></div>
+          <div class="frase"><span>${Art(pk)} ${esc(pk)} te cuesta</span><span class="pre">S/</span><input id="aCosto" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.costo)}" placeholder="0.00">${cuPaq ? `<span class="sub">= ${S(cuPaq)} por ${esc(u)}</span>` : '<span class="sub">opcional, para sugerirte el precio</span>'}</div>` : ''}
+        ${conUni ? `<div class="frase"><span>Cada ${esc(u)} suelt${oa(u)} te cuesta</span><span class="pre">S/</span><input id="aCostoU" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.costoU)}" placeholder="0.00">${conPaq ? '' : '<span class="sub">opcional, para sugerirte el precio</span>'}</div>` : ''}
         <div class="frase grande"><span>Vendes cada ${esc(u)} a</span><span class="pre">S/</span><input id="aPu" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pu)}" placeholder="0.00">
           ${sug ? `<button class="chip-sug" data-a="sug">Sugerido S/ ${sug.toFixed(2)}</button>` : ''}</div>
-        ${st.pkBase ? `<label class="check"><input type="checkbox" id="aVp" ${st.vendePaq ? 'checked' : ''}> También vendo ${art(st.pkBase)} ${esc(st.pkBase.toLowerCase())} completa</label>
-          ${st.vendePaq ? `<div class="frase"><span>${art(st.pkBase)[0].toUpperCase() + art(st.pkBase).slice(1)} ${esc(st.pkBase.toLowerCase())} completa a</span><span class="pre">S/</span><input id="aPkP" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pkP)}" placeholder="0.00"></div>` : ''}` : ''}
+        ${conPaq && st.pkBase ? `<label class="check"><input type="checkbox" id="aVp" ${st.vendePaq ? 'checked' : ''}> También vendo ${art(pk)} ${esc(pk)} complet${oa(pk)}</label>
+          ${st.vendePaq ? `<div class="frase"><span>${Art(pk)} ${esc(pk)} complet${oa(pk)} a</span><span class="pre">S/</span><input id="aPkP" class="mini" type="number" min="0" step="0.10" inputmode="decimal" value="${esc(st.pkP)}" placeholder="0.00"></div>` : ''}` : ''}
         <div class="frase"><span>Avísame cuando queden menos de</span><input id="aMin" class="mini" type="number" min="0" inputmode="numeric" value="${esc(st.min)}" placeholder="0"><span>${esc(plural(u))}</span></div>
         <div class="consejo-claro">${[
-          `<b>${esc(nombre())}</b>: compras ${st.pkBase ? `${esc(st.pkBase.toLowerCase())}${num(st.pkF) >= 2 ? ' x ' + st.pkF : ''}` : 'por ' + esc(u)}`,
+          `<b>${esc(nombre())}</b>: compras ${comoCompras}`,
           num(st.pu) > 0 ? `vendes por ${esc(u)} a ${S(num(st.pu))}` : '<span class="txt-aviso">falta el precio de venta</span>',
           ganU != null ? (ganU > 0 ? `ganas <b>${S(ganU)}</b> por ${esc(u)} (${P(ganU / num(st.pu) * 100)})` : `<span class="txt-mal">pierdes ${S(-ganU)} por ${esc(u)}</span>`) : '',
-          st.vendePaq && num(st.pkP) > 0 && num(st.pu) > 0 && num(st.pkF) >= 2 && num(st.pu) * num(st.pkF) > num(st.pkP) ? `suelto ganas ${S(num(st.pu) * num(st.pkF) - num(st.pkP))} más por ${esc(st.pkBase.toLowerCase())}` : '',
+          cuPaq && cuUni && cuUni > cuPaq ? `suelt${oa(u)} te cuesta ${S(cuUni - cuPaq)} más por ${esc(u)} que en ${esc(pk)}` : '',
+          conPaq && st.vendePaq && num(st.pkP) > 0 && num(st.pu) > 0 && num(st.pkF) >= 2 && num(st.pu) * num(st.pkF) > num(st.pkP) ? `suelto ganas ${S(num(st.pu) * num(st.pkF) - num(st.pkP))} más por ${esc(pk)}` : '',
         ].filter(Boolean).join(', ')}.</div>`}
       </div>
       <footer class="asis-pie">${st.paso > 1 ? '<button class="btn claro" data-a="atras">Atrás</button>' : '<span></span>'}
@@ -4384,16 +4399,17 @@ function abrirAsistenteProducto(catInicial) {
     const leer = () => {
       const val = id => caja.querySelector('#' + id)?.value;
       if (st.paso === 2) Object.assign(st, { marca: val('aMarca') ?? st.marca, variante: val('aVar') ?? st.variante, nf: val('aNf') ?? st.nf, cf: val('aCf') ?? st.cf });
-      if (st.paso === 3) { Object.assign(st, { pkBase: singular(val('aPk') ?? st.pkBase), pkF: val('aPkF') ?? st.pkF, costo: val('aCosto') ?? st.costo, pu: val('aPu') ?? st.pu, pkP: val('aPkP') ?? st.pkP, min: val('aMin') ?? st.min });
+      if (st.paso === 3) { Object.assign(st, { pkBase: singular(val('aPk') ?? st.pkBase), pkF: val('aPkF') ?? st.pkF, costo: val('aCosto') ?? st.costo, costoU: val('aCostoU') ?? st.costoU, pu: val('aPu') ?? st.pu, pkP: val('aPkP') ?? st.pkP, min: val('aMin') ?? st.min });
         const c = caja.querySelector('#aVp'); if (c) st.vendePaq = c.checked; }
     };
     const repintar = foco => { leer(); const pos = foco && caja.querySelector('#' + foco)?.selectionStart; pintar(); const f = foco && caja.querySelector('#' + foco); if (f) { f.focus(); try { f.setSelectionRange(pos, pos); } catch {} } };
     caja.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { usar(C.categorias.find(c => c.id === b.dataset.cat)); st.paso = 2; pintar(); caja.querySelector('#aMarca')?.focus(); });
     caja.querySelectorAll('[data-marca]').forEach(b => b.onclick = () => { leer(); st.marca = b.dataset.marca; pintar(); caja.querySelector('#aVar')?.focus(); });
     ['aMarca', 'aVar'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.oninput = () => repintar(id); });
-    ['aPk', 'aPkF', 'aCosto', 'aPu', 'aPkP', 'aMin'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.onchange = () => repintar(); });
-    ['aCosto', 'aPu', 'aPkP', 'aPkF'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.oninput = () => { leer(); const r = caja.querySelector('.consejo-claro'); if (r) { const pos = i.selectionStart; pintar(); const f = caja.querySelector('#' + id); f.focus(); try { f.setSelectionRange(pos, pos); } catch {} } }; });
-    caja.querySelector('#aPk') && (caja.querySelector('#aPk').oninput = () => { leer(); const f = caja.querySelector('#aPkF'); if (f) f.disabled = !st.pkBase; });
+    caja.querySelectorAll('[data-compra]').forEach(b => b.onclick = () => { leer(); st.compra = b.dataset.compra; if (st.compra === 'uni') st.vendePaq = false; pintar();
+      caja.querySelector(st.compra === 'uni' ? '#aCostoU' : num(st.pkF) >= 2 ? '#aCosto' : '#aPkF')?.focus(); });
+    ['aPk', 'aPkF', 'aCosto', 'aCostoU', 'aPu', 'aPkP', 'aMin'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.onchange = () => repintar(); });
+    ['aCosto', 'aCostoU', 'aPu', 'aPkP', 'aPkF'].forEach(id => { const i = caja.querySelector('#' + id); if (i) i.oninput = () => { leer(); const r = caja.querySelector('.consejo-claro'); if (r) { const pos = i.selectionStart; pintar(); const f = caja.querySelector('#' + id); f.focus(); try { f.setSelectionRange(pos, pos); } catch {} } }; });
     caja.querySelector('#aVp') && (caja.querySelector('#aVp').onchange = () => repintar());
     caja.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
       const a = b.dataset.a; leer();
@@ -4405,9 +4421,12 @@ function abrirAsistenteProducto(catInicial) {
       if (a === 'nuevacat') { v.style.display = 'none'; const id = await crearCategoria(); v.style.display = ''; if (id) { usar(C.categorias.find(c => c.id === id)); st.paso = 2; } return pintar(); }
       if (a === 'crear') {
         if (duplicado() && !(await dialogo('¿Crear un producto repetido?', [{ type: 'info', html: `<p class="sub" style="margin:0">Ya tienes "${esc(duplicado().nombre)}". Si es el mismo, mejor edítalo para no repartir el stock.</p>` }], 'Crear igual'))) return;
+        const paq = st.compra !== 'uni';
+        if (paq && !st.pkBase) { aviso('Escribe en qué te llega: caja, display, bolsa…', true); return caja.querySelector('#aPk')?.focus(); }
+        if (paq && Math.round(num(st.pkF)) < 2) { aviso(`Escribe cuántas ${plural(uniNom())} trae ${art(st.pkBase.toLowerCase())} ${st.pkBase.toLowerCase()}`, true); return caja.querySelector('#aPkF')?.focus(); }
         b.disabled = true;
-        const id = await crearProducto({ cat: st.cat, marca: st.marca, variante: st.variante, uniId: st.cat.unidad_medida_id || C.unidades[0].id, pkBase: st.pkBase, pkF: num(st.pkF),
-          pu: st.pu, pkP: st.vendePaq ? st.pkP : '', min: num(st.min), nombre_factura: st.nf, codigo_factura: st.cf });
+        const id = await crearProducto({ cat: st.cat, marca: st.marca, variante: st.variante, uniId: st.cat.unidad_medida_id || C.unidades[0].id, pkBase: paq ? st.pkBase : '', pkF: num(st.pkF), compraUni: st.compra !== 'paq',
+          pu: st.pu, pkP: paq && st.vendePaq ? st.pkP : '', min: num(st.min), nombre_factura: st.nf, codigo_factura: st.cf });
         if (id) { cerrar(); ir('catalogo'); } else b.disabled = false;
       }
     });
@@ -4419,7 +4438,15 @@ function abrirAsistenteProducto(catInicial) {
 async function editarProducto(id, pr) {
   if (!pr) return;
   const [st] = await q(sb.from('v_existencias').select('cantidad').eq('producto_id', id)).catch(() => [null]);
-  const uni = C.unidades.find(u => u.id === pr.unidad_base_id)?.nombre || 'unidad';
+  const uni = C.unidades.find(u => u.id === pr.unidad_base_id)?.nombre || 'unidad', uL = uni.toLowerCase(), fem = w => /(a|ad|ón)$/i.test(w);
+  // Cómo te llega del proveedor: en caja, suelto o de las dos formas
+  const pres = pr.pres?.length ? pr.pres : C.presentaciones.filter(p => p.producto_id === id);
+  const base = pres.find(p => p.es_base || num(p.factor) === 1), paq = pres.filter(p => num(p.factor) > 1).sort((a, b) => num(b.factor) - num(a.factor))[0];
+  const llegaAhora = paq && base ? (base.se_compra && paq.se_compra ? 'ambos' : base.se_compra ? 'uni' : 'paq') : '';
+  const pkCat = C.categorias.find(c => c.id === pr.categoria_id)?.paquete_nombre || 'Caja';
+  const campoLlega = paq && base
+    ? { label: '¿Cómo te llega del proveedor?', type: 'select', value: llegaAhora, options: [{ value: 'paq', label: `En ${paq.nombre.toLowerCase()}` }, { value: 'uni', label: `Por ${uL} suelt${fem(uL) ? 'a' : 'o'}` }, { value: 'ambos', label: `De las dos formas (${paq.nombre.toLowerCase()} o suelto)` }] }
+    : { label: `¿A veces te llega en ${pkCat.toLowerCase()}? ¿Cuántas ${plural(uni)} trae?`, type: 'number', value: '', ph: 'Déjalo vacío si siempre te llega suelto' };
   const v = await dialogo('Editar ' + pr.nombre, [
     { label: 'Categoría', type: 'select', value: pr.categoria_id, options: C.categorias.map(c => ({ value: c.id, label: c.nombre })) },
     { label: 'Marca', value: pr.marca || pr.nombre, required: true },
@@ -4428,6 +4455,7 @@ async function editarProducto(id, pr) {
     { label: 'Código en la factura', value: pr.codigo_factura || '', ph: 'Ej.: 460069' },
     { label: `Avisar si quedan menos de (${plural(uni)})`, type: 'number', value: num(pr.stock_minimo) },
     { label: 'Estado', type: 'select', value: 'si', options: [{ value: 'si', label: 'Activo: se vende y se compra' }, { value: 'no', label: 'Desactivado: ya no lo vendo' }] },
+    campoLlega,
     { type: 'info', html: `<p class="sub" style="margin:0">El nombre que verás será marca + variante. Para cambiar precios usa los botones de precio; el historial de ventas y compras no cambia.${num(st?.cantidad) > 0 ? ` <b>Aún tienes ${N(st.cantidad)} ${plural(uni)} en stock:</b> si lo desactivas, véndelo o dalo de baja antes.` : ''}</p>` },
   ], 'Guardar cambios');
   if (!v) return;
@@ -4435,7 +4463,15 @@ async function editarProducto(id, pr) {
   if (!marca) return aviso('Escribe la marca', true);
   const cod = singular(v[4]);
   if (cod && C.presentaciones.some(p => p.producto_id !== id && p.productos?.codigo_factura === cod)) return aviso(`El código ${cod} ya lo tiene otro producto`, true);
+  const nuevoPk = !paq && v[7] !== '' ? Math.round(num(v[7])) : 0;
+  if (!paq && v[7] !== '' && nuevoPk < 2) return aviso(`${fem(pkCat) ? 'La' : 'El'} ${pkCat.toLowerCase()} debe traer al menos 2 ${plural(uni)}`, true);
   try {
+    // Primero lo que se compra, así el producto nunca se queda sin forma de comprarlo
+    if (paq && base && v[7] !== llegaAhora) {
+      const quiere = { [base.id]: v[7] !== 'paq', [paq.id]: v[7] !== 'uni' };
+      for (const p of [base, paq].sort((a, b) => quiere[b.id] - quiere[a.id])) if (!!p.se_compra !== quiere[p.id]) await q(sb.from('presentaciones').update({ se_compra: quiere[p.id] }).eq('id', p.id));
+    }
+    if (nuevoPk) await q(sb.from('presentaciones').insert({ producto_id: id, nombre: `${pkCat} x ${nuevoPk}`, factor: nuevoPk, es_base: false, se_compra: true, se_vende: false }));
     await q(sb.from('productos').update({ categoria_id: v[0], marca, variante: variante || null, nombre: [marca, variante].filter(Boolean).join(' '),
       nombre_factura: singular(v[3]) || null, codigo_factura: cod || null, stock_minimo: num(v[5]), activo: v[6] === 'si' }).eq('id', id));
     aviso(v[6] === 'si' ? 'Producto actualizado' : 'Producto desactivado'); await cargarCatalogos(); ir('catalogo');
@@ -4454,7 +4490,7 @@ async function crearProducto(d) {
   try {
     const prod = await q(sb.from('productos').insert({ sku, nombre, marca, variante: variante || null, categoria_id: d.cat.id, unidad_base_id: d.uniId, stock_minimo: num(d.min),
       nombre_factura: singular(d.nombre_factura) || null, codigo_factura: singular(d.codigo_factura) || null }).select().single());
-    const filas = [{ producto_id: prod.id, nombre: 'Unidad', factor: 1, es_base: true, se_compra: !pkN, se_vende: d.pu !== '' }];
+    const filas = [{ producto_id: prod.id, nombre: 'Unidad', factor: 1, es_base: true, se_compra: !pkN || !!d.compraUni, se_vende: d.pu !== '' }];
     if (pkN) filas.push({ producto_id: prod.id, nombre: pkN, factor: pkF, es_base: false, se_compra: true, se_vende: (d.pkP ?? '') !== '' });
     const pres = await q(sb.from('presentaciones').insert(filas).select());
     for (const p of pres) { const pr = p.es_base ? d.pu : d.pkP; if (pr !== '' && pr != null) await q(sb.rpc('establecer_precio_venta', { p_presentacion_id: p.id, p_precio: r2(pr) })); }

@@ -334,7 +334,9 @@
                 ['v_precios_vigentes', 'v_existencias'].forEach(v => (D[v] || []).forEach(x => { if (x.producto_id === f.id) x.producto = r.nombre; }));
               });
             }
-            if (tipo === 'insert' || tipo === 'upsert') { const nuevas = (Array.isArray(r) ? r : [r]).map(x => ({ id: uid(tabla.slice(0, 3)), activo: true, ...x })); (D[tabla] ??= []).push(...nuevas); filas = nuevas; }
+            if (tipo === 'insert' || tipo === 'upsert') { const nuevas = (Array.isArray(r) ? r : [r]).map(x => ({ id: uid(tabla.slice(0, 3)), activo: true, ...x })); (D[tabla] ??= []).push(...nuevas); filas = nuevas;
+              // Como el select con productos(...) de Supabase: la presentación nueva trae su producto
+              if (tabla === 'presentaciones') nuevas.forEach(n => { n.productos ??= (D.productos || []).find(x => x.id === n.producto_id) || null; }); }
             if (tipo === 'delete') { D[tabla] = (D[tabla] || []).filter(f => !filas.includes(f)); }
           }
           for (const [k, asc] of orden.slice().reverse()) filas = filas.slice().sort((x, y) => { const a = valor(x, k), z = valor(y, k); return (a == null) - (z == null) || (asc ? 1 : -1) * comparar(a, z); });

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-9HFkt7v9zCAYHDAswHWdE+M33/l03FVwbz8q5G2pnok='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-bMivYyzexxOb3CebnjzA4GGfrKIgzkthfkpM0aJvSXQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3006,9 +3006,24 @@ async function vCompras(el) {
   </table></div></div>`;
 
   const totalC = () => { const tasa = num($('#igv').value); return r2(lineasCompra.reduce((a, l) => { const n = r2(num(l.cantidad) * num(l.costo)); return a + n + r2(n * tasa); }, 0) + num($('#adic').value)); };
+  // Lo que le sueles comprar al proveedor elegido (aprendido de tus compras): esas categorías salen primero
+  const catsProv = () => { const pv = $('#prov')?.value; if (!pv) return new Set();
+    return new Set(hist.filter(h => h.proveedor_id == pv).map(h => C.presentaciones.find(p => p.producto_id === h.producto_id)?.productos?.categoria_id).filter(Boolean)); };
+  const suyos = () => { const cs = catsProv(); return cs.size ? comprables.filter(p => cs.has(p.productos?.categoria_id)) : comprables; };
+  const opcionesProd = sel => {
+    const op = p => `<option value="${p.id}" ${p.id === sel ? 'selected' : ''}>${esc(presNombre(p))}</option>`, cs = catsProv();
+    if (!cs.size) return comprables.map(op).join('');
+    const mios = comprables.filter(p => cs.has(p.productos?.categoria_id)), otros = comprables.filter(p => !cs.has(p.productos?.categoria_id));
+    const pv = C.proveedores.find(x => x.id == $('#prov').value)?.razon_social || 'este proveedor';
+    return `<optgroup label="Lo que le compras a ${esc(pv)}">${mios.map(op).join('')}</optgroup>${otros.length ? `<optgroup label="Otros productos">${otros.map(op).join('')}</optgroup>` : ''}`;
+  };
+  // Al elegir proveedor: si la línea aún está en blanco y es de otra categoría, se cambia a lo primero que le compras
+  const ajustarLineas = () => { const cs = catsProv(), primero = suyos()[0]; if (!cs.size || !primero) return;
+    lineasCompra.forEach(l => { const pr = C.presentaciones.find(p => p.id === l.presentacion_id);
+      if (!num(l.costo) && num(l.cantidad) <= 1 && !cs.has(pr?.productos?.categoria_id)) l.presentacion_id = primero.id; }); };
   const pintarLineas = () => {
     $('#tLineas').innerHTML = `<tr><th>Producto</th><th class="n">Cantidad</th><th class="n">Costo c/u</th><th class="n">Importe</th><th></th></tr>
-      ${lineasCompra.map((l, i) => `<tr><td style="min-width:200px"><select data-lp="${i}">${comprables.map(p => `<option value="${p.id}" ${p.id === l.presentacion_id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select></td>
+      ${lineasCompra.map((l, i) => `<tr><td style="min-width:200px"><select data-lp="${i}">${opcionesProd(l.presentacion_id)}</select></td>
         <td class="n"><div class="stepper"><button type="button" data-menos="${i}" aria-label="Uno menos">−</button><input type="number" min="0" step="1" inputmode="numeric" value="${l.cantidad}" data-lc="${i}" aria-label="Cantidad"><button type="button" data-mas="${i}" aria-label="Uno más">+</button></div></td>
         <td class="n"><input style="width:100px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" placeholder="0.00" data-lu="${i}"></td>
         <td class="n">${S(num(l.cantidad) * num(l.costo))}</td><td class="n">${lineasCompra.length > 1 ? `<button type="button" class="quitar-x" data-ld="${i}" aria-label="Quitar producto" title="Quitar">×</button>` : ''}</td></tr>${pistaCosto(hist, $('#prov').value, l.presentacion_id, l.costo)}${vence(l.presentacion_id) ? `<tr class="pista"><td colspan="5"><label class="vence-lin">Vence el <input type="date" data-lv="${i}" value="${esc(l.vence || '')}" min="${hoy()}"></label> <span class="sub">Así la app te avisa antes de que se te venza.</span></td></tr>` : ''}`).join('')}`;
@@ -3040,7 +3055,7 @@ async function vCompras(el) {
       rep.textContent = `Repetir su última compra (${fd(ult.fecha)}, ${n} ${n === 1 ? 'producto' : 'productos'})`; rep.classList.remove('oculto'); rep.dataset.compra = ult.compra_id; }
     else rep.classList.add('oculto');
   };
-  $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => setTimeout(pintarLineas));
+  $('#igv').onchange = pintarLineas; $('#adic').oninput = pintarLineas; $('#prov').addEventListener('change', () => setTimeout(() => { ajustarLineas(); pintarLineas(); }));
   // Al contado / a crédito: a la vista, junto al total
   const pintarCond = () => {
     const c = $('#cond').value, cred = c === 'CREDITO';
@@ -3065,7 +3080,7 @@ async function vCompras(el) {
     lineasCompra = ls.map(h => ({ presentacion_id: h.presentacion_id, cantidad: h.cantidad || 1, costo: String(h.costo) }));
     pintarLineas(); aviso('Listo: revisa cantidades y costos antes de registrar');
   };
-  $('#masLinea').onclick = () => { lineasCompra.push({ presentacion_id: comprables[0]?.id, cantidad: 1, costo: '' }); pintarLineas(); };
+  $('#masLinea').onclick = () => { lineasCompra.push({ presentacion_id: suyos()[0]?.id || comprables[0]?.id, cantidad: 1, costo: '' }); pintarLineas(); };
   $('#nuevoProv').onclick = async () => {
     const v = await dialogo('Nuevo proveedor', [{ label: 'Nombre o razón social', required: true }, { label: 'RUC (opcional)', ph: '11 dígitos' }, { label: 'Teléfono (opcional)' }]);
     if (!v) return;

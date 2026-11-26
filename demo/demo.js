@@ -183,7 +183,7 @@
         const evt = ev.find(e => e.l === l), cu = evt ? evt.costoU : costoBase[pr.producto_id];
         const ct = r2(cu * l.cantidad * pr.factor);
         total += sub; costo += ct;
-        lineasRent.push({ fecha: fechaLima(v.ms), producto_id: pr.producto_id, presentacion_id: pr.id, cantidad_base: l.cantidad * pr.factor, venta_neta: sub, costo: ct });
+        lineasRent.push({ fecha: fechaLima(v.ms), producto_id: pr.producto_id, cantidad_base: l.cantidad * pr.factor, venta_neta: sub, costo: ct });
         return { id: id + 'd' + i, venta_id: id, linea: i + 1, cantidad: l.cantidad, precio_unitario: pu, subtotal: sub, costo_total: ct, presentacion_id: pr.id };
       });
       total = r2(total); costo = r2(costo);
@@ -191,7 +191,7 @@
       const doc = 'T001-' + String(num).padStart(6, '0');
       const cobrado = v.condicion === 'CONTADO' ? total : 0;
       ventas.push({ id, fecha: iso(v.ms), estado: 'EMITIDA', observaciones: v.obs || null, origen: v.obs === 'Venta registrada en el conteo físico' ? 'CONTEO' : 'CAJA', venta_detalles: dets.map(d => ({ subtotal: d.subtotal, costo_total: d.costo_total, presentacion_id: d.presentacion_id, cantidad: d.cantidad, cantidad_base: r2(d.cantidad * (presentaciones.find(x => x.id === d.presentacion_id)?.factor || 1)) })) });
-      vdet.push(...dets);
+      vdet.push(...dets.map(d => ({ ...d, ventas: { fecha: iso(v.ms), estado: 'EMITIDA' } })));
       vtot.push({ venta_id: id, documento: doc, fecha: iso(v.ms), cliente_id: cli.id, cliente: cli.nombre, condicion: v.condicion, total, costo_ventas: costo, importe_devuelto: 0, costo_devuelto: 0,
         estado: 'EMITIDA', saldo: r2(total - cobrado), cobros_netos: cobrado, fecha_vencimiento: v.vence || null });
       if (v.medio) movFin.push({ id: uid('mf'), fecha: iso(v.ms), tipo: 'COBRO_VENTA', monto: total, metodo_pago_id: v.medio, cuenta_financiera_id: { 1: 'cf1', 4: 'cf3', 5: 'cf4', 6: 'cf5' }[v.medio], descripcion: 'Cobro ' + doc });

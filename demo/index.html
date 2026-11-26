@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-UtPdmlQ9I6EPij0M2l+/D4ilXIu7lFpRp/PGRYi+QUw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-VeJom9HVuxALH5g0EMoVYIRM2FwrXMdVhZ3fgvi/uus='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -3685,16 +3685,23 @@ async function cerrarElDia() {
 }
 
 // ============ ¿SUELTO O CAJETILLA? ============
-async function pintarSueltoCajetilla(d, h) {
+async function pintarSueltoCajetilla(lineas) {
   const caja = $('#rSuelto'); if (!caja) return;
-  const [precios, ex, det] = await Promise.all([
-    q(sb.from('v_precios_vigentes').select('*')),
-    q(sb.from('v_existencias').select('producto_id, costo_promedio')),
-    todo(() => sb.from('venta_detalles').select('presentacion_id, cantidad, cantidad_base, subtotal, costo_total, ventas!inner(fecha, estado)')
-      .eq('ventas.estado', 'EMITIDA').gte('ventas.fecha', d + 'T00:00:00-05:00').lte('ventas.fecha', h + 'T23:59:59.999-05:00')),
+  const [precios, ex] = await Promise.all([
+    leerInforme('v_precios_vigentes', '*', q => q, 'presentacion_id'),
+    leerInforme('v_existencias', 'producto_id, costo_promedio', q => q, 'producto_id'),
   ]);
+  if (!caja.isConnected) return;
   const cp = Object.fromEntries(ex.map(e => [e.producto_id, num(e.costo_promedio)]));
-  const real = {}; det.forEach(l => { const o = real[l.presentacion_id] ??= { paq: 0, base: 0, venta: 0, gan: 0 }; o.paq += num(l.cantidad); o.base += num(l.cantidad_base); o.venta += num(l.subtotal); o.gan += num(l.subtotal) - num(l.costo_total); });
+  const factores = new Map(precios.map(p => [p.presentacion_id, num(p.factor)]));
+  const real = {};
+  for (const l of lineas) {
+    const factor = factores.get(l.presentacion_id);
+    if (!factor) continue;
+    const o = real[l.presentacion_id] ??= { paq: 0, gan: 0 };
+    o.paq += num(l.cantidad_base) / factor;
+    o.gan += num(l.venta_neta) - num(l.costo);
+  }
   const prods = {}; precios.filter(p => p.precio != null).forEach(p => (prods[p.producto_id] ??= []).push(p));
   const filas = Object.values(prods).map(ps => {
     const u = ps.find(p => num(p.factor) === 1), k = ps.filter(p => num(p.factor) > 1).sort((a, b) => num(b.factor) - num(a.factor))[0];
@@ -3707,7 +3714,7 @@ async function pintarSueltoCajetilla(d, h) {
   const extraMes = filas.reduce((a, r) => a + (r.rk ? r.rk.paq * r.extra : 0), 0);
   caja.innerHTML = `<div class="panel"><h2>¿Suelto o cajetilla?</h2>
     <p class="sub">Cuánto ganas por cada ${filas[0].f > 1 ? 'paquete' : 'unidad'} según cómo lo vendas, con tus precios y tu costo de hoy.</p>
-    <div class="scroll"><table><tr><th>Producto</th><th class="n">Costo paq.</th><th class="n">Ganas entero</th><th class="n">Ganas suelto</th><th class="n">Suelto deja más</th><th class="n">Vendido entero</th><th class="n">Vendido suelto</th></tr>
+    <div class="scroll"><table><tr><th>Producto</th><th class="n">Costo paq.</th><th class="n">Ganas entero</th><th class="n">Ganas suelto</th><th class="n">Suelto deja más</th><th class="n">Vendido entero neto</th><th class="n">Vendido suelto neto</th></tr>
       ${filas.map(r => `<tr><td>${esc(r.nombre)}<div class="sub" style="margin:0">${esc(r.pres)} a ${S(r.precioPaq)} · suelto ${S(r.precioU)} c/u</div></td>
         <td class="n">${r.costo > 0 ? S(r.costo) : '—'}</td>
         <td class="n">${r.costo > 0 ? `${S(r.ganPaq)} <span class="sub">${P(r.ganPaq / r.precioPaq * 100)}</span>` : '—'}</td>
@@ -5252,15 +5259,17 @@ async function pintarDeclarar(ym = mesAnterior()) {
   const caja = $('#rDecl'); if (!caja) return;
   const [anio, mes] = ym.split('-').map(Number), ini = `${ym}-01`, fin = finDeMes(ym);
   const [dias, diasAnio, compras, conBol] = await Promise.all([
-    q(sb.from('v_resultados_diarios').select('fecha, ventas_brutas, devoluciones, ventas_netas').gte('fecha', ini).lte('fecha', fin)),
-    q(sb.from('v_resultados_diarios').select('ventas_netas').gte('fecha', `${anio}-01-01`).lte('fecha', fin)),
-    q(sb.from('v_compras_totales').select('*').gte('fecha_ingreso', ini + 'T00:00:00-05:00').lte('fecha_ingreso', fin + 'T23:59:59-05:00').order('fecha_ingreso')).catch(() => []),
-    q(sb.from('v_ventas_comprobante').select('venta_id, total, estado, boleta_id').gte('dia', ini).lte('dia', fin)).catch(() => null),
+    resultadosInforme(ini, fin),
+    resultadosInforme(`${anio}-01-01`, fin),
+    leerInforme('v_compras_totales', '*', q => rangoInforme(q, 'fecha_ingreso', ini, fin), 'fecha_ingreso', 'compra_id'),
+    leerInforme('v_ventas_comprobante', 'venta_id, total, estado, boleta_id', q => fechasInforme(q, 'dia', ini, fin), 'venta_id'),
   ]);
-  const vivas = (conBol || []).filter(v => v.estado !== 'ANULADA' && num(v.total) > 0), sinB = vivas.filter(v => !v.boleta_id);
+  const vivas = conBol.filter(v => v.estado !== 'ANULADA' && num(v.total) > 0), sinB = vivas.filter(v => !v.boleta_id);
   const totSinB = r2(sinB.reduce((a, v) => a + num(v.total), 0));
   const vigentes = compras.filter(c => c.estado !== 'ANULADA');
-  const det = vigentes.length ? await q(sb.from('compra_detalles').select('compra_id, importe_neto, igv_monto').in('compra_id', vigentes.map(c => c.compra_id))).catch(() => []) : [];
+  const ids = vigentes.map(c => c.compra_id), det = [];
+  for (let i = 0; i < ids.length; i += 150) det.push(...await leerInforme('compra_detalles', 'compra_id, importe_neto, igv_monto',
+    q => q.in('compra_id', ids.slice(i, i + 150)), 'id'));
   const porCompra = {}; det.forEach(d => { const o = porCompra[d.compra_id] ??= { b: 0, i: 0 }; o.b += num(d.importe_neto); o.i += num(d.igv_monto); });
   const sum = (arr, k) => r2(arr.reduce((a, x) => a + num(x[k]), 0));
   const ventas = sum(dias, 'ventas_netas'), brutas = sum(dias, 'ventas_brutas'), devol = sum(dias, 'devoluciones');
@@ -5302,7 +5311,14 @@ async function pintarDeclarar(ym = mesAnterior()) {
         : '<p class="sub">No registraste compras en este mes.</p>'}</div></div>
     <div class="acciones" style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn rotulo" id="dCopiar">Copiar resumen</button><button class="btn claro" id="dExcel">Descargar Excel</button></div>
     <p class="sub" style="margin:12px 0 0">Declara en SUNAT Operaciones en Línea → Declara Fácil 621, según el cronograma del último dígito de tu RUC. Recuerda que cada venta debe tener su boleta o estar en la boleta consolidada del día (ventas de hasta S/ 5). Esta es una ayuda de cálculo: revisa la declaración con tu contador.</p></div>`;
-  $('#dMes').onchange = () => { if ($('#dMes').value) pintarDeclarar($('#dMes').value).catch(e => aviso(textoError(e), true)); };
+  $('#dMes').onchange = () => {
+    const periodo = $('#dMes').value;
+    if (!periodo) return;
+    caja.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    pintarDeclarar(periodo).catch(e => {
+      if (caja.isConnected && $('#dMes')?.value === periodo) caja.innerHTML = `<p class="cuadre mal" role="alert">No se pudo preparar el resumen para declarar. ${esc(textoError(e))}</p>`;
+    });
+  };
   $('#dCopiar').onclick = async () => { try { await navigator.clipboard.writeText(texto); aviso('Resumen copiado'); } catch { await dialogo('Resumen para declarar', [{ label: 'Cópialo', type: 'textarea', rows: 10, value: texto }], 'Listo'); } };
   $('#dExcel').onclick = async () => {
     if (typeof XLSX === 'undefined') return aviso('No cargó la librería de Excel; revisa tu conexión', true);
@@ -5557,12 +5573,14 @@ async function vAnalisis(el) {
   let ini, fin = H, pIni, pFin;
   if (per === 'mes') { ini = H.slice(0, 8) + '01'; const nd = Number(H.slice(8)); const ant = diaMas(ini, -1).slice(0, 8) + '01'; pIni = ant; pFin = diaMas(ant, Math.min(nd, Number(diaMas(ini, -1).slice(8))) - 1); }
   else { const n = Number(per); ini = diaMas(H, -(n - 1)); pFin = diaMas(ini, -1); pIni = diaMas(pFin, -(n - 1)); }
-  const lima = f => f + 'T00:00:00-05:00', limaFin = f => f + 'T23:59:59.999-05:00';
-  const [diasAll, ventas, ventasPrev, ex] = await Promise.all([
-    q(sb.from('v_resultados_diarios').select('fecha, ventas_netas, costo_mercaderia_vendida, utilidad_bruta, gastos_operativos, gastos_administrativos, gastos_financieros, otros_egresos, utilidad_operativa').lte('fecha', H).order('fecha')),
-    q(sb.from('ventas').select('id, fecha, origen, venta_detalles(presentacion_id, cantidad, cantidad_base, subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', lima(ini)).lte('fecha', limaFin(fin))),
-    q(sb.from('ventas').select('id, venta_detalles(subtotal)').eq('estado', 'EMITIDA').gte('fecha', lima(pIni)).lte('fecha', limaFin(pFin))),
-    q(sb.from('v_existencias').select('producto_id, producto, cantidad, costo_promedio, valor_total, stock_minimo').eq('activo', true)),
+  const [diasAll, ventas, nP, ex, rent] = await Promise.all([
+    resultadosInforme(null, H),
+    leerInforme('ventas', 'id, fecha, origen, venta_detalles(presentacion_id, cantidad, cantidad_base, subtotal, costo_total)',
+      q => rangoInforme(q.eq('estado', 'EMITIDA'), 'fecha', ini, fin), 'id'),
+    contarVentasInforme(pIni, pFin),
+    leerInforme('v_existencias', 'producto_id, producto, cantidad, costo_promedio, valor_total, stock_minimo',
+      q => q.eq('activo', true), 'producto_id'),
+    rentabilidadInforme(ini, fin),
   ]);
   const enRango = (f, a, b) => f >= a && f <= b;
   const cur = diasAll.filter(x => enRango(x.fecha, ini, fin)), prev = diasAll.filter(x => enRango(x.fecha, pIni, pFin));
@@ -5570,22 +5588,23 @@ async function vAnalisis(el) {
   const gastosDe = arr => r2(arr.reduce((a, x) => a + num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos), 0));
   const K = arr => { const v = suma(arr, 'ventas_netas'), g = suma(arr, 'utilidad_bruta'), ga = gastosDe(arr); return { v, g, ga, op: r2(g - ga), m: v > 0 ? g / v * 100 : null }; };
   const kc = K(cur), kp = K(prev);
-  const nV = ventas.length, nP = ventasPrev.length, tk = nV ? kc.v / nV : 0, tkP = nP ? kp.v / nP : 0;
+  const nV = ventas.length, tk = nV ? kc.v / nV : 0, tkP = nP ? kp.v / nP : 0;
   const diasConVenta = diasAll.filter(x => num(x.ventas_netas) > 0), nDiasHist = diasConVenta.length;
   const diasPerVenta = cur.filter(x => num(x.ventas_netas) > 0).length, diasPrevVenta = prev.filter(x => num(x.ventas_netas) > 0).length;
   const compara = diasPrevVenta >= Math.min(3, diasPerVenta) && diasPrevVenta > 0;
   const hayGastos = diasAll.some(x => gastosDe([x]) > 0);
-  // Productos y mezcla suelto / paquete
-  const presDe = id => C.presentaciones.find(p => p.id === id);
-  const prod = {};
-  ventas.forEach(v => (v.venta_detalles || []).forEach(l => {
-    const pr = presDe(l.presentacion_id); const pid = pr?.producto_id || 'x', nom = pr?.productos?.nombre || 'Otro';
-    const o = prod[pid] ??= { nom, u: 0, v: 0, c: 0, suelto: { u: 0, v: 0, c: 0 }, paquete: { u: 0, v: 0, c: 0 } };
-    const t = num(pr?.factor) > 1 ? o.paquete : o.suelto;
-    o.u += num(l.cantidad_base); o.v += num(l.subtotal); o.c += num(l.costo_total);
-    t.u += num(l.cantidad_base); t.v += num(l.subtotal); t.c += num(l.costo_total);
-  }));
-  const lista = Object.entries(prod).map(([id, o]) => ({ id, ...o, g: o.v - o.c, m: o.v ? (o.v - o.c) / o.v * 100 : null })).sort((a, b) => b.g - a.g);
+  // La rentabilidad neta por producto descuenta las devoluciones.
+  const prod = Object.fromEntries(productosInforme(rent).map(o => [o.id, { ...o, u: o.c,
+    suelto: { u: 0, v: 0, c: 0 }, paquete: { u: 0, v: 0, c: 0 } }]));
+  const presentaciones = new Map(C.presentaciones.map(p => [p.id, p]));
+  for (const l of rent) {
+    const o = prod[l.producto_id];
+    const pr = presentaciones.get(l.presentacion_id);
+    if (!pr) continue;
+    const t = num(pr.factor) > 1 ? o.paquete : o.suelto;
+    t.u += num(l.cantidad_base); t.v += num(l.venta_neta); t.c += num(l.costo);
+  }
+  const lista = Object.values(prod).sort((a, b) => b.g - a.g);
   const gTot = lista.reduce((a, x) => a + x.g, 0);
   // Inventario y cobertura (con los días con venta del periodo; ventas de conteo incluidas: sí bajaron el stock)
   const diasBase = Math.max(1, diasPerVenta);
@@ -5606,7 +5625,7 @@ async function vAnalisis(el) {
   // ---- Hallazgos: cada uno exige evidencia mínima
   const H_ = [];
   if (!hayGastos && kc.v > 0) H_.push({ t: 'Tu ganancia neta está sobrestimada', d: `No hay ningún gasto registrado en tu historial. Ganancia bruta del periodo: ${S(kc.g)}; sin gastos, la "ganancia neta" muestra lo mismo.`, i: 'Alquiler, transporte, bolsas o luz reducen lo que realmente ganas. Sin ellos no sabes si el negocio es rentable.', a: 'Registra en Gastos lo que pagas cada mes, aunque sea aproximado al inicio.', nivel: 'mal' });
-  if (nV >= 10 && lista.length > 1 && gTot > 0) { const top = lista[0], sh = top.g / gTot * 100; if (sh >= 40) H_.push({ t: `${esc(top.nom)} sostiene tu ganancia`, d: `Genera ${P(sh)} de tu ganancia bruta (${S(top.g)} de ${S(gTot)}) en ${nV} ventas del periodo.`, i: 'Si se agota o tu proveedor sube su precio, tu ganancia cae en esa proporción.', a: 'Cuida que nunca falte en stock y vigila su costo de compra.' }); }
+  if (nV >= 10 && lista.length > 1 && gTot > 0) { const top = lista[0], sh = top.g / gTot * 100; if (sh >= 40) H_.push({ t: `${esc(top.nom)} sostiene tu ganancia`, d: `Genera ${P(sh)} de la ganancia por producto (${S(top.g)} de ${S(gTot)}) en ${nV} ventas del periodo.`, i: 'Si se agota o tu proveedor sube su precio, tu ganancia cae en esa proporción.', a: 'Cuida que nunca falte en stock y vigila su costo de compra.' }); }
   // Mezcla suelto vs. paquete: un solo hallazgo que agrupa todos los productos con el mismo patrón
   const mezcla = lista.filter(o => o.suelto.v > 0 && o.paquete.v > 0).map(o => ({ nom: o.nom, ms: (o.suelto.v - o.suelto.c) / o.suelto.v * 100, mp: (o.paquete.v - o.paquete.c) / o.paquete.v * 100, shp: o.paquete.u / o.u * 100 }))
     .filter(x => x.ms - x.mp >= 3 && x.shp >= 30);
@@ -5665,7 +5684,7 @@ async function vAnalisis(el) {
     ${kpi('Margen bruto', kc.m == null ? '—' : P(kc.m), `<div class="cmp">${kc.m == null ? '' : `De cada S/ 10 te quedan ${S(kc.m / 10)}`}</div>`, sparkline(spM, '#F3F2FA'))}
     ${kpi('Ganancia operativa', S(kc.op), `<div class="cmp">${hayGastos ? `Gastos: ${S(kc.ga)}` : '<span class="chip mal">Sin gastos registrados</span>'}</div>`, sparkline(spO, AN_COL.gan), 'Ganancia bruta menos gastos')}
     ${kpi('Ventas', N(nV), compara ? variacion(nV, nP, 'vs. periodo anterior') : '', sparkline(spN, AN_COL.venta))}
-    ${kpi('Ticket promedio', S(tk), compara && nP ? variacion(tk, tkP, 'vs. periodo anterior') : '', sparkline(spT, AN_COL.nicho), 'Venta promedio por cada cobro')}
+    ${kpi('Ticket promedio', S(tk), compara && nP ? variacion(tk, tkP, 'vs. periodo anterior') : '', sparkline(spT, AN_COL.nicho), 'Ventas netas divididas entre las ventas emitidas')}
   </div>
   <section class="panel"><h2>Hallazgos</h2>
     ${H_.length ? `<div class="hallazgos">${H_.map(h => `<article class="hallazgo ${h.nivel || ''}"><h3>${h.t}</h3><dl><dt>Qué muestran los datos</dt><dd>${h.d}</dd><dt>Por qué importa</dt><dd>${h.i}</dd><dt>Qué hacer</dt><dd>${h.a}</dd></dl></article>`).join('')}</div>`
@@ -5680,7 +5699,7 @@ async function vAnalisis(el) {
     <section class="panel"><h2>¿Cuándo vendes más?</h2><p class="sub">Cada cuadro es un día de la semana a una hora. Mientras más intenso, más vendiste ahí.</p>
       ${conHora.length >= 15 && mejorCelda?.v > 0 ? `<p class="an-dato">Tu mejor momento: <b>${DLARGO[mejorCelda.d]} de ${mejorCelda.h}:00 a ${mejorCelda.h + 1}:00</b>. ${totBloq ? bloques.map(b => `${b.t[0].toUpperCase() + b.t.slice(1)} ${P(b.v / totBloq * 100)}`).join(' · ') : ''}</p>` : ''}
       <div id="gCalor"></div></section>
-    <section class="panel"><h2>¿De cuánto es cada venta?</h2><p class="sub">Cuántas ventas hiciste de cada tamaño. La caja de abajo marca dónde está la mitad del medio; la raya blanca, la venta típica (mediana).</p>
+    <section class="panel"><h2>¿De cuánto es cada venta?</h2><p class="sub">Cuántas ventas emitiste de cada tamaño, según el importe al emitir. La caja de abajo marca dónde está la mitad del medio; la raya blanca, la venta típica (mediana).</p>
       <div id="gTicket"></div></section>
   </div>
   <div class="cols dos">
@@ -5778,25 +5797,30 @@ async function vReportes(el) {
   const mostrarTab = () => { el.querySelectorAll('[data-tab]').forEach(b => { b.classList.toggle('on', b.dataset.tab === tab); b.setAttribute('aria-selected', b.dataset.tab === tab); });
     el.querySelectorAll('[data-pane]').forEach(x => x.classList.toggle('oculto', x.dataset.pane !== tab)); };
   el.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; local.guardar('repTab', tab); mostrarTab(); });
-  const correr = async () => {
+  const salida = $('#rOut');
+  let solicitudInforme = 0, rangoVerificado = null;
+  const cargarInforme = async solicitud => {
     const d = $('#rD').value, h = $('#rH').value;
-    if (!d || !h || d > h) return aviso('Revisa las fechas: "desde" debe ser antes de "hasta"', true);
+    salida.innerHTML = '<p class="vacio">Cargando…</p>';
+    $('#rExcel').disabled = true;
+    rangoVerificado = null;
+    if (!d || !h || d > h) throw new Error('Revisa el orden de las fechas.');
     const nDias = Math.round((Date.parse(h + 'T12:00:00Z') - Date.parse(d + 'T12:00:00Z')) / 864e5) + 1, pd = masDiasF(d, -nDias), ph = masDiasF(d, -1);
     const [dias, rent, saldos, flujo, diasAnt, nV, nVAnt] = await Promise.all([
-      q(sb.from('v_resultados_diarios').select('*').gte('fecha', d).lte('fecha', h).order('fecha')),
-      q(sb.from('v_lineas_rentabilidad').select('*').gte('fecha', d).lte('fecha', h)),
-      q(sb.from('v_saldos_cuentas').select('*')),
-      q(sb.from('movimientos_financieros').select('monto, metodo_pago_id, tipo, fecha').in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']).gte('fecha', d + 'T00:00:00-05:00').lte('fecha', h + 'T23:59:59-05:00')),
-      q(sb.from('v_resultados_diarios').select('*').gte('fecha', pd).lte('fecha', ph)).catch(() => []),
-      q(sb.from('ventas').select('id').eq('estado', 'EMITIDA').gte('fecha', d + 'T00:00:00-05:00').lte('fecha', h + 'T23:59:59-05:00')).then(x => x.length).catch(() => null),
-      q(sb.from('ventas').select('id').eq('estado', 'EMITIDA').gte('fecha', pd + 'T00:00:00-05:00').lte('fecha', ph + 'T23:59:59-05:00')).then(x => x.length).catch(() => null),
+      resultadosInforme(d, h),
+      rentabilidadInforme(d, h),
+      leerInforme('v_saldos_cuentas', '*', q => q, 'cuenta_id'),
+      leerInforme('movimientos_financieros', 'monto, metodo_pago_id, tipo, fecha',
+        q => rangoInforme(q.in('tipo', ['COBRO_VENTA', 'REEMBOLSO_CLIENTE']), 'fecha', d, h), 'id'),
+      resultadosInforme(pd, ph),
+      contarVentasInforme(d, h),
+      contarVentasInforme(pd, ph),
     ]);
+    if (solicitud !== solicitudInforme || !el.contains(salida)) return;
     const sm = (arr, k) => r2(arr.reduce((a, x) => a + num(x[k]), 0)), s = k => sm(dias, k), sa = k => sm(diasAnt, k);
     const gastosDe = f => f('gastos_operativos') + f('gastos_administrativos') + f('gastos_financieros') + f('otros_egresos');
     const hayAnt = diasAnt.some(x => num(x.ventas_netas) > 0);
-    const nomProd = Object.fromEntries(C.presentaciones.map(p => [p.producto_id, p.productos.nombre]));
-    const porProd = {}; rent.forEach(l => { const o = porProd[l.producto_id] ??= { c: 0, v: 0, k: 0 }; o.c += num(l.cantidad_base); o.v += num(l.venta_neta); o.k += num(l.costo); });
-    const prods = Object.entries(porProd).map(([k, o]) => ({ id: k, nom: nomProd[k] || '', ...o, g: o.v - o.k, m: o.v > 0 ? (o.v - o.k) / o.v * 100 : null })).sort((a, b) => b.g - a.g);
+    const prods = productosInforme(rent);
     const totG = prods.reduce((a, o) => a + o.g, 0), maxG = Math.max(1, ...prods.map(o => o.g));
     const porMedio = {}; flujo.forEach(f => porMedio[f.metodo_pago_id] = (porMedio[f.metodo_pago_id] || 0) + num(f.monto));
     const totMedios = Object.values(porMedio).reduce((a, b) => a + b, 0), medVis = medios(MEDIOS_VER).filter(m => porMedio[m.id]);
@@ -5871,7 +5895,20 @@ async function vReportes(el) {
         <div class="mv-barra" style="margin-left:0"><i style="width:${Math.max(0, Math.min(100, pc))}%"></i></div><small class="sub" style="margin-left:0">${P(pc)} de tu ganancia · vendiste ${S(o.v)} · margen ${o.v > 0 ? P(g / o.v * 100) : '—'}</small></div>`; }).join('')}</div>`;
     $('#rGrupos').innerHTML = prods.length ? `<section class="panel"><h2>Por marca y por categoría</h2>${totG > 0 && marcas.length ? `<p class="consejo-claro" style="margin:0 0 14px"><b>${esc(marcas[0][0])}</b> te dejó el ${P((marcas[0][1].v - marcas[0][1].k) / totG * 100)} de tu ganancia (${S(marcas[0][1].v - marcas[0][1].k)}).</p>` : ''}
       <div class="cols dos" style="gap:24px">${grupo(marcas, 'Marca')}${grupo(cats, 'Categoría')}</div></section>` : '';
-    await pintarSueltoCajetilla(d, h).catch(e => { $('#rSuelto').innerHTML = ''; console.warn(e); });
+    rangoVerificado = [d, h];
+    $('#rExcel').disabled = false;
+    const detalle = $('#rSuelto');
+    await pintarSueltoCajetilla(rent).catch(() => {
+      if (detalle?.isConnected) detalle.innerHTML = '<p class="cuadre mal" role="alert">No se pudo cargar el detalle por presentación.</p>';
+    });
+  };
+  const correr = () => {
+    const solicitud = ++solicitudInforme;
+    return cargarInforme(solicitud).catch(e => {
+      if (solicitud === solicitudInforme && el.contains(salida)) {
+        salida.innerHTML = `<p class="cuadre mal" role="alert">El informe no está completo. ${esc(textoError(e))}</p>`;
+      }
+    });
   };
   el.querySelectorAll('.rep-rap [data-p]').forEach(b => b.onclick = () => {
     el.querySelectorAll('.rep-rap [data-p]').forEach(x => x.classList.toggle('on', x === b));
@@ -5883,8 +5920,9 @@ async function vReportes(el) {
   $('#rVer').onclick = () => { local.guardar('repRango', { p: 'otro', d: $('#rD').value, h: $('#rH').value }); correr().catch(e => aviso(textoError(e), true)); };
   $('#rExcel').onclick = async () => {
     const b = $('#rExcel'), t = b.querySelector('span'); b.disabled = true; t.textContent = 'Preparando…';
-    try { await exportarExcel($('#rD').value, $('#rH').value); } catch (e) { aviso('No se pudo exportar: ' + textoError(e), true); }
-    b.disabled = false; t.textContent = 'Descargar Excel';
+    const rango = rangoVerificado;
+    try { if (rango) await exportarExcel(...rango); } catch (e) { aviso('No se pudo exportar: ' + textoError(e), true); }
+    b.disabled = !rangoVerificado; t.textContent = 'Descargar Excel';
   };
   await correr();
 
@@ -5915,10 +5953,55 @@ async function vReportes(el) {
 
 // ============ EXPORTAR A EXCEL ============
 // Trae todas las filas (Supabase entrega de 1000 en 1000)
-async function todo(armar) {
+async function todo(armar, verificar = false) {
   const out = [];
-  for (let i = 0; ; i += 1000) { const d = await q(armar().range(i, i + 999)); out.push(...d); if (d.length < 1000) break; }
-  return out;
+  let total = null;
+  for (;;) {
+    const inicio = out.length;
+    const { data, error, count } = await armar(verificar && inicio === 0 ? { count: 'exact' } : undefined).range(inicio, inicio + 999);
+    if (error) throw error;
+    if (verificar && inicio === 0) {
+      if (!Number.isSafeInteger(count) || count < 0) throw new Error('No se pudo verificar que el informe tenga todos los datos.');
+      total = count;
+    }
+    out.push(...data);
+    if (verificar) {
+      if (out.length > total || (!data.length && out.length !== total)) throw new Error('La lectura del informe quedó incompleta. Vuelve a intentar.');
+      if (out.length === total) return out;
+    } else if (data.length < 1000) return out;
+  }
+}
+function leerInforme(tabla, columnas, filtrar, ...orden) {
+  return todo(op => {
+    let consulta = filtrar(sb.from(tabla).select(columnas, op));
+    for (const campo of orden) consulta = consulta.order(campo);
+    return consulta;
+  }, true);
+}
+const fechaMasInforme = (f, n) => new Date(Date.parse(f + 'T12:00:00-05:00') + n * 864e5).toISOString().slice(0, 10);
+const inicioInforme = f => f + 'T00:00:00-05:00';
+const rangoInforme = (consulta, campo, d, h) => consulta.gte(campo, inicioInforme(d)).lt(campo, inicioInforme(fechaMasInforme(h, 1)));
+const fechasInforme = (consulta, campo, d, h) => consulta.gte(campo, d).lte(campo, h);
+const resultadosInforme = (d, h) => leerInforme('v_resultados_diarios', '*',
+  q => d ? fechasInforme(q, 'fecha', d, h) : q.lte('fecha', h), 'fecha');
+const rentabilidadInforme = (d, h) => leerInforme('v_lineas_rentabilidad', 'fecha, producto_id, presentacion_id, cantidad_base, venta_neta, costo',
+  q => fechasInforme(q, 'fecha', d, h), 'fecha', 'producto_id', 'presentacion_id', 'cantidad_base', 'venta_neta', 'costo');
+async function contarVentasInforme(d, h) {
+  const { error, count } = await rangoInforme(sb.from('ventas').select('id', { count: 'exact', head: true }).eq('estado', 'EMITIDA'), 'fecha', d, h);
+  if (error) throw error;
+  if (!Number.isSafeInteger(count)) throw new Error('No se pudo verificar el número de ventas del informe.');
+  return count;
+}
+function productosInforme(lineas) {
+  const nombres = new Map(C.presentaciones.map(p => [p.producto_id, p.productos.nombre]));
+  const porProducto = new Map();
+  for (const l of lineas) {
+    if (!porProducto.has(l.producto_id)) porProducto.set(l.producto_id, { c: 0, v: 0, k: 0 });
+    const o = porProducto.get(l.producto_id);
+    o.c += num(l.cantidad_base); o.v += num(l.venta_neta); o.k += num(l.costo);
+  }
+  return [...porProducto].map(([id, o]) => ({ id, nom: nombres.get(id) || 'Producto sin nombre', ...o, g: r2(o.v - o.k), m: o.v > 0 ? (o.v - o.k) / o.v * 100 : null }))
+    .sort((a, b) => b.g - a.g);
 }
 const fechaHora = t => t ? new Date(t).toLocaleString('es-PE', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
 // ============ COPIA DE SEGURIDAD ============
@@ -5993,20 +6076,21 @@ function pintarRespaldo() {
 }
 async function exportarExcel(d, h) {
   if (typeof XLSX === 'undefined') throw new Error('no cargó la librería de Excel; revisa tu conexión');
-  const desde = d + 'T00:00:00-05:00', hasta = h + 'T23:59:59.999-05:00';
-  const [dias, ventas, movs, compras, gastos, kardex, existencias, precios] = await Promise.all([
-    todo(() => sb.from('v_resultados_diarios').select('*').gte('fecha', d).lte('fecha', h).order('fecha')),
-    todo(() => sb.from('v_ventas_totales').select('*').gte('fecha', desde).lte('fecha', hasta).order('fecha')),
-    todo(() => sb.from('movimientos_financieros').select('*').gte('fecha', desde).lte('fecha', hasta).order('fecha')),
-    todo(() => sb.from('v_compras_totales').select('*').gte('fecha_ingreso', desde).lte('fecha_ingreso', hasta).order('fecha_ingreso')),
-    todo(() => sb.from('gastos').select('*, categorias_gasto(nombre)').gte('fecha', d).lte('fecha', h).order('fecha')),
-    todo(() => sb.from('v_kardex').select('*').gte('fecha', desde).lte('fecha', hasta).order('fecha').order('secuencia')),
-    q(sb.from('v_existencias').select('*').eq('activo', true).order('producto')),
-    q(sb.from('v_precios_vigentes').select('*')),
+  if (!d || !h || d > h) throw new Error('Revisa el orden de las fechas.');
+  const [dias, ventas, movs, compras, gastos, kardex, existencias, precios, rent] = await Promise.all([
+    resultadosInforme(d, h),
+    leerInforme('v_ventas_totales', '*', q => rangoInforme(q, 'fecha', d, h), 'fecha', 'venta_id'),
+    leerInforme('movimientos_financieros', '*', q => rangoInforme(q, 'fecha', d, h), 'fecha', 'id'),
+    leerInforme('v_compras_totales', '*', q => rangoInforme(q, 'fecha_ingreso', d, h), 'fecha_ingreso', 'compra_id'),
+    leerInforme('gastos', '*, categorias_gasto(nombre)', q => fechasInforme(q, 'fecha', d, h), 'fecha', 'id'),
+    leerInforme('v_kardex', '*', q => rangoInforme(q, 'fecha', d, h), 'fecha', 'secuencia'),
+    leerInforme('v_existencias', '*', q => q.eq('activo', true), 'producto_id'),
+    leerInforme('v_precios_vigentes', '*', q => q, 'presentacion_id'),
+    rentabilidadInforme(d, h),
   ]);
-  // Detalle de cada venta
-  const ids = ventas.map(v => v.venta_id), lineas = [];
-  for (let i = 0; i < ids.length; i += 150) lineas.push(...await todo(() => sb.from('venta_detalles').select('*').in('venta_id', ids.slice(i, i + 150)).order('linea')));
+  const ids = ventas.filter(v => v.estado === 'EMITIDA').map(v => v.venta_id), lineas = [];
+  for (let i = 0; i < ids.length; i += 150) lineas.push(...await leerInforme('venta_detalles', '*',
+    q => q.in('venta_id', ids.slice(i, i + 150)), 'venta_id', 'linea'));
   const venta = Object.fromEntries(ventas.map(v => [v.venta_id, v]));
   const pres = Object.fromEntries(C.presentaciones.map(p => [p.id, p]));
   const cuenta = Object.fromEntries(C.cuentas.map(c => [c.id, c.nombre]));
@@ -6059,13 +6143,15 @@ async function exportarExcel(d, h) {
     ['(−) Gastos financieros', -s('gastos_financieros')], ['(−) Otros egresos', -s('otros_egresos')],
     ['Ganancia neta', s('utilidad_neta_estimada')], ['Margen neto %', vn ? r2(s('utilidad_neta_estimada') / vn * 100) : 0],
     ['Consumo del dueño (retiro en especie)', s('retiro_en_especie')],
-    [], ['Ventas realizadas', ventas.filter(v => v.estado === 'EMITIDA').length],
+    [], ['Ventas realizadas', ids.length],
     ['Generado', fechaHora(new Date())],
   ], [38, 18]);
   hoja('Por día', dias.map(x => ({ Fecha: fd(x.fecha), 'Ventas netas': num(x.ventas_netas), 'Costo de lo vendido': num(x.costo_mercaderia_vendida), 'Ganancia bruta': num(x.utilidad_bruta),
     'Margen %': num(x.ventas_netas) ? r2(num(x.utilidad_bruta) / num(x.ventas_netas) * 100) : 0,
     Gastos: r2(num(x.gastos_operativos) + num(x.gastos_administrativos) + num(x.gastos_financieros) + num(x.otros_egresos)), 'Ganancia neta': num(x.utilidad_neta_estimada) })), [12, 14, 18, 15, 10, 12, 14], true);
-  hoja('Ventas', lineas.filter(l => venta[l.venta_id]?.estado !== 'ANULADA').map(l => { const v = venta[l.venta_id] || {}, p = pres[l.presentacion_id], sub = num(l.subtotal), costo = num(l.costo_total);
+  hoja('Productos netos', productosInforme(rent).map(o => ({ Producto: o.nom, Cantidad: o.c, 'Ventas netas': r2(o.v), Costo: r2(o.k), Ganancia: o.g,
+    'Margen %': o.m == null ? '' : r2(o.m) })), [28, 13, 15, 12, 12, 12], true);
+  hoja('Detalle de ventas emitidas', lineas.map(l => { const v = venta[l.venta_id] || {}, p = pres[l.presentacion_id], sub = num(l.subtotal), costo = num(l.costo_total);
     return { Fecha: fechaHora(v.fecha), Venta: v.documento, Cliente: v.cliente, Condición: v.condicion, Producto: p?.productos.nombre || '', Presentación: p?.nombre || '',
       Cantidad: num(l.cantidad), 'Precio unitario': num(l.cantidad) ? r2(sub / num(l.cantidad)) : 0, Importe: sub, Costo: costo, Ganancia: r2(sub - costo),
       'Margen %': sub ? r2((sub - costo) / sub * 100) : 0, Estado: v.estado }; }), [17, 14, 16, 10, 24, 15, 9, 13, 10, 10, 10, 9, 10], true);

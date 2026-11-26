@@ -1,5 +1,5 @@
 // Flujos principales del negocio, usados como lo haría Luis (en laptop y en celular)
-const { test, expect, abrirDemo, irA, aceptarDialogo } = require('./ayuda');
+const { test, expect, abrirDemo, irA, abrirVenta, aceptarDialogo } = require('./ayuda');
 
 const PAGINAS = ['panel', 'analisis', 'vender', 'ventas', 'caja', 'compras', 'stock', 'gastos', 'catalogo', 'reportes', 'boletas', 'cuenta'];
 
@@ -16,17 +16,18 @@ test('vender en efectivo descuenta el stock y suma a la caja del día', async ({
   await irA(page, 'vender');
   const prod = page.locator('#estante .prod').filter({ hasText: 'Pall Mall BOOST' });
   const stockAntes = await prod.locator('.stock').innerText();
-  const totalAntes = await page.locator('.resumen-dia div').last().locator('b').innerText();
+  const totalAntes = await page.locator('.resumen-dia .rd-total b').innerText();
 
   await prod.locator('.opc').first().click();
   await expect(page.locator('#ticket')).toContainText('Pall Mall BOOST');
+  await abrirVenta(page);
   await page.locator('#btnCobrar').click();
   await expect(page.locator('#ticket')).toContainText('Cobrado con Efectivo');
 
   await irA(page, 'vender');
   const prod2 = page.locator('#estante .prod').filter({ hasText: 'Pall Mall BOOST' });
   await expect(prod2.locator('.stock')).not.toHaveText(stockAntes);
-  await expect(page.locator('.resumen-dia div').last().locator('b')).not.toHaveText(totalAntes);
+  await expect(page.locator('.resumen-dia .rd-total b')).not.toHaveText(totalAntes);
 });
 
 test('un ticket vacío no se puede cobrar', async ({ page, errores }) => {
@@ -40,6 +41,7 @@ test('quitar un producto del ticket con el botón Quitar', async ({ page, errore
   await irA(page, 'vender');
   await page.locator('#estante .opc').first().click();
   await expect(page.locator('#ticket .linea[data-linea]')).toHaveCount(1);
+  await abrirVenta(page);
   await page.locator('#ticket [data-q]').first().click();
   await expect(page.locator('#ticket .linea[data-linea]')).toHaveCount(0);
 });
@@ -102,6 +104,7 @@ test('el ticket para el cliente es opcional y lleva el nombre de la empresa', as
   await abrirDemo(page);
   await irA(page, 'vender');
   await page.locator('#estante .prod').filter({ hasText: 'Pall Mall BOOST' }).locator('.opc').first().click();
+  await abrirVenta(page);
   await page.locator('#btnCobrar').click();
   await expect(page.locator('#ticket')).toContainText('Cobrado con');
   // No se abre nada solo: el botón espera a que el cliente lo pida
@@ -338,6 +341,7 @@ test('modo socio: solo ve su turno, vender, sus ventas y stock; sin costos; turn
   const prod = page.locator('#estante .prod').first();
   await prod.locator('.opc').first().click();
   await expect(page.locator('.ganancia-est')).toHaveCount(0);
+  await abrirVenta(page);
   await page.locator('#btnCobrar').click();
   await expect(page.locator('#ticket')).toContainText('Cobrado con Efectivo');
   await page.evaluate(() => ir('turno')); await page.waitForLoadState('networkidle');

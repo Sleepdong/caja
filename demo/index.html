@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-0BJ4772LGXPPgNn7AnpAq9dmeHZ/kE5b5kH6Rsck0oo='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-LggwTXW+qzy7gPeY9OKTMqq8vnfY+/bVNINrbv5kiWM='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -1162,6 +1162,62 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
 .marca-t small{font-size:.62em;font-weight:600;color:var(--gris);letter-spacing:.04em}
 #ingreso .marca-t{flex-direction:column;gap:2px;align-items:flex-start}#ingreso .marca-t small{font-size:.5em}
 @media(max-width:520px){.top .marca-t small{display:none}}
+
+/* ===== Vender (diseño profesional) ===== */
+.pos-pro .resumen-dia{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.pos-pro .resumen-dia>div{flex:0 1 auto;display:flex;align-items:center;gap:8px;background:var(--blanco);border:1px solid var(--linea);border-radius:999px;padding:7px 14px}
+.pos-pro .resumen-dia small{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500}.pos-pro .resumen-dia b{font-size:13.5px}
+.pos-pro .resumen-dia .rd-total{background:linear-gradient(135deg,#7B5CFF33,#E86AF022);border-color:#7B5CFF55}.pos-pro .resumen-dia .rd-total b{font-size:15px}
+.pos-pro .estante{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.pos-pro .prod{border-radius:20px!important;padding:12px!important;gap:10px!important;border:1px solid var(--linea)!important}
+.pos-pro .prod::before,.pos-pro .prod::after{display:none!important}
+.pos-pro .prod.sel{box-shadow:0 0 0 2px var(--violeta)!important}
+.pos-pro .prod.agotado{opacity:.55}
+.pr-cab{display:flex;align-items:center;gap:10px;min-width:0}
+.pr-av{width:38px;height:38px;flex:none;border-radius:12px;background:var(--c);color:#0E0F1A;display:grid;place-items:center;font-weight:800;font-size:16px}
+.pr-tx{min-width:0}.pos-pro .prod h4{font-size:15px!important;line-height:1.2!important;margin:0!important;overflow:hidden;text-overflow:ellipsis}
+.pos-pro .prod .stock{font-size:11.5px!important;margin-top:2px}
+.pos-pro .opc{border-radius:14px!important;padding:9px 12px!important;border:1.5px solid transparent!important;background:var(--tono)!important;min-height:48px}
+.pos-pro .opc:hover:not(:disabled){border-color:var(--c)!important}
+.pos-pro .opc b{font-size:17px!important}
+.pos-pro .opc .cnt{background:var(--c)!important;color:#0E0F1A!important;font-weight:800}
+.pos-pro .ticket{border-radius:24px!important;overflow:hidden}
+.pos-pro .ticket .cab{display:flex;align-items:center;gap:10px;padding:16px 18px 12px!important}
+.pos-pro .ticket .cab h2{font-size:20px!important}.pos-pro .ticket .cab small{flex:1}
+.tk-acc{display:flex;gap:6px;align-items:center}
+.tk-vaciar{border:0;background:var(--tono);color:var(--gris);border-radius:999px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer}.tk-vaciar:hover{color:var(--coral)}
+.tk-cerrar{display:none;width:34px;height:34px;border:0;border-radius:50%;background:var(--tono);color:var(--texto);font-size:15px;cursor:pointer}
+.pos-pro .lineas{padding:4px 12px!important;max-height:340px}
+.pos-pro .linea{grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:"nom imp q" "ctrl ctrl q";align-items:center;gap:6px 10px!important;padding:10px 6px!important;border-bottom:1px solid var(--linea)!important;border-left:3px solid var(--c);padding-left:10px!important;margin:4px 0;border-radius:4px}
+.pos-pro .linea .nom{grid-area:nom;font-size:14px}.pos-pro .linea .imp{grid-area:imp;font-size:15px}
+.pos-pro .linea .ctrl{grid-area:ctrl}.pos-pro .linea .quitar{grid-area:q;align-self:start;width:28px;height:28px;border:0;border-radius:50%;background:none;color:var(--gris);font-size:18px;text-decoration:none!important;cursor:pointer;padding:0}
+.pos-pro .linea .quitar:hover{background:var(--tono);color:var(--coral)}
+.pos-pro .linea .alerta-linea{grid-column:1/-1}
+.ln-sub{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--gris);font-weight:400;margin-top:2px}
+.ln-pu{display:inline-flex;align-items:center;gap:2px}.pos-pro .linea .pu{width:62px!important;padding:2px 6px!important;font-size:12px!important;background:var(--tono)!important;border:0!important;border-radius:8px!important}
+.pos-pro .linea .ctrl{display:inline-flex;align-items:center;gap:0;background:var(--tono);border-radius:12px;width:max-content}
+.pos-pro .linea .paso{width:36px!important;height:36px!important;border:0!important;background:transparent!important;color:var(--texto);font-size:18px;border-radius:12px}.pos-pro .linea .paso:hover{background:var(--tono2)!important}
+.pos-pro .linea .cant-in{width:44px!important;text-align:center;border:0!important;background:transparent!important;box-shadow:none!important;font-weight:700;padding:4px 0!important}
+.tk-vacio{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;padding:26px 10px;color:var(--gris);font-size:12.5px}.tk-vacio span{font-size:30px;opacity:.8}.tk-vacio b{color:var(--texto);font-size:14px}
+.pos-pro .medio{border-radius:14px!important}.pos-pro .medio i{font-size:15px}
+.tk-velo{display:none}
+@media(max-width:899px){
+  .pos-pro .estante{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .pos-pro .prod{padding:10px!important;border-radius:18px!important;gap:8px!important;border-top:3px solid var(--c)!important}.pr-av{display:none}.pos-pro .prod h4{font-size:13.5px!important}
+  .pos-pro .prod .top-v{font-size:9.5px;padding:1px 5px;vertical-align:2px}
+  .pos-pro .opc{flex-direction:row!important;align-items:center!important;justify-content:space-between;gap:6px!important;padding:8px 10px!important;min-height:46px}
+  .pos-pro .opc span{font-size:12.5px!important;line-height:1.2}.pos-pro .opc span small{display:block}.pos-pro .opc b{font-size:15px!important;white-space:nowrap}
+  .pos-pro .resumen-dia{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.pos-pro .resumen-dia>div{flex:none}
+  .pos-pro .ticket{position:fixed!important;left:0;right:0;bottom:0;top:auto!important;z-index:48;max-height:88vh;overflow:auto;border-radius:26px 26px 0 0!important;transform:translateY(105%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;margin:0!important;padding-bottom:env(safe-area-inset-bottom)}
+  .pos-pro .ticket.abierto{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .pos-pro .ticket .cab::before{content:"";position:absolute;left:50%;top:7px;width:40px;height:4px;border-radius:4px;background:var(--linea);transform:translateX(-50%)}
+  .pos-pro .ticket .cab{position:sticky;top:0;z-index:1;background:inherit}
+  .tk-cerrar{display:block}
+  .tk-velo.ver{display:block;position:fixed;inset:0;z-index:47;background:#05060Fb3;backdrop-filter:blur(2px)}
+  body.sin-scroll{overflow:hidden}
+  .pos-pro .lineas{max-height:none}
+}
+@media(prefers-reduced-motion:reduce){.pos-pro .ticket{transition:none!important}}
 </style>
 </head>
 <body>
@@ -1730,7 +1786,7 @@ function contarNumeros(raiz) {
 async function ir(v) {
   if (!vistas()[v]) v = esSocio() ? 'turno' : 'panel';
   document.body.classList.remove('animar');
-  vistaActual = v; cerrarHojas(); pintarTabs(); $('#barraMovil').classList.remove('ver'); window.scrollTo(0, 0);
+  vistaActual = v; cerrarHojas(); pintarTabs(); $('#barraMovil').classList.remove('ver'); document.body.classList.remove('sin-scroll'); window.scrollTo(0, 0);
   $('#vista').innerHTML = '<p class="vacio">Cargando…</p>';
   try { await vistas()[v][1]($('#vista')); if (conMovimiento()) { void document.body.offsetWidth; document.body.classList.add('animar'); contarNumeros($('#vista')); } }
   catch (e) { $('#vista').innerHTML = `<div class="panel"><h2>No se pudo cargar</h2><p class="sub">${esc(textoError(e))}</p><button class="btn" data-ir="${v}">Reintentar</button></div>`; }
@@ -2150,20 +2206,25 @@ async function vVender(el) {
 
   el.innerHTML = `
   ${offline ? `<div class="aviso-barra"><p><b>Modo sin internet.</b> Usas los precios y el stock de tu última conexión (${fh(local.leer('vender')?.en)}). Las ventas se guardan aquí y se suben solas.</p></div>` : ses ? '' : `<div class="aviso-barra"><p><b>La caja está cerrada.</b> Puedes cobrar con Yape o Plin, pero para recibir efectivo tienes que abrirla.</p><button class="btn rotulo" id="abrirAqui">Abrir caja</button></div>`}
-  <div class="cols pos">
+  <div class="cols pos pos-pro">
     <section>
+      <div class="resumen-dia" aria-label="Lo vendido hoy">
+        <div class="rd-total"><small>Vendido hoy</small><b>${S(Object.values(porMedio).reduce((a, b) => a + b, 0))}</b></div>
+        ${medios(MEDIOS_VENTA).map(m => `<div><small><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.codigo === 'EFECTIVO_TURNO' ? 'Efectivo' : m.nombre)}</small><b>${S(porMedio[m.id])}</b></div>`).join('')}</div>
       <div class="buscador"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="buscar" placeholder="Buscar producto o escanear código" autocomplete="off"></div>
       ${catsEnUso.length > 1 ? `<div class="chips-cat" id="chipsCat" role="tablist" aria-label="Filtrar por categoría"><button data-cat="" role="tab">Todo</button>${catsEnUso.map(c => `<button data-cat="${c.id}" role="tab">${esc(c.nombre)}</button>`).join('')}</div>` : ''}
       <div class="estante" id="estante"></div>
-      <div class="atajos-tec" aria-label="Atajos de teclado"><span><kbd>↑</kbd><kbd>↓</kbd>elegir</span><span><kbd>Enter</kbd>agregar suelto</span><span><kbd>Shift</kbd><kbd>Enter</kbd>agregar paquete</span><span><kbd>F2</kbd>cobrar</span><span><kbd>Alt</kbd><kbd>1·2·3</kbd>efectivo · Yape · Plin</span><span><kbd>Retroceso</kbd>quitar 1 del último</span><span><kbd>Supr</kbd>quitar la línea</span><span><kbd>Esc</kbd>borrar búsqueda</span></div>
-      <div class="resumen-dia">${medios(MEDIOS_VENTA).map(m => `<div><small><span class="punto" style="background:${COLOR_MEDIO[m.codigo]}"></span>${esc(m.nombre)} hoy</small><b>${S(porMedio[m.id])}</b></div>`).join('')}
-        <div><small>Total vendido hoy</small><b>${S(Object.values(porMedio).reduce((a, b) => a + b, 0))}</b></div></div>
+      <div class="atajos-tec" aria-label="Atajos de teclado"><span><kbd>↑</kbd><kbd>↓</kbd>elegir</span><span><kbd>Enter</kbd>agregar suelto</span><span><kbd>Shift</kbd><kbd>Enter</kbd>agregar paquete</span><span><kbd>F2</kbd>cobrar</span><span><kbd>Alt</kbd><kbd>1·2·3</kbd>efectivo · Yape · Plin</span></div>
     </section>
-    <aside class="ticket" id="ticket"></aside>
+    <div class="tk-velo" id="tkVelo"></div>
+    <aside class="ticket" id="ticket" aria-label="Venta actual"></aside>
   </div>`;
   document.querySelectorAll('#chipsCat [data-cat]').forEach(b => b.onclick = () => { filtroCat = b.dataset.cat; local.guardar('filtroVender', filtroCat); $('#buscar').value = ''; pintarEstante(); });
   selVender = 0;
+  // Celular: la venta es una hoja que sube desde abajo
+  const hoja = abrir => { $('#ticket').classList.toggle('abierto', abrir); $('#tkVelo').classList.toggle('ver', abrir); document.body.classList.toggle('sin-scroll', abrir && matchMedia('(max-width: 899px)').matches); };
+  $('#tkVelo').onclick = () => hoja(false);
   $('#abrirAqui') && ($('#abrirAqui').onclick = async () => { if (await abrirCajaRapido()) ir('vender'); });
 
   const enTicket = (prodId) => ticket.filter(t => t.producto_id === prodId).reduce((a, t) => a + t.cantidad * t.factor, 0);
@@ -2177,7 +2238,7 @@ async function vVender(el) {
       const bajo = num(s?.cantidad) <= num(s?.stock_minimo);
       const pq = Math.floor(base / caj), su = base % caj;
       const txtStock = base <= 0 ? 'Sin stock' : caj > 1 ? 'Quedan ' + [pq ? `${pq} ${pq === 1 ? 'paquete' : 'paquetes'}` : '', su ? `${N(su)} ${su === 1 ? 'suelto' : 'sueltos'}` : ''].filter(Boolean).join(' y ') : `Quedan ${N(base)}`;
-      return `<div class="prod" style="--c:${colorProducto(p.id)}"><div><h4>${esc(p.nombre)}${top.has(p.id) ? ' <span class="top-v" title="De lo que más vendes en los últimos 30 días">Top</span>' : ''}</h4><div class="stock ${bajo || base <= 0 ? 'bajo' : ''}">${txtStock}</div></div>
+      return `<div class="prod ${base <= 0 ? 'agotado' : ''}" style="--c:${colorProducto(p.id)}"><div class="pr-cab"><span class="pr-av" aria-hidden="true">${esc(p.nombre.charAt(0).toUpperCase())}</span><div class="pr-tx"><h4>${esc(p.nombre)}${top.has(p.id) ? ' <span class="top-v" title="De lo que más vendes en los últimos 30 días">Top</span>' : ''}</h4><div class="stock ${bajo || base <= 0 ? 'bajo' : ''}">${txtStock}</div></div></div>
         <div class="opciones">${p.ops.map(o => { const c = ticket.find(t => t.presentacion_id === o.presentacion_id)?.cantidad;
           return `<button class="opc" data-p="${o.presentacion_id}" ${base < num(o.factor) ? 'disabled' : ''}><span>${esc(o.presentacion)}${c ? `<em class="cnt">${c}</em>` : ''}${(e => e ? `<small class="mg ${e.nivel}">${e.nivel === 'perdida' ? 'bajo el costo' : 'ganas ' + P(e.m)}</small>` : '')(evalMargen(num(o.precio), costoDe(o.producto_id, o.factor)))}</span><b>${S(o.precio)}</b></button>`; }).join('')}</div></div>`;
     }).join('') || '<p class="vacio">No hay productos con ese nombre.</p>';
@@ -2196,18 +2257,19 @@ async function vVender(el) {
     const ef = esEfectivo(medioVenta);
     const rec = num(recibido), vuelto = r2(rec - (cond === 'CREDITO' ? num($('#inicial')?.value) : t));
     $('#ticket').innerHTML = `
-      <div class="cab"><h2>Venta</h2><small>${ticket.length ? (n => n + (n === 1 ? ' artículo' : ' artículos'))(ticket.reduce((a, x) => a + x.cantidad, 0)) : ''}</small></div>
-      <div class="lineas">${ticket.length ? ticket.map((x, i) => `<div class="linea" data-linea="${esc(x.presentacion_id)}">
-          <div class="nom">${esc(x.nombre)}<div class="sub" style="margin:0;font-weight:400">${esc(x.pres)}</div></div><div class="imp">${S(x.cantidad * x.precio)}</div>
-          <div class="ctrl"><button class="paso" data-m="${i}" aria-label="Quitar uno">−</button><input class="cant-in" type="number" min="1" step="1" inputmode="numeric" value="${x.cantidad}" data-c="${i}" aria-label="Cantidad"><button class="paso" data-s="${i}" aria-label="Agregar uno">+</button>
-            × <input class="pu" type="number" step="0.10" min="0" inputmode="decimal" value="${x.precio.toFixed(2)}" data-pu="${i}" aria-label="Precio unitario"></div>
-          <button class="quitar" data-q="${i}">Quitar</button>
+      <div class="cab"><h2>Venta</h2><small>${ticket.length ? (n => n + (n === 1 ? ' artículo' : ' artículos'))(ticket.reduce((a, x) => a + x.cantidad, 0)) : ''}</small>
+        <span class="tk-acc">${ticket.length ? '<button type="button" class="tk-vaciar" id="tkVaciar">Vaciar</button>' : ''}<button type="button" class="tk-cerrar" id="tkCerrar" aria-label="Seguir eligiendo productos">✕</button></span></div>
+      <div class="lineas">${ticket.length ? ticket.map((x, i) => `<div class="linea" data-linea="${esc(x.presentacion_id)}" style="--c:${colorProducto(x.producto_id)}">
+          <div class="nom">${esc(x.nombre)}<div class="ln-sub">${esc(x.pres)} · <label class="ln-pu">S/ <input class="pu" type="number" step="0.10" min="0" inputmode="decimal" value="${x.precio.toFixed(2)}" data-pu="${i}" aria-label="Precio unitario de ${esc(x.nombre)}"></label> c/u</div></div>
+          <div class="imp">${S(x.cantidad * x.precio)}</div>
+          <div class="ctrl"><button class="paso" data-m="${i}" aria-label="Quitar uno">−</button><input class="cant-in" type="number" min="1" step="1" inputmode="numeric" value="${x.cantidad}" data-c="${i}" aria-label="Cantidad"><button class="paso" data-s="${i}" aria-label="Agregar uno">+</button></div>
+          <button class="quitar" data-q="${i}" aria-label="Quitar ${esc(x.nombre)}" title="Quitar">×</button>
           ${(e => e && e.nivel !== 'ok' ? `<div class="alerta-linea ${e.nivel}">${e.nivel === 'perdida' ? `Vendes bajo el costo: te cuesta ${S(costoDe(x.producto_id, x.factor))}` : `Margen ${P(e.m)}, debajo de tu mínimo de ${P(umbral())}`}</div>` : '')(evalMargen(x.precio, costoDe(x.producto_id, x.factor)))}</div>`).join('')
-        : '<p class="vacio">Toca un producto para agregarlo.</p>'}</div>
+        : '<div class="tk-vacio"><span aria-hidden="true">🛒</span><b>Venta vacía</b><small>Toca un producto o búscalo por su nombre</small></div>'}</div>
       <div class="pie">
         <div class="total"><span>Total</span><b>${S(t)}</b></div>
         ${t > 0 ? (() => { const k = ticket.reduce((a, x) => a + x.cantidad * costoDe(x.producto_id, x.factor), 0), g = t - k; return k > 0 ? `<div class="ganancia-est"><span>Ganancia de esta venta</span><b>${S(g)} · ${P(g / t * 100)}</b></div>` : ''; })() : ''}
-        <div class="medios">${medios(MEDIOS_VENTA).map(m => (n => `<button class="medio ${m.codigo === medioVenta ? 'on' : ''}" data-c="${m.codigo}"><i>${n[0]}</i>${esc(n)}</button>`)(m.codigo === 'EFECTIVO_TURNO' ? 'Efectivo' : m.nombre)).join('')}</div>
+        <div class="medios">${medios(MEDIOS_VENTA).map(m => (n => `<button class="medio ${m.codigo === medioVenta ? 'on' : ''}" data-c="${m.codigo}"><i>${/EFECTIVO/.test(m.codigo) ? '💵' : n[0]}</i>${esc(n)}</button>`)(m.codigo === 'EFECTIVO_TURNO' ? 'Efectivo' : m.nombre)).join('')}</div>
         ${ef && t > 0 && cond === 'CONTADO' ? `<label for="recibido">Recibes</label><input id="recibido" type="number" inputmode="decimal" step="0.10" min="0" value="${recibido}" placeholder="${t.toFixed(2)}">
           <div class="rapidos">${[...new Set([t, 10, 20, 50, 100, 200].filter(x => x >= t))].slice(0, 5).map(x => `<button data-r="${x}">${x === t ? 'Exacto' : 'S/ ' + x}</button>`).join('')}</div>
           ${rec > 0 ? `<div class="vuelto ${vuelto < 0 ? 'falta' : ''}"><span>${vuelto < 0 ? 'Falta' : 'Vuelto'}</span><b>${S(Math.abs(vuelto))}</b></div>` : ''}` : ''}
@@ -2226,6 +2288,8 @@ async function vVender(el) {
       x.cantidad++; pintarTodo();
     });
     tk.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { ticket.splice(b.dataset.q, 1); pintarTodo(); });
+    $('#tkCerrar').onclick = () => hoja(false);
+    $('#tkVaciar') && ($('#tkVaciar').onclick = async () => { if (ticket.length > 1 && !(await dialogo('¿Vaciar la venta?', [{ type: 'info', html: '<p class="sub" style="margin:0">Se quitan todos los productos de esta venta.</p>' }], 'Vaciar'))) return; ticket = []; recibido = ''; pintarTodo(); });
     tk.querySelectorAll('input[data-c]').forEach(inp => {
       inp.onfocus = () => inp.select();
       inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
@@ -2249,8 +2313,10 @@ async function vVender(el) {
     pintarEstante(); pintarTicket();
     $('#barraMovil').classList.toggle('ver', ticket.length > 0);
     $('#bmTotal').textContent = S(total());
+    $('#bmIr').textContent = `Cobrar · ${(n => n + (n === 1 ? ' artículo' : ' artículos'))(ticket.reduce((a, x) => a + x.cantidad, 0))}`;
+    if (!ticket.length && $('#ticket').classList.contains('abierto') && !$('#ticket .hecho')) hoja(false);
   };
-  $('#bmIr').onclick = () => $('#ticket').scrollIntoView({ behavior: 'smooth' });
+  $('#bmIr').onclick = () => hoja(true);
 
   async function cobrar() {
     const t = total(); if (!t) return;
@@ -2297,7 +2363,7 @@ async function vVender(el) {
       <button class="btn claro mini" id="enviarTicket" style="margin-top:10px">¿El cliente pide ticket? Enviar por WhatsApp</button>
       ${!guardadaLocal && t > LIMITE_SIN_BOLETA ? `<button class="btn claro mini" id="boletaVenta" style="margin-top:8px">Venta mayor a S/ 5: registrar su boleta</button>` : ''}</div>`;
     ticket = []; recibido = ''; cond = 'CONTADO'; $('#barraMovil').classList.remove('ver');
-    $('#nueva').onclick = () => ir('vender'); $('#nueva').focus();
+    $('#nueva').onclick = () => { document.body.classList.remove('sin-scroll'); ir('vender'); }; $('#nueva').focus();
     $('#enviarTicket').onclick = () => enviarTicket(datosTicket).catch(e => aviso(textoError(e), true));
     $('#boletaVenta') && ($('#boletaVenta').onclick = async () => {
       try {

@@ -29,4 +29,6 @@ async function aceptarDialogo(page) {
   await expect(form).toBeHidden();
 }
 
-module.exports = { test, expect, abrirDemo, irA, aceptarDialogo };
+// En celular la venta es una hoja que sube desde abajo: se abre con la barra "Cobrar"
+async function abrirVenta(page) { const b = page.locator('#bmIr'); if (await b.isVisible()) { await b.click(); await expect(page.locator('#ticket')).toBeVisible(); } }
+module.exports = { test, expect, abrirDemo, irA, aceptarDialogo, abrirVenta };

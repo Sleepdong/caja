@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-i4rmsj6e6kfpEduIjO0u89NtdfoxFT8mFWOr1xX35b8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-+lReTHPiVrZDlw6W3ao9+Zyqgjt52YTo03HFR8N/V6g='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3088,6 +3088,7 @@ async function vCompras(el) {
       <span><b>Escanear factura o boleta</b><small>Foto con el código QR o el PDF: la app llena todo por ti.<span class="solo-pc"> También puedes arrastrar el archivo aquí.</span></small></span></button>
     <input type="file" id="fotoFactura" accept="image/*,application/pdf" class="oculto">
     <div id="escaneo"></div>
+    ${local.leer('ultimaLecturaFactura') ? '<button class="btn claro mini" id="ultimaLecturaFactura">Descargar última lectura OCR</button>' : ''}
     <div class="compra-sep"><span>o regístrala a mano</span></div>
     <div class="paso-c"><span class="paso-n">1</span><h3>¿A quién le compraste?</h3></div>
     <div class="cp-provs" id="cpProvs" role="radiogroup" aria-label="Proveedor"></div>
@@ -3346,6 +3347,8 @@ async function vCompras(el) {
   $('#fotoFactura').onchange = () => { const f = $('#fotoFactura').files[0]; $('#fotoFactura').value = ''; if (f) escanearArchivo(f, escanearFactura); };
   // Si estabas a mitad de una compra (por ejemplo, creaste un producto nuevo), vuelve el proveedor
   if (provCompraSel && C.proveedores.some(p => String(p.id) === String(provCompraSel))) $('#prov').value = provCompraSel;
+  const ultimaLectura = $('#ultimaLecturaFactura');
+  if (ultimaLectura) ultimaLectura.onclick = () => descargarLecturaFactura(local.leer('ultimaLecturaFactura'));
   // Si venimos del escáner, llenar la cabecera
   if (cabeceraEscaneada) {
     const c = cabeceraEscaneada; cabeceraEscaneada = null;
@@ -3796,7 +3799,7 @@ function interpretarQR(t) {
   else if (/^\d{2}[\/-]\d{2}[\/-]\d{4}/.test(f)) fecha = `${f.slice(6, 10)}-${f.slice(3, 5)}-${f.slice(0, 2)}`;
   return { ruc: p[0], tipo: p[1].padStart(2, '0'), serie: p[2].toUpperCase(), numero: String(Number(p[3]) || p[3]), igv: aNumero(p[4]) || 0, total: aNumero(p[5]) || 0, fecha };
 }
-async function leerTexto(img, avance) {
+async function leerTexto(img, avance, calidad) {
   await cargarLibreria(LIB.tesseract);
   const c = imagenACanvas(img, 2400), ctx = c.getContext('2d'), W = c.width, H = c.height;
   // Blanco y negro con umbral adaptativo: separa bien el texto aunque la foto tenga sombras o el papel esté arrugado
@@ -3820,10 +3823,85 @@ async function leerTexto(img, avance) {
   ctx.putImageData(d, 0, 0);
   const w = await Tesseract.createWorker('spa', 1, { workerPath: LIB.worker, corePath: LIB.core, langPath: LIB.lang, workerBlobURL: true,
     logger: m => { if (m.status === 'recognizing text') avance(0.35 + m.progress * 0.65, 'Leyendo el texto…'); else if (/load|initializ/.test(m.status)) avance(0.1 + (m.progress || 0) * 0.25, 'Preparando el lector (solo la primera vez tarda)…'); } });
-  try { await w.setParameters({ tessedit_pageseg_mode: limpia ? '3' : '6' }); const { data } = await w.recognize(c); return data.text || ''; } finally { w.terminate(); }
+  const reconocer = async modo => {
+    await w.setParameters({ tessedit_pageseg_mode: modo });
+    const { data } = await w.recognize(c);
+    return data.text || '';
+  };
+  try {
+    const primero = await reconocer(limpia ? '3' : '6');
+    if (!calidad || calidad(primero) >= 1000) return primero;
+    avance(0.35, 'Revisando otra distribución del texto…');
+    const segundo = await reconocer(limpia ? '6' : '3');
+    return calidad(segundo) > calidad(primero) ? segundo : primero;
+  } finally { await w.terminate(); }
 }
 // Busca líneas con: [cantidad] descripción ... precio_unitario importe
-function extraerLineas(texto) {
+const UNIDAD_FACTURA = /^(?:UND?S?|UNID(?:ADES)?|NIU|PZA|EA)$/i;
+const CAJA_FACTURA = /^(?:CJ|CJA|CAJ|CAJA|BX|PQT|PAQ)$/i;
+const BONIF_FACTURA = /\bBONIF\b|\bBONIFICACI[ÓO]N\b/i;
+function datosPresentacionFactura(desc) {
+  const caja = desc.match(/\b(?:CJ|CJA|CAJA)\s*[X×]\s*(\d+)\s*(?:UN(?:D|ID)?S?)?\b/i);
+  const peso = desc.match(/\b(?:(?:UN|UND)\s*[X×]\s*)?(\d+(?:[.,]\d+)?)\s*(KG|GR(?:AMOS?)?|G)\b/i);
+  return { unidadesCaja: caja ? Number(caja[1]) : null, pesoGramos: peso ? Number(peso[1].replace(',', '.')) * (/^KG$/i.test(peso[2]) ? 1000 : 1) : null };
+}
+function dineroFactura(texto) {
+  const decimal = Math.max(texto.lastIndexOf('.'), texto.lastIndexOf(','));
+  return Number(texto.slice(0, decimal).replace(/[.,]/g, '') + '.' + texto.slice(decimal + 1));
+}
+function leerColumnasFactura(texto) {
+  const cantidad = '\\d+(?:[.,]\\d+)?';
+  const dinero = '(?:\\d{1,3}(?:[.,]\\d{3})+|\\d+)[.,]\\d{2,6}';
+  const unidad = '[A-Z]{1,12}(?:\\.[A-Z]+)*\\.?';
+  const fila = new RegExp(`(?:^|\\s)(${cantidad})\\s+(${unidad})\\s+(${dinero})(?:\\s+(?:[-–—]|(?:${dinero}|0)%?))?\\s+(${dinero}|\\*?BONIF\\.?\\*?)$`, 'i');
+  const prefijo = /^((?=[A-Z0-9-]*\d)[A-Z0-9-]{4,})\s+(?=[\p{L}*])/iu;
+  const inicio = /\bcant(?:idad)?\.?\s+u\.?\s*m\.?\s+.*\b(?:importe|total)\b/i;
+  const pie = /^(?:\d+\s+items?\b|importe\s+total\b|sub\s*total\b|total\b|son:|in\s*af\.|exonerad[oa]|op\.\s*(?:grav|exo|inaf))/i;
+  const lineas = texto.split(/\r?\n/).map(x => x.replace(/[|]/g, ' ').trim()).filter(Boolean);
+  const encabezado = lineas.findIndex(x => inicio.test(x));
+  const out = [];
+  let partes = [], incompletas = false;
+  for (const l of lineas.slice(encabezado + 1)) {
+    if (pie.test(l)) break;
+    const m = l.match(fila);
+    const descEnFila = m && l.slice(0, m.index).trim();
+    const fragmento = m ? descEnFila : l;
+    if (fragmento && prefijo.test(fragmento)) {
+      if (partes.length) incompletas = true;
+      partes = [fragmento];
+    } else if (fragmento && partes.length && !/^[-_–— ]+$/.test(fragmento)) {
+      partes.push(fragmento);
+    }
+    if (!m || !partes.length) continue;
+    const [base, ...resto] = partes;
+    const codigo = base.match(prefijo)[1];
+    const original = [base, ...resto, l.slice(m.index).trim()].join('\n');
+    const desc = [base.slice(codigo.length).trim(), ...resto].join(' ').replace(/^\*?BONIF\.?\*?\s*/i, '');
+    const unidadMedida = m[2].toUpperCase().replace(/\./g, '');
+    const presentacion = datosPresentacionFactura(desc);
+    const factor = UNIDAD_FACTURA.test(unidadMedida) ? 1 : CAJA_FACTURA.test(unidadMedida) ? presentacion.unidadesCaja : null;
+    const cant = Number(m[1].replace(',', '.')), pu = dineroFactura(m[3]), importe = BONIF_FACTURA.test(m[4]) ? 0 : dineroFactura(m[4]);
+    const bonif = BONIF_FACTURA.test(original);
+    out.push({ texto: desc, original, codigo, ...presentacion, factor, unidadMedida, bonif, cantidad: cant, costo: bonif ? 0 : pu,
+      importe, cuadra: cant > 0 && (bonif ? importe === 0 : Math.abs(r2(cant * pu) - importe) <= 0.02) });
+    partes = [];
+  }
+  return { lineas: out, incompletas: incompletas || !!partes.length || (encabezado >= 0 && !out.length) };
+}
+function calidadFacturaOCR(texto, qr) {
+  const columnas = leerColumnasFactura(texto), lineas = extraerLineas(texto, columnas);
+  const total = qr?.total || totalFacturaOCR(texto);
+  const suma = r2(lineas.reduce((n, l) => n + l.importe, 0));
+  const diferencia = total == null ? Infinity : Math.min(Math.abs(r2(suma - total)), qr?.igv > 0 ? Math.abs(r2(suma + qr.igv - total)) : Infinity);
+  const completa = lineas.length && !columnas.incompletas && lineas.every(l => l.cuadra && (!l.unidadMedida || l.factor)) && diferencia <= 0.02;
+  return (completa ? 1000 : 0) + lineas.filter(l => l.cuadra).length * 3 + columnas.lineas.length;
+}
+function totalFacturaOCR(texto) {
+  const montos = [...texto.matchAll(/^\s*(?:importe\s+total|total\s*(?:a\s+pagar)?)[\s.:]*(?:S\s*\/\.?\s*)?(\d[\d.,]*[.,]\d{2})\s*$/gim)];
+  return montos.length ? dineroFactura(montos.at(-1)[1]) : null;
+}
+function extraerLineas(texto, columnas = leerColumnasFactura(texto)) {
+  if (columnas.lineas.length) return columnas.lineas;
   const out = [], DEC = /\d{1,3}(?:[.,]\d{3})*[.,]\d{2,4}(?!\d)/g;
   const NO = /(sub ?total|gravad|exonerad|inafect|i\.?g\.?v|total|son:|vuelto|efectivo|tarjeta|r\.?u\.?c|fecha|hora|telef|direcc|serie|boleta|factura|cliente|se[nñ]or|cajero|redondeo|descuento|anticipo|pagina|www|representaci|dct|grav|ina:|imp\.)/i;
   const crudas = texto.split('\n').map(b => b.replace(/[|_—–]/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
@@ -3848,7 +3926,7 @@ function extraerLineas(texto) {
     const decs = [...resto.matchAll(DEC)];
     if (!decs.length) continue;
     const importe = aNumero(decs.at(-1)[0]);
-    const bonif = !(importe > 0);                                 // bonificación: mercadería de regalo a S/ 0.00
+    const bonif = BONIF_FACTURA.test(l) || !(importe > 0);                                 // bonificación: mercadería de regalo a S/ 0.00
     if (bonif && !(cant > 0)) continue;
     let pu = decs.length >= 2 ? aNumero(decs.at(-2)[0]) : null;
     let desc = resto.slice(0, decs[0].index).trim();
@@ -3868,9 +3946,9 @@ function extraerLineas(texto) {
     desc = desc.replace(/^[^A-Za-z0-9(]+/, '').replace(/^(UND|UNID|NIU|UN)\s+/i, '').replace(/^BONIF\.?\s*/i, '').replace(/\s+(UND|UNID|NIU)$/i, '').replace(/[\s.,;:'"“”-]+$/, '').replace(/\s+/g, ' ').trim();
     const mp = desc.match(/\bCJ\s*X\s*(\d+)/i) || desc.match(/\bCAJT?\s*(\d+)/i) || desc.match(/\bX\s?(\d{2,3})\b/i);
     if (!factor && mp) factor = Number(mp[1]);
-    if (porUnidad && bonif) factor = 1;                           // "10 UND": vienen sueltas
+    if (porUnidad) factor = 1;                           // "10 UND": vienen sueltas
     if (normTexto(desc).length < 3) continue;
-    out.push({ texto: desc, codigo, factor, bonif, cantidad: cant, costo: bonif ? 0 : Math.round(pu * 10000) / 10000, importe: r2(importe), cuadra: bonif || Math.abs(cant * pu - importe) <= Math.max(0.06, importe * 0.02) });
+    out.push({ texto: desc, original: bruta, codigo, ...datosPresentacionFactura(desc), factor, bonif, cantidad: cant, costo: bonif ? 0 : Math.round(pu * 10000) / 10000, importe: r2(importe), cuadra: bonif || Math.abs(cant * pu - importe) <= Math.max(0.06, importe * 0.02) });
   }
   return out;
 }
@@ -3886,24 +3964,32 @@ function adivinarProveedor(texto) {
 function presCompraDe(prodId, factor, comprables) {
   if (factor === 1) { const u = C.presentaciones.find(p => p.producto_id === prodId && num(p.factor) === 1); if (u) return u; }
   const ops = comprables.filter(p => p.producto_id === prodId);
-  return ops.find(p => factor && num(p.factor) === factor) || ops.sort((a, b) => num(b.factor) - num(a.factor))[0];
+  if (factor) return ops.find(p => num(p.factor) === factor);
+  return ops.sort((a, b) => num(b.factor) - num(a.factor))[0];
 }
 function emparejar(desc, alias, comprables, linea = {}) {
   const n = normTexto(desc);
-  if (linea.codigo && alias['#' + linea.codigo]) return { id: alias['#' + linea.codigo], por: 'codigo' };   // código de este proveedor ya aprendido
+  const resultado = (p, por) => {
+    if (!p) return { id: '', por: '' };
+    const compatible = linea.factor ? presCompraDe(p.producto_id, linea.factor, comprables) : p;
+    return { id: compatible?.id || '', por: compatible ? por : '' };
+  };
+  const aprendida = C.presentaciones.find(p => p.id === (alias['#' + linea.codigo] || alias[n]));
+  if (aprendida) return resultado(aprendida, 'aprendido');
   if (linea.codigo) {
-    let p = comprables.find(x => x.productos.codigo_factura && x.productos.codigo_factura === linea.codigo);
+    const exactos = comprables.filter(x => x.productos.codigo_factura === linea.codigo);
+    let p = new Set(exactos.map(x => x.producto_id)).size === 1 ? exactos[0] : null;
+    let por = 'codigo';
     if (!p) { // el OCR a veces lee un dígito mal (480022 en vez de 460022): se acepta si solo hay un código parecido
       // …y solo si la variante del producto también aparece en el texto (BOOST 460066 no debe caer en SUNS 460069)
       const cerca = [...new Set(comprables.filter(x => { const c = x.productos.codigo_factura || ''; const va = normTexto(x.productos.variante || '');
         return c.length === linea.codigo.length && [...c].filter((ch, i) => ch !== linea.codigo[i]).length === 1 && (!va || n.includes(va)); }).map(x => x.producto_id))];
-      if (cerca.length === 1) p = comprables.find(x => x.producto_id === cerca[0]);
+      if (cerca.length === 1) { p = comprables.find(x => x.producto_id === cerca[0]); por = 'parecido'; }
     }
-    if (p) return { id: presCompraDe(p.producto_id, linea.factor, comprables).id, por: 'codigo' };
+    if (p) return resultado(p, por);
   }
   const porFactura = comprables.find(x => { const f = normTexto(x.productos.nombre_factura || ''); return f && (f === n || (f.length > 10 && (f.startsWith(n) || n.startsWith(f)))); });
-  if (porFactura) return { id: presCompraDe(porFactura.producto_id, linea.factor, comprables).id, por: 'factura' };
-  if (alias[n]) return { id: alias[n], por: 'aprendido' };
+  if (porFactura) return resultado(porFactura, 'factura');
   const tok = new Set(n.split(' ').filter(t => t.length > 1));
   let mejor = null, puntaje = 0;
   for (const p of comprables) {
@@ -3916,7 +4002,7 @@ function emparejar(desc, alias, comprables, linea = {}) {
       if (s > puntaje) { puntaje = s; mejor = p; }
     }
   }
-  return puntaje >= 0.6 ? { id: mejor.id, por: 'parecido' } : { id: '', por: '' };
+  return puntaje >= 0.6 ? resultado(mejor, 'parecido') : { id: '', por: '' };
 }
 // Adivina categoría, marca y variante a partir del texto de la factura
 const titulo = t => t.toLowerCase().replace(/(^|\s)\S/g, x => x.toUpperCase());
@@ -3924,13 +4010,17 @@ function leerDescripcion(texto) {
   const t = texto.toUpperCase().replace(/^BONIF\.?\s*/, '');
   const cat = C.categorias.find(c => c.prefijo_factura && (t.startsWith(c.prefijo_factura + ' ') || t.startsWith(c.prefijo_factura + '.')));
   let cuerpo = cat ? t.slice(cat.prefijo_factura.length).trim() : t.replace(/^\S+\s+/, '');
-  cuerpo = cuerpo.replace(/\(.*?\)/g, ' ').replace(/\bUNX?\s?\d+\s?GR?\b/g, ' ').replace(/\b(XL|YL|XT|UND|UNO|UN|CAJT?|CA\.?IT|PZA|BOLSA|CJA?|P)\b/g, ' ').replace(/\b\d+\b/g, ' ').replace(/\s+/g, ' ').trim();
+  cuerpo = cuerpo.replace(/\(.*?\)/g, ' ').replace(/\b(?:CJ|CJA|CAJA)\s*[X×]\s*\d+\s*(?:UN(?:D|ID)?S?)?\b/g, ' ').replace(/\b(?:UN\s*[X×]\s*)?\d+(?:[.,]\d+)?\s*(?:KG|GR(?:AMOS?)?|G)\b/g, ' ').replace(/\bUNX?\s?\d+\s?GR?\b/g, ' ').replace(/\b(XL|YL|XT|UND|UNO|UN|CAJT?|CA\.?IT|PZA|BOLSA|CJA?|P)\b/g, ' ').replace(/\b\d+\b/g, ' ').replace(/\s+/g, ' ').trim();
   const marcas = [...new Set(C.presentaciones.map(p => p.productos?.marca).filter(Boolean))];
   let marca = marcas.find(m => cuerpo.startsWith(m.toUpperCase() + ' ') || cuerpo === m.toUpperCase());
   let variante;
   if (marca) variante = cuerpo.slice(marca.length).trim();
   else { const w = cuerpo.split(' '); marca = titulo(w[0] || ''); variante = w.slice(1).join(' '); }
-  return { cat, marca, variante: cat?.prefijo_factura === 'CIG' ? variante : titulo(variante) };
+  variante = cat?.prefijo_factura === 'CIG' ? variante : titulo(variante);
+  const { pesoGramos, unidadesCaja } = datosPresentacionFactura(texto);
+  const tipo = cat?.prefijo_factura || t.split(' ')[0];
+  const nombre = [titulo(tipo), marca, variante, pesoGramos ? pesoGramos + ' g' : ''].filter(Boolean).join(' ');
+  return { cat, marca, variante, pesoGramos, unidadesCaja, nombre };
 }
 // ============ ESCANEAR PROVEEDOR ============
 // Lee una factura solo para registrar al proveedor (RUC, nombre, teléfono) y aprender sus códigos. No registra compra.
@@ -3951,7 +4041,7 @@ async function escanearProveedor(archivo) {
   // Códigos de productos que ya conoces: se aprenden para este proveedor
   const lineas = extraerLineas(texto), comprables = C.presentaciones.filter(p => p.se_compra);
   lineas.forEach(l => Object.assign(l, emparejar(l.texto, {}, comprables, l)));
-  const conocidas = lineas.filter(l => l.id && l.codigo);
+  const conocidas = lineas.filter(l => l.id && l.codigo && l.por === 'codigo' && l.cuadra);
   const fin = () => { URL.revokeObjectURL(url); caja.innerHTML = ''; };
   const aprenderCodigos = async provId => {
     if (!conocidas.length) return 0;
@@ -3989,6 +4079,13 @@ async function escanearProveedor(archivo) {
     } catch (e) { aviso(textoError(e), true); }
   };
 }
+function descargarLecturaFactura(lectura) {
+  if (!lectura) return;
+  const copia = new Blob([JSON.stringify(lectura, null, 2)], { type: 'application/json' });
+  const enlace = document.createElement('a');
+  enlace.href = URL.createObjectURL(copia); enlace.download = 'lectura-factura.json'; enlace.click();
+  setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+}
 async function escanearFactura(archivo) {
   const caja = $('#escaneo');
   const url = URL.createObjectURL(archivo);
@@ -4001,33 +4098,34 @@ async function escanearFactura(archivo) {
   await cargarLibreria(LIB.jsqr);
   const qr = interpretarQR(leerQR(img));
   avance(0.1, qr ? 'QR leído. Ahora leo los productos…' : 'No encontré el QR; leo el texto de la factura…');
-  const texto = await leerTexto(img, avance);
+  const texto = await leerTexto(img, avance, lectura => calidadFacturaOCR(lectura, qr));
   avance(1, 'Listo');
-  const lineas = extraerLineas(texto);
+  const columnas = leerColumnasFactura(texto);
+  const lineas = extraerLineas(texto, columnas);
+  const totalLeido = qr?.total || totalFacturaOCR(texto);
+  const importeLinea = l => l.importe ?? r2(l.cantidad * l.costo);
+  const sumaFactura = () => r2(lineas.filter(l => l.incluir).reduce((a, l) => a + importeLinea(l), 0));
+  const totalConIgv = suma => r2(suma * 1.18);
+  const usaIgv = suma => qr?.igv > 0 && totalLeido != null && Math.abs(totalConIgv(suma) - totalLeido) < Math.abs(suma - totalLeido);
+  const diferencia = suma => totalLeido == null ? null : r2(totalLeido - (usaIgv(suma) ? totalConIgv(suma) : suma));
+  const opcionesLinea = l => C.presentaciones.filter(p => (p.se_compra || (l.factor === 1 || l.bonif) && num(p.factor) === 1) && (!l.factor || num(p.factor) === l.factor));
   // Proveedor por RUC; alias aprendidos de ese proveedor
   const ruc = qr?.ruc || (texto.match(/\b(10|15|17|20)\d{9}\b/) || [])[0] || '';
   let prov = C.proveedores.find(p => p.numero_documento === ruc) || null;
   const comprables = C.presentaciones.filter(p => p.se_compra);
   const cargarAlias = async pid => pid ? Object.fromEntries((await q(sb.from('alias_compra').select('texto, presentacion_id').eq('proveedor_id', pid))).map(a => [a.texto, a.presentacion_id])) : {};
   let alias = await cargarAlias(prov?.id);
-  lineas.forEach(l => Object.assign(l, emparejar(l.texto, alias, comprables, l), { incluir: true }));
+  lineas.forEach(l => Object.assign(l, emparejar(l.texto, alias, comprables, l), { incluir: true, importeOriginal: l.importe, costoOriginal: l.costo }));
   // ¿Ya registrada?
   let duplicada = null;
   if (prov && qr) duplicada = await q(sb.from('compras').select('id, estado, fecha_ingreso').eq('proveedor_id', prov.id).eq('serie', qr.serie).eq('numero', qr.numero).neq('estado', 'ANULADA').maybeSingle()).catch(() => null);
   const tc = qr ? C.tiposComp.find(t => t.codigo_sunat === qr.tipo) : null;
 
   const pintar = () => {
-    // Para comprobar contra el total cuentan todas las líneas marcadas (también las que no son mercadería)
-    const suma = r2(lineas.filter(l => l.incluir).reduce((a, l) => a + r2(l.cantidad * l.costo), 0));
-    const noMerc = r2(lineas.filter(l => l.incluir && !l.id).reduce((a, l) => a + r2(l.cantidad * l.costo), 0));
-    let modoIgv = '0', cuadre = '';
-    if (qr?.total) {
-      const conIgv = r2(suma * 1.18), dSin = Math.abs(suma - qr.total), dCon = Math.abs(conIgv - qr.total);
-      modoIgv = qr.igv > 0 && dCon < dSin ? '0.18' : '0';
-      const calc = modoIgv === '0.18' ? conIgv : suma, dif = r2(qr.total - calc);
-      cuadre = Math.abs(dif) <= 0.1 ? `<div class="cuadre ok">Cuadra con el total de la factura: ${S(qr.total)}${modoIgv === '0.18' ? ' (precios sin IGV + 18%)' : ''}.${noMerc ? ` Hay ${S(noMerc)} que no es mercadería: no entra a la compra; regístralo en Gastos si corresponde.` : ''}</div>`
-        : `<div class="cuadre mal">Tus líneas suman ${S(calc)}${modoIgv === '0.18' ? ' con IGV' : ''} y la factura dice ${S(qr.total)} (diferencia ${S(dif)}). Revisa cantidades y precios, o agrega la línea que falte.</div>`;
-    }
+    const suma = sumaFactura(), dif = diferencia(suma);
+    const cuadre = dif == null ? '<div class="cuadre mal">No pude leer el total del comprobante. Contrástalo con la foto.</div>'
+      : Math.abs(dif) <= 0.02 ? `<div class="cuadre ok">Importes leídos: ${S(suma)} · Total del comprobante: ${S(totalLeido)}${dif ? ` · redondeo ${S(dif)}` : ''}</div>`
+      : `<div class="cuadre mal">Los importes suman ${S(suma)}${usaIgv(suma) ? ' antes del IGV' : ''} y el total del comprobante es ${S(totalLeido)}. Diferencia: ${S(dif)}.</div>`;
     $('#escaneo').innerHTML = `<div class="escaner">
       <div class="cab-esc"><img class="prev" id="escImg" src="${url}" alt="Foto de la factura">
         <div style="flex:1 1 260px">
@@ -4043,15 +4141,17 @@ async function escanearFactura(archivo) {
             ${C.proveedores.length ? `<div class="fila" style="margin-top:6px"><div><label>…o es uno que ya tienes</label><select id="escProvSel"><option value="">Elegir</option>${C.proveedores.map(p => `<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></div></div>` : ''}` : ''}
         </div></div>
       ${duplicada ? `<div class="cuadre mal">Esta factura ya está registrada (${fh(duplicada.fecha_ingreso)}). Si la registras de nuevo, el stock se sumará dos veces.</div>` : ''}
+      <details><summary>Texto original del OCR</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(texto)}</pre></details>
+      <button class="btn claro mini" id="escAuditoria">Descargar lectura original</button>
       <h3>Productos (${lineas.length})</h3>
       ${lineas.length ? `<div class="scroll"><table class="lin-esc"><tr><th></th><th>En la factura</th><th>Es tu producto</th><th class="n">Cantidad</th><th class="n">Costo c/u</th><th class="n">Importe</th></tr>
         ${lineas.map((l, i) => `<tr class="${l.incluir ? '' : 'off'}"><td><input type="checkbox" data-inc="${i}" ${l.incluir ? 'checked' : ''} style="width:auto" aria-label="Incluir línea"></td>
-          <td class="txt">${l.codigo ? `<small class="cod">${esc(l.codigo)}</small> ` : ''}${esc(l.texto)}${l.bonif ? ' <span class="chip ok">regalo</span>' : l.cuadra ? '' : ' <span class="chip aviso">revisar</span>'}</td>
-          <td><select data-pres="${i}" style="min-width:190px"><option value="">— No es mercadería —</option>${(l.bonif ? C.presentaciones.filter(p => p.se_compra || num(p.factor) === 1) : comprables).map(p => `<option value="${p.id}" ${p.id === l.id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select>
+          <td class="txt">${l.codigo ? `<small class="cod">${esc(l.codigo)}</small> ` : ''}${esc(l.unidadMedida ? leerDescripcion(l.texto).nombre : l.texto)}${l.unidadMedida ? ` <small class="sub">· ${esc(l.unidadMedida)}${l.unidadesCaja ? ` · caja de ${N(l.unidadesCaja)}` : ''}</small>` : ''}${l.bonif ? ' <span class="chip ok">regalo</span>' : l.cuadra && (!l.unidadMedida || l.factor) ? '' : ' <span class="chip aviso">revisar</span>'}</td>
+          <td><select data-pres="${i}" style="min-width:190px"><option value="">— No es mercadería —</option>${opcionesLinea(l).map(p => `<option value="${p.id}" ${p.id === l.id ? 'selected' : ''}>${esc(presNombre(p))}</option>`).join('')}</select>
             ${l.por === 'codigo' ? '<span class="chip ok">por código</span>' : l.por === 'factura' ? '<span class="chip ok">por nombre</span>' : l.por === 'aprendido' ? '<span class="chip ok">recordado</span>' : l.por === 'parecido' ? '<span class="chip">sugerido</span>' : `<button class="btn mini" data-crear="${i}">Crear producto</button>`}</td>
-          <td class="n"><input style="width:72px" type="number" min="0" step="1" inputmode="decimal" value="${l.cantidad}" data-cant="${i}"></td>
+          <td class="n"><input style="width:72px" type="number" min="0" step="any" inputmode="decimal" value="${l.cantidad}" data-cant="${i}"></td>
           <td class="n">${l.bonif ? '<span class="sub">gratis</span>' : `<input style="width:92px" type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" data-cu="${i}">`}</td>
-          <td class="n">${S(l.cantidad * l.costo)}</td></tr>`).join('')}</table></div>`
+          <td class="n">${S(importeLinea(l))}${!l.bonif ? `<input type="number" min="0" step="0.01" aria-label="Corregir importe" value="${importeLinea(l)}" data-imp="${i}">` : ''}${l.importeOriginal != null ? `<small>Leído: ${S(l.importeOriginal)}</small>` : ''}</td></tr>`).join('')}</table></div>`
         : '<p class="sub">No reconocí líneas de productos en la foto. Prueba con una foto más cercana y con buena luz, o agrégalos a mano en la compra.</p>'}
       <button class="btn claro mini" id="escMas" style="margin-top:8px">Agregar línea</button>
       ${cuadre}
@@ -4061,16 +4161,22 @@ async function escanearFactura(archivo) {
     const e = $('#escaneo');
     $('#escImg').onclick = () => $('#escImg').classList.toggle('grande');
     e.querySelectorAll('[data-inc]').forEach(x => x.onchange = () => { lineas[x.dataset.inc].incluir = x.checked; pintar(); });
-    e.querySelectorAll('[data-pres]').forEach(x => x.onchange = () => { const l = lineas[x.dataset.pres]; l.id = x.value; l.por = ''; if (!x.value) l.incluir = true; pintar(); });
+    e.querySelectorAll('[data-pres]').forEach(x => x.onchange = () => { const l = lineas[x.dataset.pres]; l.id = x.value; l.por = x.value ? 'manual' : ''; if (!x.value) l.incluir = true; pintar(); });
     e.querySelectorAll('[data-cant]').forEach(x => x.onchange = () => { lineas[x.dataset.cant].cantidad = num(x.value); setTimeout(pintar); });
-    e.querySelectorAll('[data-cu]').forEach(x => x.onchange = () => { lineas[x.dataset.cu].costo = num(x.value); setTimeout(pintar); });
+    e.querySelectorAll('[data-imp]').forEach(x => x.onchange = () => { lineas[x.dataset.imp].importe = r2(x.value); setTimeout(pintar); });
+    $('#escAuditoria').onclick = () => descargarLecturaFactura({ texto, totalLeido, lineas });
+    e.querySelectorAll('[data-cu]').forEach(x => x.onchange = () => {
+      const l = lineas[x.dataset.cu];
+      l.costo = num(x.value); l.importe = r2(l.cantidad * l.costo);
+      setTimeout(pintar);
+    });
     e.querySelectorAll('[data-crear]').forEach(x => x.onclick = async () => {
       const l = lineas[x.dataset.crear], nuevo = await crearProductoDesdeFactura(l);
       if (nuevo) { comprables.splice(0, comprables.length, ...C.presentaciones.filter(p => p.se_compra)); Object.assign(l, { id: presCompraDe(nuevo, l.factor, comprables)?.id || '', por: 'codigo', incluir: true }); pintar(); }
     });
-    $('#escMas').onclick = () => { lineas.push({ texto: '(agregada a mano)', cantidad: 1, costo: 0, importe: 0, cuadra: true, id: comprables[0]?.id || '', por: '', incluir: true }); pintar(); };
+    $('#escMas').onclick = () => { lineas.push({ texto: '(agregada a mano)', cantidad: 1, costo: 0, importe: null, cuadra: true, id: comprables[0]?.id || '', por: '', incluir: true }); pintar(); };
     $('#escCancelar').onclick = () => { URL.revokeObjectURL(url); $('#escaneo').innerHTML = ''; };
-    if ($('#escProvSel')) $('#escProvSel').onchange = async () => { prov = C.proveedores.find(p => p.id === $('#escProvSel').value) || null; if (prov) { alias = await cargarAlias(prov.id); lineas.forEach(l => { if (!l.id) Object.assign(l, emparejar(l.texto, alias, comprables, l)); }); } pintar(); };
+    if ($('#escProvSel')) $('#escProvSel').onchange = async () => { prov = C.proveedores.find(p => p.id === $('#escProvSel').value) || null; if (prov) { alias = await cargarAlias(prov.id); lineas.forEach(l => { if (l.por !== 'manual') Object.assign(l, emparejar(l.texto, alias, comprables, l)); }); } pintar(); };
     if ($('#escCrearProv')) $('#escCrearProv').onclick = async () => {
       const nom = $('#escProvNom').value.trim(), r = $('#escProvRuc').value.trim();
       if (!nom) return aviso('Escribe el nombre del proveedor', true);
@@ -4085,27 +4191,27 @@ async function escanearFactura(archivo) {
       if (!prov) return aviso('Primero crea o elige el proveedor', true);
       const usar = lineas.filter(l => l.incluir && l.id && l.cantidad > 0);
       if (!usar.length) return aviso('Elige al menos un producto', true);
-      if (usar.some(l => !l.bonif && !(l.costo > 0))) return aviso('Hay productos sin costo', true);
+      if (usar.some(l => !l.bonif && !(importeLinea(l) > 0))) return aviso('Hay productos sin costo', true);
+      if (usar.some(l => !opcionesLinea(l).some(p => p.id === l.id))) return aviso('Revisa la presentación de cada producto según la U.M. de la factura', true);
+      const dif = diferencia(sumaFactura());
+      const dudas = columnas.incompletas || dif == null || Math.abs(dif) > 0.02 || lineas.some(l => !l.incluir || !l.id || !l.cuadra || l.por === 'parecido' || (l.unidadMedida && !l.factor));
+      if (dudas && !(await dialogo('Confirma la lectura de la factura', [{ type: 'info', html: '<p>Revisa las líneas omitidas, las unidades, los productos sugeridos y el cuadre con la foto antes de pasar a Compras.</p>' }], 'Confirmar lectura'))) return;
       // Las bonificaciones por unidad entran con la presentación por unidad: se habilita para compras si hace falta
-      for (const pid of [...new Set(usar.filter(l => l.bonif).map(l => l.id))]) {
+      for (const pid of [...new Set(usar.map(l => l.id))]) {
         const pr = C.presentaciones.find(p => p.id === pid);
         if (pr && !pr.se_compra) { try { await q(sb.from('presentaciones').update({ se_compra: true }).eq('id', pid)); pr.se_compra = true; } catch (er) { return aviso('No pude preparar la bonificación: ' + textoError(er), true); } }
       }
       if (duplicada && !(await dialogo('Esta factura ya está registrada', [{ type: 'info', html: '<p class="sub" style="margin:0">Si sigues, la compra y el stock se sumarán dos veces.</p>' }], 'Seguir igual'))) return;
-      // Aprender: el producto guarda su código y su nombre de factura si aún no los tiene
-      for (const l of usar) {
-        const pr = C.presentaciones.find(p => p.id === l.id)?.productos; if (!pr || l.texto === '(agregada a mano)') continue;
-        const cambio = {}; if (l.codigo && !pr.codigo_factura) cambio.codigo_factura = l.codigo; if (!pr.nombre_factura) cambio.nombre_factura = l.texto;
-        if (Object.keys(cambio).length) { await q(sb.from('productos').update(cambio).eq('id', pr.id)).catch(() => {}); Object.assign(pr, cambio); }
-      }
       // Aprender: texto de la factura -> producto elegido
       const aprender = usar.filter(l => l.texto !== '(agregada a mano)').map(l => ({ proveedor_id: prov.id, texto: normTexto(l.texto).slice(0, 200), presentacion_id: l.id, actualizado_en: new Date().toISOString() })).filter(a => a.texto.length >= 2)
-        .concat(usar.filter(l => l.codigo && !l.bonif).map(l => ({ proveedor_id: prov.id, texto: '#' + l.codigo, presentacion_id: l.id, actualizado_en: new Date().toISOString() })));
+        .concat(usar.filter(l => l.codigo).map(l => ({ proveedor_id: prov.id, texto: '#' + l.codigo, presentacion_id: l.id, actualizado_en: new Date().toISOString() })));
       const unicos = Object.values(Object.fromEntries(aprender.map(a => [a.texto, a])));
       if (unicos.length) await q(sb.from('alias_compra').upsert(unicos, { onConflict: 'proveedor_id,texto' })).catch(er => aviso('No pude guardar lo aprendido: ' + textoError(er), true));
-      lineasCompra = usar.map(l => ({ presentacion_id: l.id, cantidad: l.cantidad, costo: String(l.costo) }));
-      const suma = usar.reduce((a, l) => a + r2(l.cantidad * l.costo), 0);
-      const igv = qr?.total && qr.igv > 0 && Math.abs(r2(suma * 1.18) - qr.total) < Math.abs(suma - qr.total) ? '0.18' : '0';
+      lineasCompra = usar.map(l => ({ presentacion_id: l.id, cantidad: l.cantidad, bonif: l.bonif,
+        costo: String(l.bonif ? 0 : (importeLinea(l) / l.cantidad).toFixed(8)) }));
+      const suma = usar.reduce((a, l) => a + importeLinea(l), 0);
+      const igv = usaIgv(suma) ? '0.18' : '0';
+      local.guardar('ultimaLecturaFactura', { texto, totalLeido, lineas, proveedor: prov.id, guardada: new Date().toISOString() });
       cabeceraEscaneada = { proveedor_id: prov.id, fecha: qr?.fecha || null, tipo_comprobante_id: tc?.id, serie: qr?.serie, numero: qr?.numero, igv };
       URL.revokeObjectURL(url);
       await ir('compras');
@@ -4944,7 +5050,7 @@ async function crearProductoDesdeFactura(l) {
   const nuevaCat = !g.cat && tipo.length >= 3 && !C.categorias.some(c => c.nombre.toUpperCase() === tipo) ? tipo : '';
   const hermana = C.categorias.find(c => C.presentaciones.some(p => p.productos?.categoria_id === c.id && p.productos?.marca?.toUpperCase() === g.marca.toUpperCase())) || C.categorias.find(c => c.controla_vencimiento) || C.categorias[0];
   const catIni = g.cat || (nuevaCat ? null : hermana);
-  const factor = l.bonif ? (C.categorias.find(c => c.id === catIni?.id)?.paquete_unidades || '') : (l.factor || catIni?.paquete_unidades || '');
+  const factor = l.unidadesCaja || (l.factor > 1 ? l.factor : catIni?.paquete_unidades || '');
   // Precio sugerido: costo por unidad que dice la factura + tu margen mínimo
   const costoU = !l.bonif && l.costo > 0 ? l.costo / (num(l.factor) || 1) : 0;
   const sugerido = costoU > 0 ? precioSugerido(costoU) : '';
@@ -4952,7 +5058,7 @@ async function crearProductoDesdeFactura(l) {
     { type: 'info', html: `<p class="sub" style="margin:0">En la factura: <b>${l.codigo ? esc(l.codigo) + ' · ' : ''}${esc(l.texto)}</b>${l.bonif ? ' <span class="chip ok">regalo</span>' : ''}.<br>Revisa lo que adiviné y confirma tu precio de venta.</p>` },
     { label: 'Categoría', type: 'select', value: nuevaCat ? '__nueva' : catIni?.id, options: [...(nuevaCat ? [{ value: '__nueva', label: `＋ Nueva: ${titulo(nuevaCat)} (como ${hermana?.nombre || 'la primera'})` }] : []), ...C.categorias.map(c => ({ value: c.id, label: c.nombre }))] },
     { label: 'Marca', value: g.marca, required: true },
-    { label: 'Variante', value: g.variante },
+    { label: 'Variante', value: [g.variante, g.pesoGramos ? g.pesoGramos + ' g' : ''].filter(Boolean).join(' ') },
     { label: '¿Cuántas unidades trae el paquete que compras?', type: 'number', value: factor },
     { type: 'info', html: costoU > 0 ? `<div class="consejo-claro" style="margin:0">Te cuesta <b>${S(costoU)}</b> por unidad (${S(l.costo)} ÷ ${N(num(l.factor) || 1)}). Para ganar tu margen mínimo de ${P(umbral())}, véndelo a <b>${S(sugerido)}</b> o más.</div>` : l.bonif ? '<p class="sub" style="margin:0">Llegó de regalo: entra a tu stock a costo cero y baja tu costo promedio.</p>' : '' },
     { label: 'Precio de venta por unidad (S/)', type: 'number', value: sugerido },
@@ -5999,7 +6105,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 try { if (sessionStorage.getItem('motivoSalida') === 'inactividad') { sessionStorage.removeItem('motivoSalida'); setTimeout(() => aviso(`Cerramos tu sesión por ${minInactividad()} minutos sin uso. Vuelve a entrar.`), 300); } } catch {}
 // Al salir se borran de este equipo las copias de tus datos del negocio (precios, stock, ventas del día).
 // Se conservan solo las ventas sin internet que aún no se suben, tu foto y tus preferencias.
-const DATOS_NEGOCIO = ['vender', 'catalogos', 'perfil', 'conteo', 'cuentaBilletes', 'recordatorios'];
+const DATOS_NEGOCIO = ['vender', 'catalogos', 'perfil', 'conteo', 'cuentaBilletes', 'recordatorios', 'ultimaLecturaFactura'];
 async function salir(alcance = 'local') {
   try { await sb.auth.signOut(alcance === 'global' ? { scope: 'global' } : undefined); } catch {}
   DATOS_NEGOCIO.forEach(k => { try { localStorage.removeItem('caja:' + k); } catch {} });

@@ -35,5 +35,5 @@ cambiar('<body>', '<body>\n' + banner)
 
 out = raiz / 'demo' / 'index.html'
 out.write_text(h)
-subprocess.run(['python3', '/home/claude/tools/csp.py', str(out)], check=True, capture_output=True)
+subprocess.run(['python3', str(raiz / 'tools' / 'csp.py'), str(out)], check=True, capture_output=True)
 print('demo/index.html generado')

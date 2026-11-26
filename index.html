@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-AVM9Ts6WaLsIchu2bU3nTaaNl6ArYKL/RfKM4sAG1Go='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net 'wasm-unsafe-eval' 'sha256-ugLoglopOSgknUKb/iSr3rkR4WumPTeYfYMnK9AlWSs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://keygysddihxgukmdggyy.supabase.co wss://keygysddihxgukmdggyy.supabase.co https://cdn.jsdelivr.net https://api.pwnedpasswords.com; base-uri 'none'; form-action 'none'; manifest-src 'self'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0E0F1A">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1221,6 +1221,7 @@ body.dock-abierto .dock-hoja{opacity:1;pointer-events:auto;transform:translateX(
   .pos-pro .linea .paso{width:44px!important;height:44px!important}
   .pos-pro .ticket .cobrar{min-height:48px}
 }
+#accionCobrosPanel[hidden]{display:none}
 @media(prefers-reduced-motion:reduce){.pos-pro .ticket{transition:none!important}}
 </style>
 </head>
@@ -1929,7 +1930,27 @@ function pintarDona(cont, d) {
   cont.querySelectorAll('[data-i]').forEach(x => { x.onmouseenter = () => marcar(x.dataset.i); x.onmouseleave = () => marcar(null); x.onclick = () => marcar(x.dataset.i); });
 }
 
+function accesosPanel() {
+  return `  <div class="pn-acciones" aria-label="Accesos rápidos">
+    <button class="btn rotulo" data-ir="vender">${ico('vender', 20)}<span>Vender</span></button>
+    <button class="btn claro" data-ir="compras">${ico('compras', 20)}<span>Comprar</span></button>
+    <button class="btn claro" data-atajo-stock="conteo">${ico('stock', 20)}<span>Contar</span></button>
+    <button class="btn claro" data-ir="gastos">${ico('gastos', 20)}<span>Gasto</span></button>
+  </div>
+  <div id="accionCobrosPanel" class="panel pend-item" hidden><div><b></b><small></small></div><button class="btn rotulo mini" id="btnRevisarCobrosPanel">Revisar ventas</button></div>`;
+}
+function conectarAccesosPanel() {
+  $('#btnRevisarCobrosPanel').onclick = verPendientes;
+  document.querySelectorAll('[data-atajo-stock]').forEach(b => b.onclick = () => {
+    local.guardar('stockTab', b.dataset.atajoStock);
+    ir('stock');
+  });
+  pintarPendientes();
+}
 async function vPanel(el) {
+  el.innerHTML = accesosPanel() + '<div id="panelCargando" class="sub">Cargando indicadores…</div>';
+  conectarAccesosPanel();
+  const carga = $('#panelCargando');
   const h = hoy(), d = n => { const x = new Date(h + 'T12:00:00-05:00'); x.setDate(x.getDate() - n); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); };
   const ayer = d(1), semana = d(7);
   // Periodo de todo el Panel: hoy, últimos 7 días o el mes en curso (se recuerda en este equipo)
@@ -1939,7 +1960,7 @@ async function vPanel(el) {
   const mesAntIni = (() => { const x = new Date(iniMes() + 'T12:00:00-05:00'); x.setMonth(x.getMonth() - 1); return x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); })();
   const mesAntFin = (() => { const ult = finMes(mesAntIni.slice(0, 7)); const dd = mesAntIni.slice(0, 8) + h.slice(8); return dd > ult ? ult : dd; })();
   const prevIni = per === 'sem' ? d(13) : per === 'mes' ? mesAntIni : ayer, prevFin = per === 'sem' ? d(7) : per === 'mes' ? mesAntFin : ayer;
-  const [dias, ventasHoy, lineasHoy, cobros, stock] = await Promise.all([
+  const datos = Promise.all([
     q(sb.from('v_resultados_diarios').select('*').gte('fecha', [semana, prevIni, desdeP].sort()[0]).lte('fecha', h)),
     q(sb.from('ventas').select('id, fecha, origen, venta_detalles(subtotal, costo_total)').eq('estado', 'EMITIDA').gte('fecha', desdeP + 'T00:00:00-05:00')),
     q(sb.from('v_lineas_rentabilidad').select('*').gte('fecha', desdeP).lte('fecha', h)),
@@ -1962,14 +1983,17 @@ async function vPanel(el) {
     const lin = vs.flatMap(v => v.venta_detalles || []), venta = r2(lin.reduce((a, l) => a + num(l.subtotal), 0));
     return { n: vs.length, venta, ganancia: r2(venta - lin.reduce((a, l) => a + num(l.costo_total), 0)) };
   };
-  const [ayerHora, semHora, gastosMes] = await Promise.all([tramo(1), tramo(7),
+  const comparaciones = Promise.all([tramo(1), tramo(7),
     q(sb.from('gastos').select('id').gte('fecha', d(30) + 'T00:00:00-05:00').limit(1)).then(x => x.length).catch(() => 1)]);
-  const [fiados, sesAbierta, preciosV, lotes] = await Promise.all([
+  const tareas = Promise.all([
     q(sb.from('v_cuentas_por_cobrar').select('saldo, dias_vencido')).catch(() => []),
     sesionCaja().catch(() => null),
     q(sb.from('v_precios_vigentes').select('*')).catch(() => []),
     lotesPorVencer().catch(() => []),
   ]);
+  const [[dias, ventasHoy, lineasHoy, cobros, stock], [ayerHora, semHora, gastosMes], [fiados, sesAbierta, preciosV, lotes]] =
+    await Promise.all([datos, comparaciones, tareas]);
+  if (!carga.isConnected) return;
   const urgentes = lotes.filter(l => l.dias <= 7);
   const dia = f => dias.find(x => x.fecha === f) || {};
   const H0 = dia(h), A = dia(ayer), SP = dia(semana);
@@ -2024,11 +2048,13 @@ async function vPanel(el) {
   const resp = diasDesdeRespaldo(), con2 = await con2fa;
   const entregaTurno = await entregaP;
   const pendientes = [
+    sesAbierta && horaLima < 17 && { t: 'Caja abierta', d: 'Cuenta el efectivo cuando termines la jornada.', b: '<button class="btn claro mini" id="btnCerrarDia">Ver arqueo</button>' },
     entregaTurno && { t: `Tu socio te debe entregar ${S(entregaTurno)}`, d: 'Cerró su turno. Recíbelo en tu caja para que pueda empezar otro.', b: '<button class="btn rotulo mini" data-ir="caja">Recibir</button>' },
     sesAbierta && horaLima >= 17 && { t: '¿Terminaste por hoy?', d: 'Cuenta el efectivo, cierra la caja y envíate el resumen en un solo paso.', b: '<button class="btn rotulo mini" id="btnCerrarDia">Cerrar el día</button>' },
+    reponer.length && { t: 'Productos por reponer', d: reponer.slice(0, 3).map(r => esc(r.producto)).join(', ') + (reponer.length > 3 ? ' y ' + (reponer.length - 3) + ' más' : ''), b: '<button class="btn claro mini" data-atajo-stock="pedido">Preparar pedido</button>' },
     urgentes.length && { t: urgentes.some(l => l.dias < 0) ? 'Tienes mercadería vencida' : 'Mercadería por vencer esta semana', d: urgentes.slice(0, 3).map(l => `${esc(l.producto)} (${l.dias < 0 ? 'vencido' : l.dias === 0 ? 'hoy' : `en ${l.dias} ${l.dias === 1 ? 'día' : 'días'}`})`).join(', ') + (urgentes.length > 3 ? ` y ${urgentes.length - 3} más` : '') + '.', b: '<button class="btn claro mini" data-ir="stock">Ver</button>' },
     !gastosMes && dias.some(x => vn(x) > 0) && { t: 'No has registrado gastos en 30 días', d: 'Tu ganancia neta está sobrestimada: sin alquiler, transporte o bolsas, se ve igual a la bruta.', b: '<button class="btn claro mini" data-ir="gastos">Registrar gasto</button>' },
-    alertas.length && { t: `${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo`, d: 'Revisa el detalle más abajo.', b: '<button class="btn claro mini" data-bajar="alertaPrecios">Ver</button>' },
+    alertas.length && { t: `${alertas.length === 1 ? 'Un precio deja' : alertas.length + ' precios dejan'} menos de tu margen mínimo`, d: 'Consulta los costos y precios vigentes en el catálogo.', b: '<button class="btn claro mini" data-ir="catalogo">Revisar precios</button>' },
     !con2 && { t: 'Tu cuenta solo tiene contraseña', d: 'Activa la verificación en dos pasos: sin el código de tu celular nadie entra.', b: '<button class="btn claro mini" data-ir="cuenta">Activar</button>' },
     (resp === null || resp >= 7) && { t: resp === null ? 'Aún no tienes copia de seguridad' : `Tu última copia fue hace ${resp} días`, d: 'Descárgala en un minuto para no perder tus datos.', b: '<button class="btn claro mini" data-ir="cuenta">Hacer copia</button>' },
   ].filter(Boolean);
@@ -2044,12 +2070,8 @@ async function vPanel(el) {
   };
   const fechaHoy = new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
   el.innerHTML = `
-  <div class="pn-acciones" aria-label="Accesos rápidos">
-    <button class="btn rotulo" data-ir="vender">${ico('vender', 20)}<span>Vender</span></button>
-    <button class="btn claro" data-ir="compras">${ico('compras', 20)}<span>Comprar</span></button>
-    <button class="btn claro" data-ir="stock">${ico('stock', 20)}<span>Contar</span></button>
-    <button class="btn claro" data-ir="gastos">${ico('gastos', 20)}<span>Gasto</span></button>
-  </div>
+  ${accesosPanel()}
+  ${pintarPendientes2(pendientes)}
   <div class="pn-per" role="tablist" aria-label="Periodo del panel">${[['hoy', 'Hoy'], ['sem', '7 días'], ['mes', 'Este mes']].map(([k, n]) => `<button type="button" role="tab" aria-selected="${k === per}" class="${k === per ? 'on' : ''}" data-panelper="${k}">${n}</button>`).join('')}
     <span class="sub">${per === 'hoy' ? fechaHoy : per === 'sem' ? `Del ${fd(desdeP).slice(0, 5)} al ${fd(h).slice(0, 5)}` : `Del 1 al ${Number(h.slice(8))} de ${new Date(h + 'T12:00:00-05:00').toLocaleDateString('es-PE', { timeZone: 'America/Lima', month: 'long' })}`}</span></div>
   <section class="pn-kpis" aria-label="Indicadores ${TXT.de}">
@@ -2074,14 +2096,13 @@ async function vPanel(el) {
         : `<div class="pn-meta-cab"><div><small>Meta del día</small><b class="pn-meta-vacia">Sin meta</b></div><button class="btn claro mini" id="metaCambiar">Ponerte una meta</button></div>
           <p class="sub" style="margin:8px 0 0">Una meta diaria de ganancia te dice cuántas ventas te faltan cada día.</p>`}
       </section>
-      ${pintarPendientes2(pendientes)}
     </div>
     <div class="pn-m">
       <section class="panel pn-dona"><div class="pn-cab"><h2>¿A dónde va cada sol que vendes?</h2><span class="sub">${TXT.en[0].toUpperCase() + TXT.en.slice(1)}</span></div>
         <div id="gDona"></div></section>
       ${per === 'hoy' ? '' : '<!--'}<section class="panel"><div class="pn-cab"><h2>Hoy, hora por hora</h2><span class="sub">${mejorHora !== undefined ? `Mejor hora: ${mejorHora}:00 (${S(porHora[mejorHora].v)})` : ''}</span></div><div id="gHoras"></div></section>${per === 'hoy' ? '' : '-->'}
-      <section class="panel"><div class="pn-cab"><h2>${per === 'mes' ? 'Día por día del mes' : 'Últimos 7 días'}</h2><div class="leyenda" style="margin:0"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div></div><div id="g7"></div>
-        <button class="lnk" data-ir="analisis" style="margin-top:10px">Ver el análisis completo →</button></section>
+      <details class="panel" id="detalleEvolucion"><summary>${per === 'mes' ? 'Ventas y ganancia por día del mes' : 'Ventas y ganancia de los últimos 7 días'}</summary><div class="leyenda" style="margin:8px 0"><span style="--c:${COL_VENTA}">Venta</span><span style="--c:${COL_GAN}">Ganancia</span></div><div id="g7"></div>
+        <button class="lnk" data-ir="analisis" style="margin-top:10px">Ver el análisis completo →</button></details>
       <section class="panel"><h2>Qué te dejó más ganancia ${TXT.en}</h2>${top.length ? `<div class="scroll"><table><tr><th>Producto</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">Unidades</th><th class="n">Venta</th></tr>
         ${top.map(([k, o]) => `<tr><td>${esc(nomProd[k] || '')}</td><td class="n"><b>${S(o.v - o.k)}</b></td><td class="n">${o.v > 0 ? P((o.v - o.k) / o.v * 100) : '—'}</td><td class="n">${N(o.c)}</td><td class="n">${S(o.v)}</td></tr>`).join('')}</table></div>`
         : '<p class="vacio">Cuando vendas, aquí verás qué producto rinde más.</p>'}</section>
@@ -2107,6 +2128,7 @@ async function vPanel(el) {
       </section>
     </div>
   </div>`;
+  conectarAccesosPanel();
   // Texto del resumen (negritas con *asteriscos*, formato de WhatsApp)
   const nomMedio = Object.fromEntries(medios(MEDIOS_VER).map(m => [m.id, m.nombre]));
   const vVar = ayerHora ? pct(vn(H0), ayerHora.venta) : null;
@@ -2153,9 +2175,13 @@ async function vPanel(el) {
   else barras($('#gHoras'), rangoH.map(x => x + 'h'), [{ nombre: 'Venta', color: COL_VENTA, valores: rangoH.map(x => porHora[x]?.v || 0) }],
     { alto: 200, titulo: 'Ventas por hora de hoy', tituloTip: i => `${rangoH[i]}:00 a ${rangoH[i] + 1}:00 · ${porHora[rangoH[i]]?.n || 0} ventas` });
   const fechasG = per === 'mes' ? (() => { const out = []; for (let x = new Date(iniMes() + 'T12:00:00-05:00'); x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' }) <= h; x.setDate(x.getDate() + 1)) out.push(x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' })); return out; })() : ult7;
-  barras($('#g7'), fechasG.map(f => per === 'mes' ? String(Number(f.slice(8))) : nomDia(f)), [
-    { nombre: 'Venta', color: COL_VENTA, valores: fechasG.map(f => vn(dia(f))) },
-    { nombre: 'Ganancia', color: COL_GAN, valores: fechasG.map(f => gb(dia(f))) }], { alto: 200, titulo: per === 'mes' ? 'Venta y ganancia de cada día del mes' : 'Venta y ganancia de los últimos 7 días' });
+  const evolucion = $('#detalleEvolucion');
+  evolucion.ontoggle = () => {
+    if (!evolucion.open || $('#g7')?.childElementCount) return;
+    barras($('#g7'), fechasG.map(f => per === 'mes' ? String(Number(f.slice(8))) : nomDia(f)), [
+      { nombre: 'Venta', color: COL_VENTA, valores: fechasG.map(f => vn(dia(f))) },
+      { nombre: 'Ganancia', color: COL_GAN, valores: fechasG.map(f => gb(dia(f))) }], { alto: 200, titulo: per === 'mes' ? 'Venta y ganancia de cada día del mes' : 'Venta y ganancia de los últimos 7 días' });
+  };
   el.querySelectorAll('[data-bajar]').forEach(b => b.onclick = () => $('#' + b.dataset.bajar)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   pintarBoletas();
   if (!esSocio()) pintarPagosPanel();

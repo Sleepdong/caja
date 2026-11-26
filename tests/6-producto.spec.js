@@ -141,3 +141,24 @@ test('compras: sin costo marca el campo', async ({ page, errores }) => {
   await page.locator('#btnComprar').click();
   await expect(page.locator('#tLineas [data-lu]').first()).toBeFocused();
 });
+
+test('compras: bonificación gratis del mismo producto', async ({ page, errores }) => {
+  await abrirDemo(page);
+  await irA(page, 'compras');
+  await page.locator('#cpProvs [data-provc]').first().click();
+  await page.locator('#cpGrid [data-addp]').first().click();
+  const total = await page.locator('#totC').textContent();
+  await page.locator('#tLineas [data-lb="0"]').click();
+  const regalo = page.locator('#tLineas .cl-item').nth(1);
+  await expect(regalo).toContainText('Bonificación');
+  await expect(regalo).toContainText('Gratis');
+  await regalo.locator('[data-mas]').click();
+  await expect(regalo.locator('[data-lc]')).toHaveValue('2');
+  await expect(page.locator('#totC')).toHaveText(total);
+  await expect(page.locator('#resFilas')).toContainText('gratis');
+  // Tocar el producto otra vez suma a la línea pagada, no al regalo
+  await page.locator('#cpGrid [data-addp]').first().click();
+  await expect(page.locator('#tLineas .cl-item').first().locator('[data-lc]')).toHaveValue('2');
+  await page.locator('#btnComprar').click();
+  await expect(page.locator('body')).toContainText('Compra registrada');
+});
